@@ -101,10 +101,6 @@ ${s ? html`
     <div class="value" style="color:var(--pink);">${s.level1}</div>
     <div class="label">1级违规</div>
   </div>
-  <div class="card stat-card">
-    <div class="value" style="color:var(--red);">${s.banned}</div>
-    <div class="label">永久封禁</div>
-  </div>
 </div>` : ''}
 
 <div class="search-box">

@@ -89,6 +89,7 @@ export function AdminLayout({ title, currentPath, children, admin }: AdminLayout
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      color-scheme: dark;
       overflow-x: hidden;
     }
     body::before {
@@ -354,7 +355,7 @@ export function AdminLayout({ title, currentPath, children, admin }: AdminLayout
       font-size: var(--fs-sm);
       font-weight: 500;
     }
-    .form-group input, .form-group select, .form-group textarea {
+    .form-group input, .form-group select, .form-group textarea { color-scheme: dark;
       width: 100%;
       padding: 0.55rem 0.8rem;
       border: 1px solid var(--glass-border);

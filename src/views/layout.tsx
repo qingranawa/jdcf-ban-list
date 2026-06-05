@@ -67,6 +67,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      color-scheme: dark;
       max-width: 100vw;
       overflow-x: hidden;
     }
@@ -208,12 +209,13 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       padding: 0.55rem 0.7rem;
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
-      background: rgba(255,255,255,0.05);
-      color: var(--text-secondary);
+      background: #1a1a2a;
+      color: var(--text);
       font-size: var(--fs-sm);
       font-family: var(--sans);
       outline: none;
       cursor: pointer;
+      color-scheme: dark;
       transition: border-color 0.2s ease;
     }
     .search-box select:focus { border-color: var(--accent); }
@@ -280,6 +282,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       font-size: var(--fs-sm);
       font-family: var(--sans);
       outline: none;
+      color-scheme: dark;
       transition: border-color 0.2s ease;
     }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
