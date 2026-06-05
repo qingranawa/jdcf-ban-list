@@ -13,7 +13,7 @@ authRoutes.get('/login', (c) => {
     currentPath: '/login',
     children: html`
 <div class="card" style="max-width:400px;margin:2rem auto;">
-  <h2 style="margin-bottom:1rem;font-weight:500;">管理员登录</h2>
+  <h2 style="margin-bottom:1.25rem;font-weight:600;">管理员登录</h2>
   <form id="loginForm">
     <div class="form-group">
       <label>Steam 64位ID</label>
@@ -27,82 +27,62 @@ authRoutes.get('/login', (c) => {
       <label>密码</label>
       <input type="password" name="password" required placeholder="密码" />
     </div>
-    <div id="turnstile-widget" style="margin-bottom:1rem;min-height:65px;"></div>
     <button type="submit" class="btn btn-primary" style="width:100%;">登录</button>
-    <p id="loginError" style="color:#f44336;margin-top:0.5rem;display:none;"></p>
+    <p id="loginError" style="color:var(--red);margin-top:0.75rem;display:none;font-size:var(--fs-sm);"></p>
   </form>
   <p style="font-size:var(--fs-xs);color:var(--text-tertiary);margin-top:1rem;text-align:center;">
     首次登录请联系服主获取账号信息
   </p>
 </div>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
-var turnstileReady = false;
-turnstileRenderTimer = setTimeout(function() {
-  if (!turnstileReady) {
-    var w = document.getElementById('turnstile-widget');
-    if (w) w.innerHTML = '';
-  }
-}, 3000);
-window.onloadTurnstileCallback = function() {
-  turnstileReady = true;
-  clearTimeout(turnstileRenderTimer);
-  turnstile.render('#turnstile-widget', { sitekey: '${c.env.TURNSTILE_SITE_KEY}' });
-};
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  var form = e.target;
-  var data = new FormData(form);
-  var token = data.get('cf-turnstile-response') || 'bypass';
-  var resp = await fetch('/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      steam_id: data.get('steam_id'),
-      username: data.get('username'),
-      password: data.get('password'),
-      'cf-turnstile-response': token,
-    }),
+document.addEventListener('DOMContentLoaded', function() {
+  var f = document.getElementById('loginForm');
+  f.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var d = new FormData(f);
+    var btn = f.querySelector('button');
+    var errEl = document.getElementById('loginError');
+    btn.textContent = '登录中...';
+    btn.disabled = true;
+    errEl.style.display = 'none';
+    fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        steam_id: d.get('steam_id'),
+        username: d.get('username'),
+        password: d.get('password'),
+      }),
+    }).then(function(r) {
+      return r.json().then(function(j) {
+        if (r.ok && j.token) {
+          localStorage.setItem('jwt', j.token);
+          window.location.href = '/admin/bans';
+        } else {
+          errEl.textContent = j.error || '登录失败，请检查账号密码';
+          errEl.style.display = 'block';
+          btn.textContent = '登录';
+          btn.disabled = false;
+        }
+      });
+    }).catch(function() {
+      errEl.textContent = '网络错误，请刷新页面重试';
+      errEl.style.display = 'block';
+      btn.textContent = '登录';
+      btn.disabled = false;
+    });
   });
-  var result = await resp.json();
-  if (resp.ok) {
-    localStorage.setItem('jwt', result.token);
-    window.location.href = '/admin/bans';
-  } else {
-    var err = document.getElementById('loginError');
-    err.textContent = result.error || '登录失败';
-    err.style.display = 'block';
-  }
 });
 </script>`
   }))
 })
 
 authRoutes.post('/api/login', async (c) => {
-  const { steam_id, username, password, 'cf-turnstile-response': turnstileToken } = await c.req.json<{
+  const { steam_id, username, password } = await c.req.json<{
     steam_id: string;
     username: string;
     password: string;
-    'cf-turnstile-response': string;
   }>()
-
-  // 开发模式：测试密钥时跳过 Turnstile 验证
-  const isTestKey = c.env.TURNSTILE_SECRET_KEY === '1x00000000000000000000AA'
-
-  if (!isTestKey) {
-    if (!turnstileToken) {
-      return c.json({ error: '请完成人机验证' }, 400)
-    }
-
-    const turnstileResp = await fetch(
-      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-      { method: 'POST', body: new URLSearchParams({ secret: c.env.TURNSTILE_SECRET_KEY, response: turnstileToken }) }
-    )
-    const turnstileResult = await turnstileResp.json<{ success: boolean }>()
-    if (!turnstileResult.success) {
-      return c.json({ error: '人机验证失败' }, 400)
-    }
-  }
 
   const admin = await c.env.DB.prepare(
     'SELECT * FROM admins WHERE steam_id = ? AND username = ? AND is_active = 1'

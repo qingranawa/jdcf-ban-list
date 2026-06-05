@@ -33,11 +33,11 @@ function levelLabel(lv: string): string {
   return m[lv] || lv
 }
 function statusBadge(s: string): string {
-  const m: Record<string,string> = { banned:'badge-ban', unbanned:'badge-ok', permanent:'badge-perm', muted:'badge-muted' }
+  const m: Record<string,string> = { banned:'badge-ban', unbanned:'badge-ok', permanent:'badge-perm', muted:'badge-muted', warning:'badge-warning', cfba:'badge-perm' }
   return m[s] || 'badge-ban'
 }
 function statusLabel(s: string): string {
-  const m: Record<string,string> = { banned:'封禁中', unbanned:'已解封', permanent:'永久封禁', muted:'禁言中' }
+  const m: Record<string,string> = { banned:'封禁中', unbanned:'已解封', permanent:'永久封禁', muted:'禁言中', warning:'警告生效', cfba:'CFBA封禁' }
   return m[s] || s
 }
 

@@ -59,7 +59,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       --amber: #fbbf24;
       --blue: #60a5fa;
     }
-    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
     body {
       font-family: var(--sans);
       font-size: var(--fs-base);
@@ -67,6 +67,8 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     /* ── 玻璃态 mixin ── */
@@ -314,6 +316,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 1rem;
       margin-bottom: 1.5rem;
+      overflow: hidden;
     }
     .stat-card {
       text-align: center;

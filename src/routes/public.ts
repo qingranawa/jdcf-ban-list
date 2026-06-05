@@ -7,8 +7,11 @@ import { TeamPage } from '../views/team'
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
 function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null }): string {
+  // 警告无时效
+  if (ban.ban_duration === 'warning') return 'warning'
   // 永久封禁
   if (ban.ban_duration === 'permanent') return 'permanent'
+  if (ban.ban_duration === 'cfba') return 'cfba'
   // 50年永不解除
   if (/^50[Yy]$/.test(ban.ban_duration)) return 'banned'
 
@@ -34,7 +37,7 @@ function computeStatus(ban: { ban_duration: string; ban_time: string; archive_ac
     if (ban.archive_action === 'downgraded') return 'banned'
     return 'unbanned'
   }
-  // CFBA / warning 等特殊值
+  // cfba / 禁言无时长 等
   return 'banned'
 }
 
