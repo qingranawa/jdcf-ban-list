@@ -125,7 +125,83 @@ ${s ? html`
   </select>
 </div>
 
-${BanTable(props)}`
+${BanTable(props)}
+
+<!-- 快捷添加按钮（仅登录后可见） -->
+<button id="quickBanBtn" style="display:none;position:fixed;bottom:2rem;right:2rem;width:56px;height:56px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:1.5rem;cursor:pointer;box-shadow:0 4px 20px rgba(91,141,239,0.4);z-index:100;" onclick="showQuickBan()">＋</button>
+
+<!-- 快捷添加弹窗 -->
+<div id="quickBanModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;align-items:center;justify-content:center;">
+<div class="card" style="max-width:480px;width:90%;padding:1.5rem;">
+  <h3 style="margin-bottom:1rem;font-weight:500;">快速添加封禁</h3>
+  <form id="quickBanForm">
+    <div class="form-group"><label>昵称 *</label><input type="text" name="nickname" required /></div>
+    <div class="form-group"><label>Steam ID *</label><input type="text" name="steam_id" required placeholder="76561199..." /></div>
+    <div class="form-group"><label>原因</label><input type="text" name="reason" /></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+      <div class="form-group">
+        <label>时长</label>
+        <select name="ban_duration">
+          <option value="30m">30分钟</option><option value="1h">1小时</option><option value="3h">3小时</option>
+          <option value="1d">1天</option><option value="3d">3天</option><option value="7d">7天</option>
+          <option value="14d">14天</option><option value="30d">30天</option><option value="1y">1年</option>
+          <option value="50y">50年</option><option value="permanent">永久</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>等级</label>
+        <select name="violation_level">
+          <option value="warning">警告</option><option value="level3" selected>3级违规</option>
+          <option value="level2">2级违规</option><option value="level1">1级违规</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
+      <button type="submit" class="btn btn-primary">添加</button>
+      <button type="button" class="btn btn-ghost" onclick="hideQuickBan()">取消</button>
+    </div>
+    <p id="quickBanMsg" style="margin-top:0.5rem;font-size:var(--fs-sm);color:var(--green);display:none;"></p>
+  </form>
+</div></div>
+
+<script>
+(function() {
+  var jwt = localStorage.getItem('jwt');
+  if (jwt) document.getElementById('quickBanBtn').style.display = '';
+})();
+function showQuickBan() { document.getElementById('quickBanModal').style.display = 'flex'; }
+function hideQuickBan() { document.getElementById('quickBanModal').style.display = 'none'; }
+document.addEventListener('DOMContentLoaded', function() {
+  var f = document.getElementById('quickBanForm');
+  if (!f) return;
+  f.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var d = Object.fromEntries(new FormData(f));
+    var jwt = localStorage.getItem('jwt');
+    var msg = document.getElementById('quickBanMsg');
+    fetch('/api/admin/bans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify(d),
+    }).then(function(r) { return r.json(); }).then(function(j) {
+      if (j.success) {
+        msg.textContent = '✅ 添加成功，页面即将刷新';
+        msg.style.display = '';
+        msg.style.color = 'var(--green)';
+        setTimeout(function() { location.reload(); }, 1000);
+      } else {
+        msg.textContent = j.error || '添加失败';
+        msg.style.display = '';
+        msg.style.color = 'var(--red)';
+      }
+    }).catch(function() {
+      msg.textContent = '网络错误';
+      msg.style.display = '';
+      msg.style.color = 'var(--red)';
+    });
+  });
+});
+</script>`
 }
 
 function genPages(current: number, total: number): (number|string)[] {

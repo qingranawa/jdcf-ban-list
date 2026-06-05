@@ -106,6 +106,21 @@ adminRoutes.delete('/api/admin/bans/:id', requirePermission('T1'), async (c) => 
 
 // ── 处理页面 ──
 
+// 判断封禁是否已过期（基于 ban_time + ban_duration）
+function isBanExpired(ban: { ban_time: string; ban_duration: string }): boolean {
+  if (ban.ban_duration === 'permanent') return false
+  if (/^50[Yy]$/.test(ban.ban_duration)) return false
+  if (ban.ban_duration === 'warning' || ban.ban_duration === 'cfba') return false
+  let dur = ban.ban_duration
+  if (dur.startsWith('mute-')) dur = dur.slice(5)
+  const m = dur.match(/^(\d+)([dhm])$/i)
+  if (!m) return false
+  const amount = parseInt(m[1])
+  const unit = m[2].toLowerCase()
+  const ms = unit === 'm' ? amount * 60000 : unit === 'h' ? amount * 3600000 : amount * 86400000
+  return Date.now() > new Date(ban.ban_time).getTime() + ms
+}
+
 // 处理页面（T1+）
 adminRoutes.get('/admin/process', requirePermission('T1'), async (c) => {
   const rows = await c.env.DB.prepare(
@@ -113,13 +128,15 @@ adminRoutes.get('/admin/process', requirePermission('T1'), async (c) => {
      LEFT JOIN admins a ON b.handled_by = a.id
      WHERE b.is_archived = 0
        AND b.violation_level IN ('level2', 'level3')
-       AND datetime(b.created_at) < datetime('now', '-30 days')
-     ORDER BY b.created_at ASC`
+     ORDER BY b.ban_time ASC`
   ).all<BanRow & { handled_by_name: string | null }>()
+
+  // 只显示实际已过期的
+  const expired = rows.results.filter(b => isBanExpired(b))
 
   return c.html(AdminLayout({
     title: '处理', currentPath: '/admin/process',
-    children: AdminProcessPage({ bans: rows.results }),
+    children: AdminProcessPage({ bans: expired }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
@@ -131,10 +148,9 @@ adminRoutes.get('/api/admin/process', requirePermission('T1'), async (c) => {
      LEFT JOIN admins a ON b.handled_by = a.id
      WHERE b.is_archived = 0
        AND b.violation_level IN ('level2', 'level3')
-       AND datetime(b.created_at) < datetime('now', '-30 days')
-     ORDER BY b.created_at ASC`
+     ORDER BY b.ban_time ASC`
   ).all()
-  return c.json({ data: rows.results })
+  return c.json({ data: rows.results.filter((b: any) => isBanExpired(b)) })
 })
 
 // API: 批量删除（归档为已删除）
