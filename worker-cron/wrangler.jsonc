@@ -5,6 +5,6 @@
   "triggers": { "crons": ["0 0 1 * *"] },
   "vars": {
     "PAGES_URL": "https://jdcf-ban-list.pages.dev",
-    "CRON_SECRET": "dev-cron-secret-change-in-production"
+    "CRON_ARCHIVE_SECRET": "dev-cron-secret-change-in-production"
   }
 }

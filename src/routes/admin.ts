@@ -11,7 +11,7 @@ export const cronRoutes = new Hono<{ Bindings: Env }>()
 
 cronRoutes.post('/api/cron/archive', async (c) => {
   const secret = c.req.header('X-Cron-Secret')
-  if (secret !== c.env.CRON_SECRET) return c.json({ error: '未授权' }, 401)
+  if (secret !== c.env.CRON_ARCHIVE_SECRET) return c.json({ error: '未授权' }, 401)
 
   const result = await c.env.DB.prepare(
     `SELECT * FROM bans WHERE is_archived = 0
