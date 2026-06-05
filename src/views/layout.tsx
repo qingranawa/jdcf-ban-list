@@ -198,8 +198,13 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     <div class="nav-links">
       <a href="/" data-current="${currentPath === '/' ? 'active' : ''}">封禁列表</a>
       <a href="/team" data-current="${currentPath === '/team' ? 'active' : ''}">管理组</a>
-      ${admin ? html`<a href="/admin/bans">后台</a>` : ''}
-      ${admin ? html`<a href="/admin/logout">退出</a>` : html`<a href="/login">登录</a>`}
+      ${admin ? html`
+        <a href="/admin/bans" data-current="${currentPath.startsWith('/admin/bans') ? 'active' : ''}">封禁管理</a>
+        <a href="/admin/team" data-current="${currentPath.startsWith('/admin/team') ? 'active' : ''}">管理组管理</a>
+        <a href="/admin/blacklist" data-current="${currentPath.startsWith('/admin/blacklist') ? 'active' : ''}">黑名单</a>
+        <a href="/admin/archive" data-current="${currentPath.startsWith('/admin/archive') ? 'active' : ''}">归档</a>
+        <a href="/admin/logout">退出</a>
+      ` : html`<a href="/login">登录</a>`}
     </div>
   </nav>
   <main>
