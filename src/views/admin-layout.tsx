@@ -30,6 +30,7 @@ export function AdminLayout({ title, currentPath, children, admin }: AdminLayout
     { label: '封禁管理', icon: '📋', href: '/admin/bans', pattern: '/admin/bans' },
     { label: '处理', icon: '⚙️', href: '/admin/process', pattern: '/admin/process' },
     { label: '重点观察', icon: '👁', href: '/admin/watchlist', pattern: '/admin/watchlist' },
+    { label: '管理组', icon: '👥', href: '/admin/team', pattern: '/admin/team' },
     { label: '归档日志', icon: '📦', href: '/admin/archive', pattern: '/admin/archive' },
     { label: '账户', icon: '👤', href: '/account', pattern: '/account' },
     { label: '退出', icon: '🚪', href: '/logout', pattern: '/logout' },
@@ -81,7 +82,7 @@ export function AdminLayout({ title, currentPath, children, admin }: AdminLayout
       --blue: #60a5fa;
       --sidebar-width: 200px;
     }
-    html { font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; color-scheme: dark; }
     body {
       font-family: var(--sans);
       font-size: var(--fs-base);

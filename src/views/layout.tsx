@@ -59,7 +59,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       --amber: #fbbf24;
       --blue: #60a5fa;
     }
-    html { font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; overflow-x: hidden; color-scheme: dark; }
     body {
       font-family: var(--sans);
       font-size: var(--fs-base);
