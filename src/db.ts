@@ -5,7 +5,7 @@ export type Env = {
   TURNSTILE_SITE_KEY: string;
   TURNSTILE_SECRET_KEY: string;
   JWT_SECRET: string;
-  CRON_SECRET: string;
+  CRON_ARCHIVE_SECRET: string;
 };
 
 export type BanRow = {

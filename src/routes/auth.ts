@@ -16,12 +16,12 @@ authRoutes.get('/login', (c) => {
   <h2 style="margin-bottom:1rem;font-weight:500;">管理员登录</h2>
   <form id="loginForm">
     <div class="form-group">
-      <label>Steam UserID</label>
-      <input type="text" name="steam_id" required placeholder="STEAM_0:0:12345678" />
+      <label>Steam 64位ID</label>
+      <input type="text" name="steam_id" required placeholder="76561198874565964" />
     </div>
     <div class="form-group">
       <label>用户名</label>
-      <input type="text" name="username" required placeholder="用户名" />
+      <input type="text" name="username" required placeholder="admin" />
     </div>
     <div class="form-group">
       <label>密码</label>
@@ -31,6 +31,9 @@ authRoutes.get('/login', (c) => {
     <button type="submit" class="btn btn-primary" style="width:100%;">登录</button>
     <p id="loginError" style="color:#f44336;margin-top:0.5rem;display:none;"></p>
   </form>
+  <p style="font-size:var(--fs-xs);color:var(--text-tertiary);margin-top:1rem;text-align:center;">
+    首次登录请联系服主获取账号信息
+  </p>
 </div>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
