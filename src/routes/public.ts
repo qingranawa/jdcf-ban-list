@@ -76,7 +76,7 @@ publicRoutes.get('/', async (c) => {
 
   if (c.req.header('HX-Request')) {
     return c.html(HomePage({
-      bans: results, page, totalPages, total: results.length,
+      bans: results, page, totalPages, total,
       query: q, levelFilter, statusFilter,
     }))
   }
@@ -85,7 +85,7 @@ publicRoutes.get('/', async (c) => {
     title: '封禁列表',
     currentPath: '/',
     children: HomePage({
-      bans: results, page, totalPages, total: results.length,
+      bans: results, page, totalPages, total,
       query: q, levelFilter, statusFilter,
     }),
   }))
