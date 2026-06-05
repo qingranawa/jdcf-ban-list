@@ -1,27 +1,16 @@
 import { html } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
 
-type HomePageProps = {
-  bans: Array<{
-    id: number;
-    nickname: string;
-    steam_id: string;
-    ip_address: string;
-    reason: string;
-    ban_time: string;
-    ban_duration: string;
-    violation_level: string;
-    status: string;
-    notes: string;
-    handled_by_name: string | null;
-  }>;
-  page: number;
-  totalPages: number;
-  total: number;
-  query: string;
-  levelFilter: string;
-  statusFilter: string;
-  stats?: { total: number; level3: number; level2: number; level1: number; banned: number };
+type Ban = {
+  id: number; nickname: string; steam_id: string; ip_address: string;
+  reason: string; ban_time: string; ban_duration: string;
+  violation_level: string; status: string; notes: string;
+  handled_by_name: string | null;
+}
+
+type TableProps = {
+  bans: Ban[]; page: number; totalPages: number; total: number;
+  query: string; levelFilter: string; statusFilter: string;
 }
 
 function levelBadge(lv: string): string {
@@ -41,10 +30,59 @@ function statusLabel(s: string): string {
   return m[s] || s
 }
 
+// ── 纯表格 + 分页（htmx HX-Request 局部刷新用） ──
+export function BanTable(props: TableProps) {
+  return html`
+<div class="card ban-table-wrap">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+    <span style="font-size:var(--fs-sm);color:var(--text-secondary);">共 <strong style="color:var(--text);">${props.total}</strong> 条记录</span>
+  </div>
+  <div style="overflow-x:auto;">
+  <table>
+    <thead><tr>
+      <th>昵称</th><th>Steam ID</th><th>原因</th><th>封禁时间</th>
+      <th>时长</th><th>违规等级</th><th>状态</th><th>备注</th><th>处理管理</th>
+    </tr></thead>
+    <tbody>${props.bans.length === 0 ? html`
+      <tr><td colspan="9" style="text-align:center;padding:3rem 1rem;color:var(--text-tertiary);">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">🔍</div>
+        <div style="font-size:var(--fs-sm);">没有找到匹配的封禁记录</div>
+      </td></tr>`
+      : props.bans.map(ban => html`
+      <tr>
+        <td><strong>${escHtml(ban.nickname)}</strong></td>
+        <td><code style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text-secondary);">${escHtml(ban.steam_id)}</code></td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escAttr(ban.reason)}">${escHtml(ban.reason)}</td>
+        <td style="white-space:nowrap;font-size:var(--fs-sm);color:var(--text-secondary);">${fmtTime(ban.ban_time)}</td>
+        <td style="font-size:var(--fs-sm);color:var(--text-secondary);">${escHtml(ban.ban_duration)}</td>
+        <td><span class="badge ${levelBadge(ban.violation_level)}">${levelLabel(ban.violation_level)}</span></td>
+        <td><span class="badge ${statusBadge(ban.status)}">${statusLabel(ban.status)}</span></td>
+        <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm);color:var(--text-tertiary);" title="${escAttr(ban.notes)}">${ban.notes ? escHtml(ban.notes) : '—'}</td>
+        <td style="font-size:var(--fs-sm);color:var(--text-secondary);">${ban.handled_by_name ? escHtml(ban.handled_by_name) : '—'}</td>
+      </tr>`)}
+    </tbody>
+  </table>
+  </div>
+  ${props.totalPages > 1 ? html`
+  <div class="pagination">
+    ${props.page > 1 ? html`<a href="?page=${props.page-1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${props.page-1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target=".ban-table-wrap" hx-push-url="true">← 上一页</a>` : ''}
+    ${genPages(props.page, props.totalPages).map(p =>
+      p === props.page ? html`<span class="current">${p}</span>`
+      : html`<a href="?page=${p}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${p}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target=".ban-table-wrap" hx-push-url="true">${p}</a>`
+    )}
+    ${props.page < props.totalPages ? html`<a href="?page=${props.page+1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${props.page+1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target=".ban-table-wrap" hx-push-url="true">下一页 →</a>` : ''}
+  </div>` : ''}
+</div>`
+}
+
+// ── 完整首页（首次加载） ──
+type HomePageProps = TableProps & {
+  stats?: { total: number; level3: number; level2: number; level1: number; banned: number };
+}
+
 export function HomePage(props: HomePageProps) {
   const s = props.stats
   return html`
-<!-- 统计卡片 -->
 ${s ? html`
 <div class="stat-grid">
   <div class="card stat-card">
@@ -69,7 +107,6 @@ ${s ? html`
   </div>
 </div>` : ''}
 
-<!-- 搜索与筛选 -->
 <div class="search-box">
   <input type="text" name="q" placeholder="搜索昵称 / Steam ID / IP…"
          hx-get="/" hx-trigger="keyup changed delay:300ms" hx-target=".ban-table-wrap" hx-push-url="true"
@@ -92,56 +129,7 @@ ${s ? html`
   </select>
 </div>
 
-<!-- 封禁列表 -->
-<div class="card ban-table-wrap">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
-    <span style="font-size:var(--fs-sm);color:var(--text-secondary);">共 <strong style="color:var(--text);">${props.total}</strong> 条记录</span>
-  </div>
-  <div style="overflow-x:auto;">
-  <table>
-    <thead><tr>
-      <th>昵称</th>
-      <th>Steam ID</th>
-      <th>原因</th>
-      <th>封禁时间</th>
-      <th>时长</th>
-      <th>违规等级</th>
-      <th>状态</th>
-      <th>备注</th>
-      <th>处理管理</th>
-    </tr></thead>
-    <tbody>
-      ${props.bans.length === 0 ? html`
-      <tr><td colspan="9" style="text-align:center;padding:3rem 1rem;color:var(--text-tertiary);">
-        <div style="font-size:2rem;margin-bottom:0.5rem;">🔍</div>
-        <div style="font-size:var(--fs-sm);">没有找到匹配的封禁记录</div>
-      </td></tr>`
-      : props.bans.map(ban => html`
-      <tr>
-        <td><strong>${escHtml(ban.nickname)}</strong></td>
-        <td><code style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text-secondary);">${escHtml(ban.steam_id)}</code></td>
-        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escAttr(ban.reason)}">${escHtml(ban.reason)}</td>
-        <td style="white-space:nowrap;font-size:var(--fs-sm);color:var(--text-secondary);">${fmtTime(ban.ban_time)}</td>
-        <td style="font-size:var(--fs-sm);color:var(--text-secondary);">${escHtml(ban.ban_duration)}</td>
-        <td><span class="badge ${levelBadge(ban.violation_level)}">${levelLabel(ban.violation_level)}</span></td>
-        <td><span class="badge ${statusBadge(ban.status)}">${statusLabel(ban.status)}</span></td>
-        <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm);color:var(--text-tertiary);" title="${escAttr(ban.notes)}">${ban.notes ? escHtml(ban.notes) : '—'}</td>
-        <td style="font-size:var(--fs-sm);color:var(--text-secondary);">${ban.handled_by_name ? escHtml(ban.handled_by_name) : '—'}</td>
-      </tr>`)}
-    </tbody>
-  </table>
-  </div>
-
-  ${props.totalPages > 1 ? html`
-  <div class="pagination">
-    ${props.page > 1 ? html`<a href="/?page=${props.page-1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-boost="true">← 上一页</a>` : ''}
-    ${genPages(props.page, props.totalPages).map(p =>
-      p === props.page ? html`<span class="current">${p}</span>`
-      : html`<a href="/?page=${p}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-boost="true">${p}</a>`
-    )}
-    ${props.page < props.totalPages ? html`<a href="/?page=${props.page+1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-boost="true">下一页 →</a>` : ''}
-  </div>` : ''}
-</div>`
+${BanTable(props)}`
 }
 
 function genPages(current: number, total: number): (number|string)[] {

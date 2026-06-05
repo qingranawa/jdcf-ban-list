@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import type { Env, BanRow, AdminRow } from '../db'
 import { Layout } from '../views/layout'
-import { HomePage } from '../views/home'
+import { HomePage, BanTable } from '../views/home'
 import { TeamPage } from '../views/team'
 
 export const publicRoutes = new Hono<{ Bindings: Env }>()
@@ -108,9 +108,9 @@ publicRoutes.get('/', async (c) => {
   results = results.filter(b => !(b.is_archived === 1 && b.archive_action === 'deleted'))
 
   if (c.req.header('HX-Request')) {
-    return c.html(HomePage({
+    return c.html(BanTable({
       bans: results, page, totalPages, total,
-      query: q, levelFilter, statusFilter, stats,
+      query: q, levelFilter, statusFilter,
     }))
   }
 
