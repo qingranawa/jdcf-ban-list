@@ -53,6 +53,25 @@ publicRoutes.get('/', async (c) => {
   const total = countResult?.total || 0
   const totalPages = Math.ceil(total / limit)
 
+  // 统计数据（仅在无筛选时计算）
+  let stats = undefined
+  if (!q && !levelFilter && !statusFilter) {
+    const s = await c.env.DB.prepare(
+      `SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN violation_level='level3' THEN 1 ELSE 0 END) as l3,
+        SUM(CASE WHEN violation_level='level2' THEN 1 ELSE 0 END) as l2,
+        SUM(CASE WHEN violation_level='level1' THEN 1 ELSE 0 END) as l1,
+        SUM(CASE WHEN violation_level='level4' THEN 1 ELSE 0 END) as l4
+       FROM bans`
+    ).first<{total:number;l3:number;l2:number;l1:number;l4:number}>()
+    // 粗略统计封禁中数量（已知数据大部分已解封）
+    const bannedCount = await c.env.DB.prepare(
+      `SELECT COUNT(*) as c FROM bans WHERE ban_duration IN ('permanent','50y','50Y')`
+    ).first<{c:number}>()
+    stats = { total: s?.total||0, level3: s?.l3||0, level2: s?.l2||0, level1: s?.l1||0, banned: bannedCount?.c||0 }
+  }
+
   const dataSql = `
     SELECT b.*, a.game_name as handled_by_name
     FROM bans b
@@ -77,7 +96,7 @@ publicRoutes.get('/', async (c) => {
   if (c.req.header('HX-Request')) {
     return c.html(HomePage({
       bans: results, page, totalPages, total,
-      query: q, levelFilter, statusFilter,
+      query: q, levelFilter, statusFilter, stats,
     }))
   }
 
@@ -86,7 +105,7 @@ publicRoutes.get('/', async (c) => {
     currentPath: '/',
     children: HomePage({
       bans: results, page, totalPages, total,
-      query: q, levelFilter, statusFilter,
+      query: q, levelFilter, statusFilter, stats,
     }),
   }))
 })
