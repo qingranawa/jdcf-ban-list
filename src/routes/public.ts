@@ -7,24 +7,34 @@ import { TeamPage } from '../views/team'
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
 function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null }): string {
+  // 永久封禁
   if (ban.ban_duration === 'permanent') return 'permanent'
-  if (ban.ban_duration.startsWith('mute-')) return 'muted'
   // 50年永不解除
   if (/^50[Yy]$/.test(ban.ban_duration)) return 'banned'
-  const durationMatch = ban.ban_duration.match(/^(\d+)([dhm])$/i)
-  if (durationMatch) {
-    const amount = parseInt(durationMatch[1])
-    const unit = durationMatch[2].toLowerCase()
-    const banTime = new Date(ban.ban_time).getTime()
-    let durationMs = 0
-    if (unit === 'm') durationMs = amount * 60 * 1000
-    else if (unit === 'h') durationMs = amount * 60 * 60 * 1000
-    else if (unit === 'd') durationMs = amount * 24 * 60 * 60 * 1000
-    if (Date.now() > banTime + durationMs) {
-      if (ban.archive_action === 'downgraded') return 'banned'
-      return 'unbanned'
-    }
+
+  let dur = ban.ban_duration
+  let isMute = false
+  // 禁言处理：去掉 mute- 前缀再解析时长
+  if (dur.startsWith('mute-')) {
+    dur = dur.slice(5)
+    isMute = true
   }
+
+  const match = dur.match(/^(\d+)([dhm])$/i)
+  if (match) {
+    const amount = parseInt(match[1])
+    const unit = match[2].toLowerCase()
+    const banTime = new Date(ban.ban_time).getTime()
+    let ms = unit === 'm' ? amount * 60000 : unit === 'h' ? amount * 3600000 : amount * 86400000
+    // 未过期
+    if (Date.now() <= banTime + ms) {
+      return isMute ? 'muted' : 'banned'
+    }
+    // 已过期
+    if (ban.archive_action === 'downgraded') return 'banned'
+    return 'unbanned'
+  }
+  // CFBA / warning 等特殊值
   return 'banned'
 }
 
@@ -67,15 +77,9 @@ publicRoutes.get('/', async (c) => {
        FROM bans`
     ).first<{total:number;l3:number;l2:number;l1:number;l4:number}>()
     // 统计封禁中数量（通过 duration 判断未过期的）
-    const bannedCount = await c.env.DB.prepare(
-      `SELECT COUNT(*) as c FROM bans WHERE
-        ban_duration IN ('permanent','50y','50Y')
-        OR ban_duration LIKE 'mute-%'
-        OR (ban_duration GLOB '*[0-9]*'
-            AND ban_duration NOT IN ('permanent','50y','50Y','cfba')
-            AND ban_duration NOT LIKE 'mute-%'
-            AND ban_duration NOT LIKE '%warning%')`
-    ).first<{c:number}>()
+          const bannedCount = await c.env.DB.prepare(
+        `SELECT COUNT(*) as c FROM bans WHERE ban_duration IN ('permanent','50y','50Y')`
+      ).first<{c:number}>()
     stats = { total: s?.total||0, level3: s?.l3||0, level2: s?.l2||0, level1: s?.l1||0, banned: bannedCount?.c||0 }
   }
 

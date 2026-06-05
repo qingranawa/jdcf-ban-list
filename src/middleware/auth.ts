@@ -18,9 +18,14 @@ export type Variables = JwtVariables & {
 }
 
 // 手动验证 JWT — 支持动态 secret（从 c.env 读取）
+// HTML 页面请求无 token 时跳转 /login，API 请求返回 JSON
 export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings: Env }>(async (c, next) => {
   const authHeader = c.req.header('Authorization')
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const accept = c.req.header('Accept') || ''
+    if (accept.includes('text/html')) {
+      return c.redirect('/login')
+    }
     return c.json({ error: '缺少认证凭据' }, 401)
   }
 
@@ -28,6 +33,8 @@ export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings:
   try {
     const payload = await verify(token, c.env.JWT_SECRET, 'HS256')
     if (!payload.adminId || !payload.permissionGroup) {
+      const accept = c.req.header('Accept') || ''
+      if (accept.includes('text/html')) return c.redirect('/login')
       return c.json({ error: '无效的认证凭据' }, 401)
     }
     c.set('jwtPayload', payload)
@@ -35,6 +42,8 @@ export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings:
     c.set('permissionGroup', payload.permissionGroup as string)
     await next()
   } catch {
+    const accept = c.req.header('Accept') || ''
+    if (accept.includes('text/html')) return c.redirect('/login')
     return c.json({ error: '认证凭据已过期或无效' }, 401)
   }
 })

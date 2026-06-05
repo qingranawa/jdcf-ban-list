@@ -65,7 +65,7 @@ ${s ? html`
   </div>
   <div class="card stat-card">
     <div class="value" style="color:var(--red);">${s.banned}</div>
-    <div class="label">封禁中</div>
+    <div class="label">永久封禁</div>
   </div>
 </div>` : ''}
 
