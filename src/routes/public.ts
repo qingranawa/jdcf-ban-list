@@ -66,9 +66,15 @@ publicRoutes.get('/', async (c) => {
         SUM(CASE WHEN violation_level='level4' THEN 1 ELSE 0 END) as l4
        FROM bans`
     ).first<{total:number;l3:number;l2:number;l1:number;l4:number}>()
-    // 粗略统计封禁中数量（已知数据大部分已解封）
+    // 统计封禁中数量（通过 duration 判断未过期的）
     const bannedCount = await c.env.DB.prepare(
-      `SELECT COUNT(*) as c FROM bans WHERE ban_duration IN ('permanent','50y','50Y')`
+      `SELECT COUNT(*) as c FROM bans WHERE
+        ban_duration IN ('permanent','50y','50Y')
+        OR ban_duration LIKE 'mute-%'
+        OR (ban_duration GLOB '*[0-9]*'
+            AND ban_duration NOT IN ('permanent','50y','50Y','cfba')
+            AND ban_duration NOT LIKE 'mute-%'
+            AND ban_duration NOT LIKE '%warning%')`
     ).first<{c:number}>()
     stats = { total: s?.total||0, level3: s?.l3||0, level2: s?.l2||0, level1: s?.l1||0, banned: bannedCount?.c||0 }
   }

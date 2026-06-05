@@ -25,11 +25,11 @@ type HomePageProps = {
 }
 
 function levelBadge(lv: string): string {
-  const m: Record<string,string> = { warning:'badge-warning', severe_warning:'badge-warning', level3:'badge-level3', level2:'badge-level2', level1:'badge-level1', level4:'badge-level4' }
+  const m: Record<string,string> = { warning:'badge-warning', severe_warning:'badge-warning', level3:'badge-level3', level2:'badge-level2', level1:'badge-level1', level4:'badge-level4', mute:'badge-muted', cfba_ban:'badge-perm' }
   return m[lv] || 'badge-warning'
 }
 function levelLabel(lv: string): string {
-  const m: Record<string,string> = { warning:'警告', severe_warning:'严重警告', level3:'3级违规', level2:'2级违规', level1:'1级违规', level4:'4级(逃逸)' }
+  const m: Record<string,string> = { warning:'警告', severe_warning:'严重警告', level3:'3级违规', level2:'2级违规', level1:'1级违规', level4:'4级(逃逸)', mute:'禁言', cfba_ban:'CFBA封禁' }
   return m[lv] || lv
 }
 function statusBadge(s: string): string {
@@ -88,6 +88,7 @@ ${s ? html`
     <option value="banned" ${props.statusFilter==='banned'?'selected':''}>封禁中</option>
     <option value="unbanned" ${props.statusFilter==='unbanned'?'selected':''}>已解封</option>
     <option value="permanent" ${props.statusFilter==='permanent'?'selected':''}>永久封禁</option>
+    <option value="muted" ${props.statusFilter==='muted'?'selected':''}>禁言中</option>
   </select>
 </div>
 
@@ -106,11 +107,12 @@ ${s ? html`
       <th>时长</th>
       <th>违规等级</th>
       <th>状态</th>
+      <th>备注</th>
       <th>处理管理</th>
     </tr></thead>
     <tbody>
       ${props.bans.length === 0 ? html`
-      <tr><td colspan="8" style="text-align:center;padding:3rem 1rem;color:var(--text-tertiary);">
+      <tr><td colspan="9" style="text-align:center;padding:3rem 1rem;color:var(--text-tertiary);">
         <div style="font-size:2rem;margin-bottom:0.5rem;">🔍</div>
         <div style="font-size:var(--fs-sm);">没有找到匹配的封禁记录</div>
       </td></tr>`
@@ -123,6 +125,7 @@ ${s ? html`
         <td style="font-size:var(--fs-sm);color:var(--text-secondary);">${escHtml(ban.ban_duration)}</td>
         <td><span class="badge ${levelBadge(ban.violation_level)}">${levelLabel(ban.violation_level)}</span></td>
         <td><span class="badge ${statusBadge(ban.status)}">${statusLabel(ban.status)}</span></td>
+        <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:var(--fs-sm);color:var(--text-tertiary);" title="${escAttr(ban.notes)}">${ban.notes ? escHtml(ban.notes) : '—'}</td>
         <td style="font-size:var(--fs-sm);color:var(--text-secondary);">${ban.handled_by_name ? escHtml(ban.handled_by_name) : '—'}</td>
       </tr>`)}
     </tbody>

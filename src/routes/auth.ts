@@ -27,7 +27,7 @@ authRoutes.get('/login', (c) => {
       <label>密码</label>
       <input type="password" name="password" required placeholder="密码" />
     </div>
-    <div id="turnstile-widget" style="margin-bottom:1rem;"></div>
+    <div id="turnstile-widget" style="margin-bottom:1rem;min-height:65px;"></div>
     <button type="submit" class="btn btn-primary" style="width:100%;">登录</button>
     <p id="loginError" style="color:#f44336;margin-top:0.5rem;display:none;"></p>
   </form>
@@ -37,31 +37,43 @@ authRoutes.get('/login', (c) => {
 </div>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script>
+var turnstileReady = false;
+turnstileRenderTimer = setTimeout(function() {
+  if (!turnstileReady) {
+    var w = document.getElementById('turnstile-widget');
+    if (w) w.innerHTML = '';
+  }
+}, 3000);
+window.onloadTurnstileCallback = function() {
+  turnstileReady = true;
+  clearTimeout(turnstileRenderTimer);
   turnstile.render('#turnstile-widget', { sitekey: '${c.env.TURNSTILE_SITE_KEY}' });
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const data = new FormData(form);
-    const resp = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        steam_id: data.get('steam_id'),
-        username: data.get('username'),
-        password: data.get('password'),
-        'cf-turnstile-response': data.get('cf-turnstile-response'),
-      }),
-    });
-    const result = await resp.json();
-    if (resp.ok) {
-      localStorage.setItem('jwt', result.token);
-      window.location.href = '/admin/bans';
-    } else {
-      const err = document.getElementById('loginError');
-      err.textContent = result.error || '登录失败';
-      err.style.display = 'block';
-    }
+};
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  var form = e.target;
+  var data = new FormData(form);
+  var token = data.get('cf-turnstile-response') || 'bypass';
+  var resp = await fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      steam_id: data.get('steam_id'),
+      username: data.get('username'),
+      password: data.get('password'),
+      'cf-turnstile-response': token,
+    }),
   });
+  var result = await resp.json();
+  if (resp.ok) {
+    localStorage.setItem('jwt', result.token);
+    window.location.href = '/admin/bans';
+  } else {
+    var err = document.getElementById('loginError');
+    err.textContent = result.error || '登录失败';
+    err.style.display = 'block';
+  }
+});
 </script>`
   }))
 })

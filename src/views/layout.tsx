@@ -84,6 +84,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 2rem;
       height: 56px;
+      overflow-x: auto;
       background: rgba(11, 11, 18, 0.82);
       backdrop-filter: blur(28px);
       -webkit-backdrop-filter: blur(28px);
@@ -118,6 +119,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       max-width: 1280px;
       margin: 0 auto;
       padding: 2rem 1.5rem;
+      overflow-x: hidden;
     }
 
     /* ── 卡片 ── */
@@ -128,6 +130,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       border: 1px solid var(--glass-border);
       border-radius: var(--radius);
       padding: 1.75rem;
+      overflow-x: auto;
       transition: border-color 0.3s ease;
     }
     .card:hover { border-color: rgba(255,255,255,0.12); }
