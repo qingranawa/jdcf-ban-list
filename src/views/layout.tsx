@@ -367,7 +367,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
         <a href="/admin/team" data-current="${currentPath.startsWith('/admin/team') ? 'active' : ''}">管理组管理</a>
         <a href="/admin/blacklist" data-current="${currentPath.startsWith('/admin/blacklist') ? 'active' : ''}">黑名单</a>
         <a href="/admin/archive" data-current="${currentPath.startsWith('/admin/archive') ? 'active' : ''}">归档</a>
-        <a href="/admin/logout">退出</a>
+        <a href="/logout">退出</a>
       ` : html`<a href="/account" id="navAccount" style="display:none;" data-current="${currentPath === '/account' ? 'active' : ''}">账户</a>
         <a href="/login" id="navLogin">登录</a>`}
     </div>

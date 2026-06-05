@@ -18,18 +18,31 @@ export type Variables = JwtVariables & {
 }
 
 // 手动验证 JWT — 支持动态 secret（从 c.env 读取）
-// HTML 页面请求无 token 时跳转 /login，API 请求返回 JSON
+// 支持 Authorization header 和 jwt cookie 两种方式
 export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings: Env }>(async (c, next) => {
+  let token: string | null = null
+
+  // 1. 从 Authorization header 读取
   const authHeader = c.req.header('Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    const accept = c.req.header('Accept') || ''
-    if (accept.includes('text/html')) {
-      return c.redirect('/login')
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7)
+  }
+
+  // 2. 从 jwt cookie 读取（用于页面导航）
+  if (!token) {
+    const cookie = c.req.header('Cookie')
+    if (cookie) {
+      const match = cookie.match(/(?:^|;\s*)jwt=([^;]+)/)
+      if (match) token = decodeURIComponent(match[1])
     }
+  }
+
+  if (!token) {
+    const accept = c.req.header('Accept') || ''
+    if (accept.includes('text/html')) return c.redirect('/login')
     return c.json({ error: '缺少认证凭据' }, 401)
   }
 
-  const token = authHeader.slice(7)
   try {
     const payload = await verify(token, c.env.JWT_SECRET, 'HS256')
     if (!payload.adminId || !payload.permissionGroup) {
