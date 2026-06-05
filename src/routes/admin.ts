@@ -69,7 +69,8 @@ cronRoutes.post('/api/cron/archive', async (c) => {
 
 // ── Admin 路由（需 JWT 认证） ──
 export const adminRoutes = new Hono<{ Bindings: Env }>()
-adminRoutes.use('*', authMiddleware)
+adminRoutes.use('/admin/*', authMiddleware)
+adminRoutes.use('/api/admin/*', authMiddleware)
 
 // Admin ban list
 adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {

@@ -6,7 +6,8 @@ import { authMiddleware, requirePermission } from '../middleware/auth'
 import { Layout } from '../views/layout'
 
 export const adminTeamRoutes = new Hono<{ Bindings: Env }>()
-adminTeamRoutes.use('*', authMiddleware)
+adminTeamRoutes.use('/admin/*', authMiddleware)
+adminTeamRoutes.use('/api/admin/*', authMiddleware)
 
 // 管理组列表页
 adminTeamRoutes.get('/admin/team', requirePermission('OWNER'), async (c) => {

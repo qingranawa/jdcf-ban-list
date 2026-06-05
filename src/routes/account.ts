@@ -6,20 +6,18 @@ import { Layout } from '../views/layout'
 import { AccountPage } from '../views/account'
 
 export const accountRoutes = new Hono<{ Bindings: Env; Variables: Variables }>()
-accountRoutes.use('*', authMiddleware)
 
-// 账户页面
+// 账户页面（无服务端认证，客户端 JS 自行检查 JWT）
 accountRoutes.get('/account', (c) => {
   return c.html(Layout({
     title: '账户',
     currentPath: '/account',
     children: AccountPage(),
-    admin: { game_name: '', permission_group: c.get('permissionGroup') },
   }))
 })
 
 // API: 获取当前用户信息
-accountRoutes.get('/api/account', async (c) => {
+accountRoutes.get('/api/account', authMiddleware, async (c) => {
   const id = c.get('adminId')
   const admin = await c.env.DB.prepare(
     'SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor FROM admins WHERE id = ?'
@@ -29,7 +27,7 @@ accountRoutes.get('/api/account', async (c) => {
 })
 
 // API: 修改当前用户信息
-accountRoutes.put('/api/account', async (c) => {
+accountRoutes.put('/api/account', authMiddleware, async (c) => {
   const id = c.get('adminId')
   const body = await c.req.json()
 
