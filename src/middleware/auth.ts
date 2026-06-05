@@ -2,7 +2,7 @@ import { verify, type JwtVariables } from 'hono/jwt'
 import { createMiddleware } from 'hono/factory'
 import type { Env } from '../db'
 
-const GROUP_RANK: Record<string, number> = {
+export const GROUP_RANK: Record<string, number> = {
   OWNER: 0,
   T6: 1,
   T5: 2,

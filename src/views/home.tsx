@@ -1,4 +1,5 @@
 import { html } from 'hono/html'
+import { escHtml, escAttr } from '../helpers/escape'
 
 type HomePageProps = {
   bans: Array<{
@@ -150,8 +151,6 @@ function genPages(current: number, total: number): (number|string)[] {
   return pages
 }
 
-function escHtml(s: string): string { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
-function escAttr(s: string): string { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
 function enc(s: string): string { return encodeURIComponent(s) }
 function fmtTime(iso: string): string {
   if (!iso) return '—'

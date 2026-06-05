@@ -9,16 +9,17 @@ export const publicRoutes = new Hono<{ Bindings: Env }>()
 function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null }): string {
   if (ban.ban_duration === 'permanent') return 'permanent'
   if (ban.ban_duration.startsWith('mute-')) return 'muted'
-  const durationMatch = ban.ban_duration.match(/^(\d+)([dhm])$/)
+  // 50年永不解除
+  if (/^50[Yy]$/.test(ban.ban_duration)) return 'banned'
+  const durationMatch = ban.ban_duration.match(/^(\d+)([dhm])$/i)
   if (durationMatch) {
     const amount = parseInt(durationMatch[1])
-    const unit = durationMatch[2]
+    const unit = durationMatch[2].toLowerCase()
     const banTime = new Date(ban.ban_time).getTime()
     let durationMs = 0
     if (unit === 'm') durationMs = amount * 60 * 1000
     else if (unit === 'h') durationMs = amount * 60 * 60 * 1000
     else if (unit === 'd') durationMs = amount * 24 * 60 * 60 * 1000
-    if (unit === 'y' && amount === 50) return 'banned'
     if (Date.now() > banTime + durationMs) {
       if (ban.archive_action === 'downgraded') return 'banned'
       return 'unbanned'

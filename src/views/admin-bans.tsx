@@ -1,4 +1,5 @@
 import { html } from 'hono/html'
+import { escHtml as esc, escAttr } from '../helpers/escape'
 
 // ── 封禁管理列表页 ──
 export function AdminBanListPage(props: { bans: any[]; page: number; totalPages: number; total: number }) {
@@ -140,5 +141,3 @@ document.getElementById('banForm').addEventListener('submit', async (e) => {
 </script>`
 }
 
-function esc(s: string): string { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
-function escAttr(s: string): string { return (s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
