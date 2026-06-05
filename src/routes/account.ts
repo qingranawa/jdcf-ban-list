@@ -2,17 +2,18 @@ import { Hono } from 'hono'
 import bcrypt from 'bcryptjs'
 import type { Env, AdminRow } from '../db'
 import { authMiddleware, type Variables } from '../middleware/auth'
-import { Layout } from '../views/layout'
+import { AdminLayout } from '../views/admin-layout'
 import { AccountPage } from '../views/account'
 
 export const accountRoutes = new Hono<{ Bindings: Env; Variables: Variables }>()
 
 // 账户页面（无服务端认证，客户端 JS 自行检查 JWT）
 accountRoutes.get('/account', (c) => {
-  return c.html(Layout({
+  return c.html(AdminLayout({
     title: '账户',
     currentPath: '/account',
     children: AccountPage(),
+    admin: { game_name: '', permission_group: '' },
   }))
 })
 

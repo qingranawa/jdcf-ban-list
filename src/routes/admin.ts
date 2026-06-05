@@ -1,76 +1,19 @@
 import { Hono } from 'hono'
 import { html } from 'hono/html'
-import type { Env, BanRow } from '../db'
+import type { Env, BanRow, WatchlistRow } from '../db'
 import { authMiddleware, requirePermission, GROUP_RANK } from '../middleware/auth'
 import { escHtml, escAttr } from '../helpers/escape'
-import { Layout } from '../views/layout'
+import { AdminLayout } from '../views/admin-layout'
 import { AdminBanListPage, AdminBanFormPage } from '../views/admin-bans'
-
-// ── Cron 路由（无 JWT 认证） ──
-export const cronRoutes = new Hono<{ Bindings: Env }>()
-
-cronRoutes.post('/api/cron/archive', async (c) => {
-  const secret = c.req.header('X-Cron-Secret')
-  if (secret !== c.env.CRON_ARCHIVE_SECRET) return c.json({ error: '未授权' }, 401)
-
-  const result = await c.env.DB.prepare(
-    `SELECT * FROM bans WHERE is_archived = 0
-     AND violation_level IN ('level3', 'level2')
-     AND ban_duration NOT IN ('permanent', '50y', '50Y', 'cfba')`
-  ).all<BanRow>()
-
-  let l3Deleted = 0, l2Downgraded = 0
-  const items: { ban: BanRow; action: string; newLevel?: string }[] = []
-
-  for (const ban of result.results) {
-    // 解析时长（支持 mute- 前缀）
-    let dur = ban.ban_duration
-    if (dur.startsWith('mute-')) dur = dur.slice(5)
-    const match = dur.match(/^(\d+)([dhm])$/i)
-    if (!match) continue
-
-    const amount = parseInt(match[1])
-    const unit = match[2].toLowerCase()
-    let ms = unit === 'm' ? amount * 60000 : unit === 'h' ? amount * 3600000 : amount * 86400000
-    if (Date.now() <= new Date(ban.ban_time).getTime() + ms) continue
-
-    if (ban.violation_level === 'level3') {
-      await c.env.DB.prepare("UPDATE bans SET is_archived=1, archive_action='deleted', archived_at=datetime('now') WHERE id=?").bind(ban.id).run()
-      l3Deleted++
-      items.push({ ban, action: 'deleted' })
-    } else if (ban.violation_level === 'level2') {
-      await c.env.DB.prepare("UPDATE bans SET is_archived=1, archive_action='downgraded', violation_level='level3', archived_at=datetime('now') WHERE id=?").bind(ban.id).run()
-      l2Downgraded++
-      items.push({ ban, action: 'downgraded', newLevel: 'level3' })
-    }
-  }
-
-  // 写入归档摘要
-  if (l3Deleted > 0 || l2Downgraded > 0) {
-    const archiveResult = await c.env.DB.prepare(
-      `INSERT INTO archives (archive_date, total_processed, l3_deleted, l2_downgraded, l1_ignored, l4_ignored)
-       VALUES (date('now'), ?, ?, ?, 0, 0)`
-    ).bind(l3Deleted + l2Downgraded, l3Deleted, l2Downgraded).run()
-    const archiveId = archiveResult.meta.last_row_id
-
-    // 写入归档明细
-    for (const item of items) {
-      await c.env.DB.prepare(
-        `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(archiveId, item.ban.id, item.ban.nickname, item.ban.steam_id,
-             item.ban.violation_level, item.newLevel || null, item.action,
-             'unbanned', item.ban.ban_duration).run()
-    }
-  }
-
-  return c.json({ success: true, l3_deleted: l3Deleted, l2_downgraded: l2Downgraded })
-})
+import { AdminProcessPage } from '../views/admin-process'
+import { AdminWatchlistPage } from '../views/admin-watchlist'
 
 // ── Admin 路由（需 JWT 认证） ──
 export const adminRoutes = new Hono<{ Bindings: Env }>()
 adminRoutes.use('/admin/*', authMiddleware)
 adminRoutes.use('/api/admin/*', authMiddleware)
+
+// ── 封禁管理 ──
 
 // Admin ban list
 adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {
@@ -87,18 +30,18 @@ adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {
   const cnt = await c.env.DB.prepare('SELECT COUNT(*) as total FROM bans').first<{ total: number }>()
   const total = cnt?.total || 0
 
-  return c.html(Layout({
+  return c.html(AdminLayout({
     title: '封禁管理', currentPath: '/admin/bans',
     children: AdminBanListPage({ bans: rows.results, page, totalPages: Math.ceil(total / limit), total }),
-    admin: { game_name: '', permission_group: c.get('permissionGroup') },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
 adminRoutes.get('/admin/bans/new', requirePermission('T1'), (c) => {
-  return c.html(Layout({
+  return c.html(AdminLayout({
     title: '新增封禁', currentPath: '/admin/bans',
     children: AdminBanFormPage({ ban: null }),
-    admin: { game_name: '', permission_group: c.get('permissionGroup') },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
@@ -106,10 +49,10 @@ adminRoutes.get('/admin/bans/:id/edit', requirePermission('T1'), async (c) => {
   const id = c.req.param('id')
   const ban = await c.env.DB.prepare('SELECT * FROM bans WHERE id = ?').bind(id).first<BanRow>()
   if (!ban) return c.text('未找到该记录', 404)
-  return c.html(Layout({
+  return c.html(AdminLayout({
     title: '编辑封禁', currentPath: '/admin/bans',
     children: AdminBanFormPage({ ban }),
-    admin: { game_name: '', permission_group: c.get('permissionGroup') },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
@@ -124,15 +67,6 @@ adminRoutes.post('/api/admin/bans', requirePermission('T1'), async (c) => {
      VALUES (?, ?, ?, ?, datetime('now'), ?, ?, ?, ?)`
   ).bind(body.nickname, body.steam_id, body.ip_address || '', body.reason || '',
          body.ban_duration || '30m', body.violation_level || 'level3', body.notes || '', adminId).run()
-
-  await c.env.DB.prepare(
-    `INSERT INTO blacklist (steam_id, nickname, ip_address, ban_count, last_ban_at, latest_violation_level)
-     VALUES (?, ?, ?, 1, datetime('now'), ?)
-     ON CONFLICT(steam_id) DO UPDATE SET
-       ban_count = ban_count + 1, last_ban_at = datetime('now'),
-       latest_violation_level = ?, nickname = ?, updated_at = datetime('now')`
-  ).bind(body.steam_id, body.nickname, body.ip_address || '',
-         body.violation_level || 'level3', body.violation_level || 'level3', body.nickname).run()
   return c.json({ success: true, id: result.meta.last_row_id })
 })
 
@@ -170,7 +104,186 @@ adminRoutes.delete('/api/admin/bans/:id', requirePermission('T1'), async (c) => 
   return c.json({ success: true })
 })
 
-// 归档日志页面
+// ── 处理页面 ──
+
+// 处理页面（T1+）
+adminRoutes.get('/admin/process', requirePermission('T1'), async (c) => {
+  const rows = await c.env.DB.prepare(
+    `SELECT b.*, a.game_name as handled_by_name FROM bans b
+     LEFT JOIN admins a ON b.handled_by = a.id
+     WHERE b.is_archived = 0
+       AND b.violation_level IN ('level2', 'level3')
+       AND datetime(b.created_at) < datetime('now', '-30 days')
+     ORDER BY b.created_at ASC`
+  ).all<BanRow & { handled_by_name: string | null }>()
+
+  return c.html(AdminLayout({
+    title: '处理', currentPath: '/admin/process',
+    children: AdminProcessPage({ bans: rows.results }),
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
+  }))
+})
+
+// API: 待处理列表
+adminRoutes.get('/api/admin/process', requirePermission('T1'), async (c) => {
+  const rows = await c.env.DB.prepare(
+    `SELECT b.*, a.game_name as handled_by_name FROM bans b
+     LEFT JOIN admins a ON b.handled_by = a.id
+     WHERE b.is_archived = 0
+       AND b.violation_level IN ('level2', 'level3')
+       AND datetime(b.created_at) < datetime('now', '-30 days')
+     ORDER BY b.created_at ASC`
+  ).all()
+  return c.json({ data: rows.results })
+})
+
+// API: 批量删除（归档为已删除）
+adminRoutes.post('/api/admin/process/delete', requirePermission('T1'), async (c) => {
+  const body = await c.req.json()
+  const ids: number[] = body.ids || []
+  if (ids.length === 0) return c.json({ error: '请选择记录' }, 400)
+
+  // 查询选中的 ban 记录
+  const placeholders = ids.map(() => '?').join(',')
+  const bans = await c.env.DB.prepare(
+    `SELECT * FROM bans WHERE id IN (${placeholders}) AND is_archived = 0`
+  ).bind(...ids).all<BanRow>()
+
+  if (bans.results.length === 0) return c.json({ error: '没有可处理的记录' }, 400)
+
+  // 更新为已归档（删除）
+  await c.env.DB.prepare(
+    `UPDATE bans SET is_archived = 1, archive_action = 'deleted', archived_at = datetime('now') WHERE id IN (${placeholders})`
+  ).bind(...ids).run()
+
+  // 写归档摘要
+  const archiveResult = await c.env.DB.prepare(
+    `INSERT INTO archives (archive_date, total_processed, l3_deleted, l2_downgraded, l1_ignored, l4_ignored)
+     VALUES (date('now'), ?, ?, 0, 0, 0)`
+  ).bind(bans.results.length, bans.results.length).run()
+  const archiveId = archiveResult.meta.last_row_id
+
+  // 写归档明细
+  for (const ban of bans.results) {
+    await c.env.DB.prepare(
+      `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration)
+       VALUES (?, ?, ?, ?, ?, NULL, 'deleted', 'unbanned', ?)`
+    ).bind(archiveId, ban.id, ban.nickname, ban.steam_id, ban.violation_level, ban.ban_duration).run()
+  }
+
+  return c.json({ success: true, processed: bans.results.length })
+})
+
+// API: 批量降级（level2 → level3）
+adminRoutes.post('/api/admin/process/downgrade', requirePermission('T1'), async (c) => {
+  const body = await c.req.json()
+  const ids: number[] = body.ids || []
+  if (ids.length === 0) return c.json({ error: '请选择记录' }, 400)
+
+  const placeholders = ids.map(() => '?').join(',')
+  const bans = await c.env.DB.prepare(
+    `SELECT * FROM bans WHERE id IN (${placeholders}) AND is_archived = 0 AND violation_level = 'level2'`
+  ).bind(...ids).all<BanRow>()
+
+  if (bans.results.length === 0) return c.json({ error: '没有可降级的 2 级违规记录' }, 400)
+
+  // 更新为已归档（降级）
+  await c.env.DB.prepare(
+    `UPDATE bans SET is_archived = 1, archive_action = 'downgraded', violation_level = 'level3', archived_at = datetime('now') WHERE id IN (${placeholders})`
+  ).bind(...ids).run()
+
+  // 写归档摘要
+  const archiveResult = await c.env.DB.prepare(
+    `INSERT INTO archives (archive_date, total_processed, l3_deleted, l2_downgraded, l1_ignored, l4_ignored)
+     VALUES (date('now'), ?, 0, ?, 0, 0)`
+  ).bind(bans.results.length, bans.results.length).run()
+  const archiveId = archiveResult.meta.last_row_id
+
+  // 写归档明细
+  for (const ban of bans.results) {
+    await c.env.DB.prepare(
+      `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration)
+       VALUES (?, ?, ?, ?, ?, 'level3', 'downgraded', 'unbanned', ?)`
+    ).bind(archiveId, ban.id, ban.nickname, ban.steam_id, ban.violation_level, ban.ban_duration).run()
+  }
+
+  return c.json({ success: true, processed: bans.results.length })
+})
+
+// ── 重点观察（Watchlist） ──
+
+// 观察列表页（T3+）
+adminRoutes.get('/admin/watchlist', requirePermission('T3'), async (c) => {
+  const rows = await c.env.DB.prepare(
+    `SELECT w.*, a.game_name as added_by_name FROM watchlist w
+     LEFT JOIN admins a ON w.added_by = a.id
+     ORDER BY w.created_at DESC`
+  ).all<WatchlistRow & { added_by_name: string | null }>()
+
+  return c.html(AdminLayout({
+    title: '重点观察', currentPath: '/admin/watchlist',
+    children: AdminWatchlistPage({ entries: rows.results }),
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
+  }))
+})
+
+// API: 观察列表
+adminRoutes.get('/api/admin/watchlist', requirePermission('T3'), async (c) => {
+  const rows = await c.env.DB.prepare(
+    `SELECT w.*, a.game_name as added_by_name FROM watchlist w
+     LEFT JOIN admins a ON w.added_by = a.id
+     ORDER BY w.created_at DESC`
+  ).all()
+  return c.json({ data: rows.results })
+})
+
+// API: 单条观察
+adminRoutes.get('/api/admin/watchlist/:id', requirePermission('T3'), async (c) => {
+  const entry = await c.env.DB.prepare('SELECT * FROM watchlist WHERE id = ?').bind(c.req.param('id')).first()
+  if (!entry) return c.json({ error: '记录不存在' }, 404)
+  return c.json(entry)
+})
+
+// API: 添加观察
+adminRoutes.post('/api/admin/watchlist', requirePermission('T3'), async (c) => {
+  const body = await c.req.json()
+  const adminId = c.get('adminId')
+  if (!body.steam_id) return c.json({ error: 'Steam ID 为必填' }, 400)
+
+  try {
+    const result = await c.env.DB.prepare(
+      `INSERT INTO watchlist (steam_id, nickname, reason, added_by, notes)
+       VALUES (?, ?, ?, ?, ?)`
+    ).bind(body.steam_id, body.nickname || '', body.reason || '', adminId, body.notes || '').run()
+    return c.json({ success: true, id: result.meta.last_row_id })
+  } catch {
+    return c.json({ error: '该 Steam ID 已在观察列表中' }, 409)
+  }
+})
+
+// API: 编辑观察
+adminRoutes.put('/api/admin/watchlist/:id', requirePermission('T3'), async (c) => {
+  const id = c.req.param('id')
+  const body = await c.req.json()
+  const existing = await c.env.DB.prepare('SELECT id FROM watchlist WHERE id = ?').bind(id).first()
+  if (!existing) return c.json({ error: '记录不存在' }, 404)
+
+  await c.env.DB.prepare(
+    `UPDATE watchlist SET steam_id = ?, nickname = ?, reason = ?, notes = ?, updated_at = datetime('now') WHERE id = ?`
+  ).bind(body.steam_id, body.nickname || '', body.reason || '', body.notes || '', id).run()
+  return c.json({ success: true })
+})
+
+// API: 删除观察
+adminRoutes.delete('/api/admin/watchlist/:id', requirePermission('T3'), async (c) => {
+  const id = c.req.param('id')
+  const existing = await c.env.DB.prepare('SELECT id FROM watchlist WHERE id = ?').bind(id).first()
+  if (!existing) return c.json({ error: '记录不存在' }, 404)
+  await c.env.DB.prepare('DELETE FROM watchlist WHERE id = ?').bind(id).run()
+  return c.json({ success: true })
+})
+
+// ── 归档日志页面（T4+） ──
 adminRoutes.get('/admin/archive', requirePermission('T4'), async (c) => {
   const rows = await c.env.DB.prepare('SELECT * FROM archives ORDER BY archive_date DESC').all()
   const tableHtml = html`
@@ -182,50 +295,23 @@ adminRoutes.get('/admin/archive', requirePermission('T4'), async (c) => {
       ${rows.results.map((r: any) => html`<tr><td>${escAttr(r.archive_date)}</td><td>${r.total_processed}</td><td>${r.l3_deleted}</td><td>${r.l2_downgraded}</td><td>${r.l1_ignored}</td><td>${r.l4_ignored}</td></tr>`)}
     </tbody></table>`}
 </div>`
-  return c.html(Layout({
+  return c.html(AdminLayout({
     title: '归档日志', currentPath: '/admin/archive', children: tableHtml,
-    admin: { game_name: '', permission_group: c.get('permissionGroup') },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
-// Blacklist page (T3+)
-adminRoutes.get('/admin/blacklist', requirePermission('T3'), async (c) => {
-  const page = Math.max(1, parseInt(c.req.query('page') || '1'))
-  const limit = 20
-  const offset = (page - 1) * limit
-  const rows = await c.env.DB.prepare('SELECT * FROM blacklist ORDER BY last_ban_at DESC LIMIT ? OFFSET ?').bind(limit, offset).all()
-  const cnt = await c.env.DB.prepare('SELECT COUNT(*) as total FROM blacklist').first<{ total: number }>()
-  const total = cnt?.total || 0
-
-  function levelBadge(lv: string): string {
-    const m: Record<string,string> = { level3:'badge-level3', level2:'badge-level2', level1:'badge-level1', level4:'badge-level4' }
-    return m[lv] || 'badge-level3'
-  }
-
-  const tableHtml = html`
-<div class="card">
-  <h2 style="margin-bottom:1rem;font-weight:500;">黑名单总表</h2>
-  <p style="color:var(--text-tertiary);font-size:var(--fs-sm);margin-bottom:0.75rem;">共 ${total} 名被封禁玩家</p>
-  <table>
-    <thead><tr><th>Steam ID</th><th>昵称</th><th>累计封禁</th><th>最近违规</th><th>首次封禁</th><th>最后封禁</th></tr></thead>
-    <tbody>${rows.results.length === 0
-      ? html`<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text-tertiary);">暂无数据</td></tr>`
-      : rows.results.map((r: any) => html`<tr>
-        <td><code style="font-family:var(--mono);font-size:var(--fs-xs);color:var(--text-secondary);">${escHtml(r.steam_id)}</code></td>
-        <td>${escHtml(r.nickname)}</td>
-        <td>${r.ban_count} 次</td>
-        <td><span class="badge ${levelBadge(r.latest_violation_level)}">${escHtml(r.latest_violation_level)}</span></td>
-        <td style="font-size:var(--fs-sm);color:var(--text-secondary);">${(r.first_ban_at||'').slice(0,10)||'—'}</td>
-        <td style="font-size:var(--fs-sm);color:var(--text-secondary);">${(r.last_ban_at||'').slice(0,10)||'—'}</td>
-      </tr>`)}
-    </tbody>
-  </table>
-  ${total > limit ? html`<div class="pagination">
-    ${Array.from({length: Math.ceil(total/limit)}, (_,i)=>i+1).map(p =>
-      p === page ? html`<span class="current">${p}</span>` : html`<a href="/admin/blacklist?page=${p}">${p}</a>`)}
-  </div>` : ''}
-</div>`
-  return c.html(Layout({ title: '黑名单总表', currentPath: '/admin/blacklist', children: tableHtml,
-    admin: { game_name: '', permission_group: c.get('permissionGroup') },
+// ── 退出登录 ──
+adminRoutes.get('/admin/logout', (c) => {
+  c.header('Set-Cookie', 'jwt=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0')
+  return c.html(AdminLayout({
+    title: '已退出', currentPath: '/logout',
+    children: html`<div class="card" style="text-align:center;padding:3rem;"><p>已退出登录</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">返回首页</a></div><script>localStorage.removeItem('jwt');</script>`,
+    admin: { game_name: '', permission_group: '' },
   }))
+})
+
+// ── 兼容：/logout 也退出（带 cookie 清除） ──
+adminRoutes.get('/logout', (c) => {
+  return c.redirect('/admin/logout')
 })

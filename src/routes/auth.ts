@@ -77,15 +77,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }))
 })
 
-// 退出登录（清除 cookie）
-authRoutes.get('/logout', (c) => {
-  c.header('Set-Cookie', 'jwt=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0')
-  return c.html(Layout({
-    title: '已退出', currentPath: '/',
-    children: html`<div class="card" style="text-align:center;padding:3rem;"><p>已退出登录</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">返回首页</a></div><script>localStorage.removeItem('jwt');</script>`,
-  }))
-})
-
 authRoutes.post('/api/login', async (c) => {
   const { steam_id, username, password } = await c.req.json<{
     steam_id: string;
@@ -109,6 +100,7 @@ authRoutes.post('/api/login', async (c) => {
   const token = await sign(
     {
       adminId: admin.id,
+      gameName: admin.game_name,
       permissionGroup: admin.permission_group,
       sub: admin.id.toString(),
       iat: Math.floor(Date.now() / 1000),

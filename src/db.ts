@@ -26,6 +26,17 @@ export type BanRow = {
   updated_at: string;
 };
 
+export type WatchlistRow = {
+  id: number;
+  steam_id: string;
+  nickname: string | null;
+  reason: string | null;
+  added_by: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type AdminRow = {
   id: number;
   steam_id: string;

@@ -34,19 +34,17 @@ CREATE TABLE IF NOT EXISTS admins (
   updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- 黑名单总表
-CREATE TABLE IF NOT EXISTS blacklist (
+-- 重点观察名单（手动维护，替代自动黑名单）
+CREATE TABLE IF NOT EXISTS watchlist (
   id              INTEGER PRIMARY KEY AUTOINCREMENT,
-  steam_id        TEXT NOT NULL UNIQUE,
-  nickname        TEXT NOT NULL,
-  ip_address      TEXT NOT NULL DEFAULT '',
-  ban_count       INTEGER NOT NULL DEFAULT 1,
-  first_ban_at    TEXT NOT NULL DEFAULT (datetime('now')),
-  last_ban_at     TEXT NOT NULL DEFAULT (datetime('now')),
-  latest_violation_level TEXT NOT NULL DEFAULT 'warning',
+  steam_id        TEXT NOT NULL,
+  nickname        TEXT NOT NULL DEFAULT '',
+  reason          TEXT NOT NULL DEFAULT '',
+  added_by        INTEGER,
   notes           TEXT NOT NULL DEFAULT '',
   created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at      TEXT NOT NULL DEFAULT (datetime('now')),
+  FOREIGN KEY (added_by) REFERENCES admins(id)
 );
 
 -- 归档摘要表

@@ -15,6 +15,7 @@ export const GROUP_RANK: Record<string, number> = {
 export type Variables = JwtVariables & {
   adminId: number;
   permissionGroup: string;
+  gameName: string;
 }
 
 // 手动验证 JWT — 支持动态 secret（从 c.env 读取）
@@ -53,6 +54,7 @@ export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings:
     c.set('jwtPayload', payload)
     c.set('adminId', payload.adminId as number)
     c.set('permissionGroup', payload.permissionGroup as string)
+    c.set('gameName', (payload.gameName as string) || '')
     await next()
   } catch {
     const accept = c.req.header('Accept') || ''
@@ -81,6 +83,7 @@ export const requirePermission = (minGroup: string) =>
 
     c.set('adminId', payload.adminId as number)
     c.set('permissionGroup', payload.permissionGroup as string)
+    c.set('gameName', (payload.gameName as string) || '')
     await next()
   })
 

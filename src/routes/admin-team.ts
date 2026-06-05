@@ -3,7 +3,8 @@ import bcrypt from 'bcryptjs'
 import { html } from 'hono/html'
 import type { Env, AdminRow } from '../db'
 import { authMiddleware, requirePermission } from '../middleware/auth'
-import { Layout } from '../views/layout'
+import { AdminLayout } from '../views/admin-layout'
+import { escHtml } from '../helpers/escape'
 
 export const adminTeamRoutes = new Hono<{ Bindings: Env }>()
 adminTeamRoutes.use('/admin/*', authMiddleware)
@@ -15,10 +16,10 @@ adminTeamRoutes.get('/admin/team', requirePermission('OWNER'), async (c) => {
     'SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active, created_at FROM admins ORDER BY id'
   ).all<AdminRow>()
 
-  return c.html(Layout({
+  return c.html(AdminLayout({
     title: '管理组管理',
     currentPath: '/admin/team',
-    admin: { game_name: '', permission_group: c.get('permissionGroup') },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
     children: html`
 <div class="card">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
@@ -168,13 +169,3 @@ adminTeamRoutes.delete('/api/admin/profiles/:id', requirePermission('OWNER'), as
   await c.env.DB.prepare('DELETE FROM admins WHERE id = ?').bind(id).run()
   return c.json({ success: true })
 })
-
-// 退出登录
-adminTeamRoutes.get('/admin/logout', (c) => {
-  return c.html(Layout({
-    title: '已退出', currentPath: '/',
-    children: html`<div class="card" style="text-align:center;padding:3rem;"><p>已退出登录</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">返回首页</a></div><script>localStorage.removeItem('jwt');</script>`,
-  }))
-})
-
-function escHtml(s: string): string { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }

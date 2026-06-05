@@ -4,7 +4,7 @@ import { cors } from 'hono/cors'
 import type { Env } from '../src/db'
 import { publicRoutes } from '../src/routes/public'
 import { authRoutes } from '../src/routes/auth'
-import { adminRoutes, cronRoutes } from '../src/routes/admin'
+import { adminRoutes } from '../src/routes/admin'
 import { adminTeamRoutes } from '../src/routes/admin-team'
 import { accountRoutes } from '../src/routes/account'
 
@@ -14,7 +14,6 @@ app.use('*', cors({ origin: ['https://jdcf-ban-list.pages.dev', 'http://localhos
 
 app.route('/', publicRoutes)
 app.route('/', authRoutes)
-app.route('/', cronRoutes)      // 无 JWT 认证的归档 API
 app.route('/', adminRoutes)      // 需 JWT 认证的管理路由
 app.route('/', adminTeamRoutes)
 app.route('/', accountRoutes)

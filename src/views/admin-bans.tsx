@@ -5,10 +5,7 @@ import { escHtml as esc, escAttr } from '../helpers/escape'
 export function AdminBanListPage(props: { bans: any[]; page: number; totalPages: number; total: number }) {
   return html`
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
-  <div>
-    <h1 style="font-size:var(--fs-xl);font-weight:600;letter-spacing:-0.02em;">封禁管理</h1>
-    <p style="font-size:var(--fs-sm);color:var(--text-tertiary);margin-top:0.2rem;">共 ${props.total} 条记录</p>
-  </div>
+  <h1 style="font-size:var(--fs-xl);font-weight:600;letter-spacing:-0.02em;">封禁管理</h1>
   <a href="/admin/bans/new" class="btn btn-primary">＋ 新增封禁</a>
 </div>
 
