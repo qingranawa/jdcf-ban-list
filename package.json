@@ -1,0 +1,21 @@
+{
+  "name": "jdcf-ban-list",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev functions/ --binding",
+    "deploy": "wrangler pages deploy",
+    "db:init": "node scripts/init-db.js",
+    "db:seed": "node scripts/init-db.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240601",
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5.5.0",
+    "wrangler": "^3.60.0"
+  }
+}

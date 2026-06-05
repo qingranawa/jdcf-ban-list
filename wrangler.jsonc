@@ -1,0 +1,18 @@
+{
+  "name": "jdcf-ban-list",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2025-07-18",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "jdcf-db",
+      "database_id": "local-dev"
+    }
+  ],
+  "vars": {
+    "TURNSTILE_SITE_KEY": "1x00000000000000000000AA",
+    "TURNSTILE_SECRET_KEY": "1x00000000000000000000AA",
+    "JWT_SECRET": "dev-secret-change-in-production",
+    "CRON_SECRET": "dev-cron-secret-change-in-production"
+  }
+}
