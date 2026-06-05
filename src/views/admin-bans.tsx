@@ -79,24 +79,12 @@ export function AdminBanFormPage(props: { ban: any }) {
           <input type="text" name="ip_address" value="${b ? escAttr(b.ip_address) : ''}" placeholder="可选" />
         </div>
         <div class="form-group">
-          <label>封禁时长</label>
-          <select name="ban_duration">
-            <option value="30m" ${b?.ban_duration==='30m'?'selected':''}>30 分钟</option>
-            <option value="1h" ${b?.ban_duration==='1h'?'selected':''}>1 小时</option>
-            <option value="3h" ${b?.ban_duration==='3h'?'selected':''}>3 小时</option>
-            <option value="1d" ${b?.ban_duration==='1d'?'selected':''}>1 天</option>
-            <option value="3d" ${b?.ban_duration==='3d'?'selected':''}>3 天</option>
-            <option value="7d" ${b?.ban_duration==='7d'?'selected':''}>7 天</option>
-            <option value="14d" ${b?.ban_duration==='14d'?'selected':''}>14 天</option>
-            <option value="30d" ${b?.ban_duration==='30d'?'selected':''}>30 天</option>
-            <option value="1y" ${b?.ban_duration==='1y'?'selected':''}>1 年</option>
-            <option value="50y" ${b?.ban_duration==='50y'?'selected':''}>50 年</option>
-            <option value="permanent" ${b?.ban_duration==='permanent'?'selected':''}>永久</option>
-          </select>
+          <label>封禁时长 (自助输入)</label>
+          <input type="text" name="ban_duration" value="${b ? escAttr(b.ban_duration) : ''}" placeholder="例: 30m / 1h / 3h / 7d / 14d / 1y / 50y / permanent" />
         </div>
         <div class="form-group">
           <label>违规等级</label>
-          <select name="violation_level">
+          <select name="violation_level" style="margin-bottom:0.3rem;">
             <option value="warning" ${b?.violation_level==='warning'?'selected':''}>警告</option>
             <option value="severe_warning" ${b?.violation_level==='severe_warning'?'selected':''}>严重警告</option>
             <option value="level3" ${b?.violation_level==='level3'||!b?'selected':''}>3级违规</option>
@@ -104,6 +92,7 @@ export function AdminBanFormPage(props: { ban: any }) {
             <option value="level1" ${b?.violation_level==='level1'?'selected':''}>1级违规</option>
             <option value="level4" ${b?.violation_level==='level4'?'selected':''}>4级(逃逸)</option>
           </select>
+          <input type="text" name="violation_level_custom" placeholder="自定义等级（选填，留空使用下拉）" style="margin-top:0.3rem;" />
         </div>
         <div class="form-group" style="grid-column:span 2;">
           <label>原因</label>

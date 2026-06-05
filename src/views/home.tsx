@@ -138,24 +138,19 @@ ${BanTable(props)}
     <div class="form-group"><label>昵称 *</label><input type="text" name="nickname" required /></div>
     <div class="form-group"><label>Steam ID *</label><input type="text" name="steam_id" required placeholder="76561199..." /></div>
     <div class="form-group"><label>原因</label><input type="text" name="reason" /></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-      <div class="form-group">
-        <label>时长</label>
-        <select name="ban_duration">
-          <option value="30m">30分钟</option><option value="1h">1小时</option><option value="3h">3小时</option>
-          <option value="1d">1天</option><option value="3d">3天</option><option value="7d">7天</option>
-          <option value="14d">14天</option><option value="30d">30天</option><option value="1y">1年</option>
-          <option value="50y">50年</option><option value="permanent">永久</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>等级</label>
-        <select name="violation_level">
-          <option value="warning">警告</option><option value="level3" selected>3级违规</option>
-          <option value="level2">2级违规</option><option value="level1">1级违规</option>
-        </select>
-      </div>
+    <div class="form-group">
+      <label>封禁时长 (自助输入)</label>
+      <input type="text" name="ban_duration" placeholder="30m / 1h / 7d / 1y / permanent" />
     </div>
+    <div class="form-group">
+      <label>违规等级</label>
+      <select name="violation_level" style="margin-bottom:0.3rem;">
+        <option value="warning">警告</option><option value="level3" selected>3级违规</option>
+        <option value="level2">2级违规</option><option value="level1">1级违规</option>
+      </select>
+      <input type="text" name="violation_level_custom" placeholder="自定义等级（选填）" style="margin-top:0.3rem;" />
+    </div>
+    <div class="form-group"><label>备注</label><textarea name="notes" placeholder="备注信息（可选）"></textarea></div>
     <div style="display:flex;gap:0.5rem;margin-top:0.5rem;">
       <button type="submit" class="btn btn-primary">添加</button>
       <button type="button" class="btn btn-ghost" onclick="hideQuickBan()">取消</button>

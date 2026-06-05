@@ -62,11 +62,13 @@ adminRoutes.post('/api/admin/bans', requirePermission('T1'), async (c) => {
   const adminId = c.get('adminId')
   if (!body.nickname || !body.steam_id) return c.json({ error: '昵称和 Steam ID 为必填' }, 400)
 
+  const level = body.violation_level_custom || body.violation_level || 'level3'
+
   const result = await c.env.DB.prepare(
     `INSERT INTO bans (nickname, steam_id, ip_address, reason, ban_time, ban_duration, violation_level, notes, handled_by)
      VALUES (?, ?, ?, ?, datetime('now'), ?, ?, ?, ?)`
   ).bind(body.nickname, body.steam_id, body.ip_address || '', body.reason || '',
-         body.ban_duration || '30m', body.violation_level || 'level3', body.notes || '', adminId).run()
+         body.ban_duration || '30m', level, body.notes || '', adminId).run()
   return c.json({ success: true, id: result.meta.last_row_id })
 })
 
@@ -83,10 +85,12 @@ adminRoutes.put('/api/admin/bans/:id', requirePermission('T1'), async (c) => {
     return c.json({ error: '权限不足，无法修改他人记录' }, 403)
   }
 
+  const level = body.violation_level_custom || body.violation_level || 'level3'
+
   await c.env.DB.prepare(
     `UPDATE bans SET nickname=?, steam_id=?, ip_address=?, reason=?, ban_duration=?, violation_level=?, notes=?, updated_at=datetime('now') WHERE id=?`
   ).bind(body.nickname, body.steam_id, body.ip_address || '', body.reason || '',
-         body.ban_duration || '30m', body.violation_level || 'level3', body.notes || '', id).run()
+         body.ban_duration || '30m', level, body.notes || '', id).run()
   return c.json({ success: true })
 })
 
