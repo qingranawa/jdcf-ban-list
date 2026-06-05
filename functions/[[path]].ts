@@ -6,6 +6,7 @@ import { publicRoutes } from '../src/routes/public'
 import { authRoutes } from '../src/routes/auth'
 import { adminRoutes, cronRoutes } from '../src/routes/admin'
 import { adminTeamRoutes } from '../src/routes/admin-team'
+import { accountRoutes } from '../src/routes/account'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -16,5 +17,6 @@ app.route('/', authRoutes)
 app.route('/', cronRoutes)      // 无 JWT 认证的归档 API
 app.route('/', adminRoutes)      // 需 JWT 认证的管理路由
 app.route('/', adminTeamRoutes)
+app.route('/', accountRoutes)
 
 export const onRequest = handle(app)

@@ -368,7 +368,8 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
         <a href="/admin/blacklist" data-current="${currentPath.startsWith('/admin/blacklist') ? 'active' : ''}">黑名单</a>
         <a href="/admin/archive" data-current="${currentPath.startsWith('/admin/archive') ? 'active' : ''}">归档</a>
         <a href="/admin/logout">退出</a>
-      ` : html`<a href="/login">登录</a>`}
+      ` : html`<a href="/account" id="navAccount" style="display:none;" data-current="${currentPath === '/account' ? 'active' : ''}">账户</a>
+        <a href="/login" id="navLogin">登录</a>`}
     </div>
   </nav>
   <main>
@@ -378,9 +379,20 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     CN 鸡蛋肠粉服务器 &copy; ${new Date().getFullYear()} &mdash; SCP: Secret Laboratory
   </footer>
   <script>
-    document.querySelectorAll('nav a').forEach(a => {
-      if (a.dataset.current === 'active') a.classList.add('active');
-    });
+    (function() {
+      // 导航栏高亮
+      document.querySelectorAll('nav a').forEach(a => {
+        if (a.dataset.current === 'active') a.classList.add('active');
+      });
+      // JWT 登录态：切换 登录 ↔ 账户
+      var jwt = localStorage.getItem('jwt');
+      var loginEl = document.getElementById('navLogin');
+      var accountEl = document.getElementById('navAccount');
+      if (jwt && loginEl && accountEl) {
+        loginEl.style.display = 'none';
+        accountEl.style.display = '';
+      }
+    })();
   </script>
 </body>
 </html>`
