@@ -50,8 +50,8 @@ adminTeamRoutes.get('/admin/team', requirePermission('T5'), async (c) => {
   </table>
 </div>
 
-<div id="adminModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;">
-<div class="card" style="max-width:500px;width:90%;">
+<div id="adminModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;padding:1rem;">
+<div class="card" style="max-width:500px;width:100%;max-height:85vh;overflow-y:auto;padding:1.25rem;">
   <h3 id="modalTitle" style="margin-bottom:1rem;">新增管理员</h3>
   <form id="adminForm">
     <input type="hidden" name="id" />
