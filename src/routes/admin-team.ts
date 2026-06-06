@@ -11,7 +11,7 @@ adminTeamRoutes.use('/admin/*', authMiddleware)
 adminTeamRoutes.use('/api/admin/*', authMiddleware)
 
 // 管理组列表
-adminTeamRoutes.get('/admin/team', requirePermission('OWNER'), async (c) => {
+adminTeamRoutes.get('/admin/team', requirePermission('T5'), async (c) => {
   const rows = await c.env.DB.prepare(
     'SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active, created_at FROM admins ORDER BY id'
   ).all<AdminRow>()
@@ -117,20 +117,20 @@ document.getElementById('adminForm').addEventListener('submit', async (e) => {
 })
 
 // 全量管理员列表
-adminTeamRoutes.get('/api/admin/profiles', requirePermission('OWNER'), async (c) => {
+adminTeamRoutes.get('/api/admin/profiles', requirePermission('T5'), async (c) => {
   const rows = await c.env.DB.prepare('SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active FROM admins ORDER BY id').all()
   return c.json({ data: rows.results })
 })
 
 // 单条管理员详情
-adminTeamRoutes.get('/api/admin/profiles/:id', requirePermission('OWNER'), async (c) => {
+adminTeamRoutes.get('/api/admin/profiles/:id', requirePermission('T5'), async (c) => {
   const admin = await c.env.DB.prepare('SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active FROM admins WHERE id = ?').bind(c.req.param('id')).first()
   if (!admin) return c.json({ error: '管理员不存在' }, 404)
   return c.json(admin)
 })
 
 // 新建管理员
-adminTeamRoutes.post('/api/admin/profiles', requirePermission('OWNER'), async (c) => {
+adminTeamRoutes.post('/api/admin/profiles', requirePermission('T5'), async (c) => {
   const body = await c.req.json()
   if (!body.steam_id || !body.username) return c.json({ error: 'Steam ID 和用户名为必填' }, 400)
   const password = body.password || 'change_me_123'
@@ -146,7 +146,7 @@ adminTeamRoutes.post('/api/admin/profiles', requirePermission('OWNER'), async (c
 })
 
 // 改管理员信息
-adminTeamRoutes.put('/api/admin/profiles/:id', requirePermission('OWNER'), async (c) => {
+adminTeamRoutes.put('/api/admin/profiles/:id', requirePermission('T5'), async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
   let sql = `UPDATE admins SET steam_id=?, username=?, permission_group=?, game_name=?, qq_name=?, position=?, supervisor=?, updated_at=datetime('now')`
@@ -163,7 +163,7 @@ adminTeamRoutes.put('/api/admin/profiles/:id', requirePermission('OWNER'), async
 })
 
 // 删掉管理员
-adminTeamRoutes.delete('/api/admin/profiles/:id', requirePermission('OWNER'), async (c) => {
+adminTeamRoutes.delete('/api/admin/profiles/:id', requirePermission('T5'), async (c) => {
   const id = Number(c.req.param('id'))
   if (id === c.get('adminId')) return c.json({ error: '不能删除自己' }, 400)
   await c.env.DB.prepare('DELETE FROM admins WHERE id = ?').bind(id).run()
