@@ -41,7 +41,10 @@ adminTeamRoutes.get('/admin/team', requirePermission('T5'), async (c) => {
         <td>${escHtml(a.qq_name)}</td>
         <td>${escHtml(a.position)}</td>
         <td>${a.is_active ? '✅' : '❌'}</td>
-        <td><button class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:0.78rem;" onclick="editAdmin(${a.id})">编辑</button></td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:0.78rem;" onclick="editAdmin(${a.id})">编辑</button>
+          <button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.78rem;margin-left:0.25rem;" onclick="delAdmin(${a.id},'${escHtml(a.username)}')">删除</button>
+        </td>
       </tr>`)}
     </tbody>
   </table>
@@ -97,6 +100,12 @@ async function editAdmin(id) {
   document.getElementById('adminModal').style.display = 'flex';
 }
 function closeModal() { document.getElementById('adminModal').style.display = 'none'; }
+async function delAdmin(id, name) {
+  if (!confirm('确认删除管理员「' + name + '」(ID: ' + id + ')？')) return;
+  const resp = await fetch('/api/admin/profiles/' + id, { method: 'DELETE', headers: { 'Authorization': 'Bearer ' + jwt } });
+  if (resp.ok) { location.reload(); }
+  else { const r = await resp.json(); alert(r.error || '删除失败'); }
+}
 document.getElementById('adminForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(e.target));
