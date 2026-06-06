@@ -361,7 +361,8 @@ export function AdminLayout({ title, currentPath, children, admin }: AdminLayout
       padding: 0.55rem 0.8rem;
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
-      background: rgba(255,255,255,0.05);
+      background: #1a1a2a;
+      color: var(--text);
       color: var(--text);
       font-size: var(--fs-sm);
       font-family: var(--sans);

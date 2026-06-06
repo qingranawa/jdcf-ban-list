@@ -84,7 +84,7 @@ export function AdminBanFormPage(props: { ban: any }) {
         </div>
         <div class="form-group">
           <label>违规等级</label>
-          <select name="violation_level" style="margin-bottom:0.3rem;">
+          <select name="violation_level" style="margin-bottom:0.3rem;background:#1a1a2a;color:#eaeaef;width:100%;padding:0.55rem 0.8rem;border:1px solid rgba(255,255,255,0.08);border-radius:6px;font-size:0.82rem;color-scheme:dark;outline:none;">
             <option value="warning" ${b?.violation_level==='warning'?'selected':''}>警告</option>
             <option value="severe_warning" ${b?.violation_level==='severe_warning'?'selected':''}>严重警告</option>
             <option value="level3" ${b?.violation_level==='level3'||!b?'selected':''}>3级违规</option>

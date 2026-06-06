@@ -277,7 +277,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       padding: 0.55rem 0.8rem;
       border: 1px solid var(--glass-border);
       border-radius: var(--radius-sm);
-      background: rgba(255,255,255,0.05);
+      background: #1a1a2a;
       color: var(--text);
       font-size: var(--fs-sm);
       font-family: var(--sans);
