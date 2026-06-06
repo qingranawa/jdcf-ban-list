@@ -83,7 +83,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
 
     /* ── 导航 ── */
     nav {
-      position: sticky; top: 0; z-index: 50;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 2rem;
       height: 56px;
@@ -92,6 +92,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       backdrop-filter: blur(28px);
       -webkit-backdrop-filter: blur(28px);
       border-bottom: 1px solid var(--glass-border);
+      box-shadow: 0 4px 30px rgba(0,0,0,0.3);
     }
     nav .logo {
       font-weight: 700; font-size: var(--fs-lg);
@@ -121,7 +122,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     main {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 2rem 1.5rem;
+      padding: 5rem 1.5rem 2rem;
       overflow-x: hidden;
     }
 
