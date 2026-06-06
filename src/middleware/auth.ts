@@ -18,18 +18,18 @@ export type Variables = JwtVariables & {
   gameName: string;
 }
 
-// 手动验证 JWT — 支持动态 secret（从 c.env 读取）
-// 支持 Authorization header 和 jwt cookie 两种方式
+// 手写 JWT 校验 —— secret 从 c.env 动态拿
+// header 和 cookie 都认
 export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings: Env }>(async (c, next) => {
   let token: string | null = null
 
-  // 1. 从 Authorization header 读取
+  // header 优先
   const authHeader = c.req.header('Authorization')
   if (authHeader && authHeader.startsWith('Bearer ')) {
     token = authHeader.slice(7)
   }
 
-  // 2. 从 jwt cookie 读取（用于页面导航）
+  // header 没有就翻 cookie（页面跳转场景）
   if (!token) {
     const cookie = c.req.header('Cookie')
     if (cookie) {

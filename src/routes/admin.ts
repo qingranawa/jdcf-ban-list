@@ -8,7 +8,7 @@ import { AdminBanListPage, AdminBanFormPage } from '../views/admin-bans'
 import { AdminProcessPage } from '../views/admin-process'
 import { AdminWatchlistPage } from '../views/admin-watchlist'
 
-// ── Admin 路由（需 JWT 认证） ──
+// ── 后台路由 —— 全都要登录 ──
 export const adminRoutes = new Hono<{ Bindings: Env }>()
 adminRoutes.use('/admin/*', authMiddleware)
 adminRoutes.use('/api/admin/*', authMiddleware)
@@ -108,9 +108,9 @@ adminRoutes.delete('/api/admin/bans/:id', requirePermission('T1'), async (c) => 
   return c.json({ success: true })
 })
 
-// ── 处理页面 ──
+// ── 批量处理过期违规 ──
 
-// 判断封禁是否已过期（基于 ban_time + ban_duration）
+// ban_time + ban_duration 跟现在比，过期没
 function isBanExpired(ban: { ban_time: string; ban_duration: string }): boolean {
   if (ban.ban_duration === 'permanent') return false
   if (/^50[Yy]$/.test(ban.ban_duration)) return false
@@ -125,7 +125,7 @@ function isBanExpired(ban: { ban_time: string; ban_duration: string }): boolean 
   return Date.now() > new Date(ban.ban_time).getTime() + ms
 }
 
-// 处理页面（T1+）
+// 处理页，T1就能看
 adminRoutes.get('/admin/process', requirePermission('T1'), async (c) => {
   const rows = await c.env.DB.prepare(
     `SELECT b.*, a.game_name as handled_by_name FROM bans b
@@ -145,7 +145,7 @@ adminRoutes.get('/admin/process', requirePermission('T1'), async (c) => {
   }))
 })
 
-// API: 待处理列表
+// 待处理列表（JSON）
 adminRoutes.get('/api/admin/process', requirePermission('T1'), async (c) => {
   const rows = await c.env.DB.prepare(
     `SELECT b.*, a.game_name as handled_by_name FROM bans b
@@ -157,13 +157,13 @@ adminRoutes.get('/api/admin/process', requirePermission('T1'), async (c) => {
   return c.json({ data: rows.results.filter((b: any) => isBanExpired(b)) })
 })
 
-// API: 批量删除（归档为已删除）
+// 批量删除 —— 打成 deleted 扔归档
 adminRoutes.post('/api/admin/process/delete', requirePermission('T1'), async (c) => {
   const body = await c.req.json()
   const ids: number[] = body.ids || []
   if (ids.length === 0) return c.json({ error: '请选择记录' }, 400)
 
-  // 查询选中的 ban 记录
+  // 拿出勾选的记录
   const placeholders = ids.map(() => '?').join(',')
   const bans = await c.env.DB.prepare(
     `SELECT * FROM bans WHERE id IN (${placeholders}) AND is_archived = 0`
@@ -171,19 +171,19 @@ adminRoutes.post('/api/admin/process/delete', requirePermission('T1'), async (c)
 
   if (bans.results.length === 0) return c.json({ error: '没有可处理的记录' }, 400)
 
-  // 更新为已归档（删除）
+  // 标记已归档（删除）
   await c.env.DB.prepare(
     `UPDATE bans SET is_archived = 1, archive_action = 'deleted', archived_at = datetime('now') WHERE id IN (${placeholders})`
   ).bind(...ids).run()
 
-  // 写归档摘要
+  // 写归档日志摘要
   const archiveResult = await c.env.DB.prepare(
     `INSERT INTO archives (archive_date, total_processed, l3_deleted, l2_downgraded, l1_ignored, l4_ignored)
      VALUES (date('now'), ?, ?, 0, 0, 0)`
   ).bind(bans.results.length, bans.results.length).run()
   const archiveId = archiveResult.meta.last_row_id
 
-  // 写归档明细
+  // 写归档明细（每条记清楚）
   for (const ban of bans.results) {
     await c.env.DB.prepare(
       `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration)
@@ -194,7 +194,7 @@ adminRoutes.post('/api/admin/process/delete', requirePermission('T1'), async (c)
   return c.json({ success: true, processed: bans.results.length })
 })
 
-// API: 批量降级（level2 → level3）
+// 批量降级 —— level2 变 level3
 adminRoutes.post('/api/admin/process/downgrade', requirePermission('T1'), async (c) => {
   const body = await c.req.json()
   const ids: number[] = body.ids || []
@@ -207,7 +207,7 @@ adminRoutes.post('/api/admin/process/downgrade', requirePermission('T1'), async 
 
   if (bans.results.length === 0) return c.json({ error: '没有可降级的 2 级违规记录' }, 400)
 
-  // 更新为已归档（降级）
+  // level2 → level3 再归档
   await c.env.DB.prepare(
     `UPDATE bans SET is_archived = 1, archive_action = 'downgraded', violation_level = 'level3', archived_at = datetime('now') WHERE id IN (${placeholders})`
   ).bind(...ids).run()
@@ -230,9 +230,9 @@ adminRoutes.post('/api/admin/process/downgrade', requirePermission('T1'), async 
   return c.json({ success: true, processed: bans.results.length })
 })
 
-// ── 重点观察（Watchlist） ──
+// ── 重点观察名单 ──
 
-// 观察列表页（T3+）
+// 观察页，T3以上能看
 adminRoutes.get('/admin/watchlist', requirePermission('T3'), async (c) => {
   const rows = await c.env.DB.prepare(
     `SELECT w.*, a.game_name as added_by_name FROM watchlist w
@@ -247,7 +247,7 @@ adminRoutes.get('/admin/watchlist', requirePermission('T3'), async (c) => {
   }))
 })
 
-// API: 观察列表
+// 观察列表 JSON
 adminRoutes.get('/api/admin/watchlist', requirePermission('T3'), async (c) => {
   const rows = await c.env.DB.prepare(
     `SELECT w.*, a.game_name as added_by_name FROM watchlist w
@@ -257,14 +257,14 @@ adminRoutes.get('/api/admin/watchlist', requirePermission('T3'), async (c) => {
   return c.json({ data: rows.results })
 })
 
-// API: 单条观察
+// 单条详情
 adminRoutes.get('/api/admin/watchlist/:id', requirePermission('T3'), async (c) => {
   const entry = await c.env.DB.prepare('SELECT * FROM watchlist WHERE id = ?').bind(c.req.param('id')).first()
   if (!entry) return c.json({ error: '记录不存在' }, 404)
   return c.json(entry)
 })
 
-// API: 添加观察
+// 加一个
 adminRoutes.post('/api/admin/watchlist', requirePermission('T3'), async (c) => {
   const body = await c.req.json()
   const adminId = c.get('adminId')
@@ -281,7 +281,7 @@ adminRoutes.post('/api/admin/watchlist', requirePermission('T3'), async (c) => {
   }
 })
 
-// API: 编辑观察
+// 改一个
 adminRoutes.put('/api/admin/watchlist/:id', requirePermission('T3'), async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
@@ -294,7 +294,7 @@ adminRoutes.put('/api/admin/watchlist/:id', requirePermission('T3'), async (c) =
   return c.json({ success: true })
 })
 
-// API: 删除观察
+// 删一个
 adminRoutes.delete('/api/admin/watchlist/:id', requirePermission('T3'), async (c) => {
   const id = c.req.param('id')
   const existing = await c.env.DB.prepare('SELECT id FROM watchlist WHERE id = ?').bind(id).first()
@@ -303,7 +303,7 @@ adminRoutes.delete('/api/admin/watchlist/:id', requirePermission('T3'), async (c
   return c.json({ success: true })
 })
 
-// ── 归档日志页面（T4+） ──
+// ── 归档日志（T4以上看） ──
 adminRoutes.get('/admin/archive', requirePermission('T4'), async (c) => {
   const rows = await c.env.DB.prepare('SELECT * FROM archives ORDER BY archive_date DESC').all()
   const tableHtml = html`
@@ -321,7 +321,7 @@ adminRoutes.get('/admin/archive', requirePermission('T4'), async (c) => {
   }))
 })
 
-// ── 退出登录 ──
+// ── 退出 ──
 adminRoutes.get('/admin/logout', (c) => {
   c.header('Set-Cookie', 'jwt=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0')
   return c.html(AdminLayout({
@@ -331,7 +331,7 @@ adminRoutes.get('/admin/logout', (c) => {
   }))
 })
 
-// ── 兼容：/logout 也退出（带 cookie 清除） ──
+// /logout 也能退，顺带清 cookie
 adminRoutes.get('/logout', (c) => {
   return c.redirect('/admin/logout')
 })

@@ -159,7 +159,7 @@ export function AdminLayout({ title, currentPath, children, admin }: AdminLayout
       min-height: calc(100vh - 48px);
     }
 
-    /* ── 侧边栏 ── */
+    /* ── 左边栏 */
     .sidebar {
       width: var(--sidebar-width);
       flex-shrink: 0;
@@ -374,7 +374,7 @@ export function AdminLayout({ title, currentPath, children, admin }: AdminLayout
     }
     .form-group textarea { resize: vertical; min-height: 70px; }
 
-    /* ── 模态框 ── */
+    /* ── 弹窗 */
     .modal-overlay {
       display: none;
       position: fixed;

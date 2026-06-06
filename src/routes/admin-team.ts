@@ -10,7 +10,7 @@ export const adminTeamRoutes = new Hono<{ Bindings: Env }>()
 adminTeamRoutes.use('/admin/*', authMiddleware)
 adminTeamRoutes.use('/api/admin/*', authMiddleware)
 
-// 管理组列表页
+// 管理组列表
 adminTeamRoutes.get('/admin/team', requirePermission('OWNER'), async (c) => {
   const rows = await c.env.DB.prepare(
     'SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active, created_at FROM admins ORDER BY id'
@@ -116,20 +116,20 @@ document.getElementById('adminForm').addEventListener('submit', async (e) => {
   }))
 })
 
-// API: 管理员完整列表
+// 全量管理员列表
 adminTeamRoutes.get('/api/admin/profiles', requirePermission('OWNER'), async (c) => {
   const rows = await c.env.DB.prepare('SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active FROM admins ORDER BY id').all()
   return c.json({ data: rows.results })
 })
 
-// API: 单个管理员
+// 单条管理员详情
 adminTeamRoutes.get('/api/admin/profiles/:id', requirePermission('OWNER'), async (c) => {
   const admin = await c.env.DB.prepare('SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active FROM admins WHERE id = ?').bind(c.req.param('id')).first()
   if (!admin) return c.json({ error: '管理员不存在' }, 404)
   return c.json(admin)
 })
 
-// API: 新增管理员
+// 新建管理员
 adminTeamRoutes.post('/api/admin/profiles', requirePermission('OWNER'), async (c) => {
   const body = await c.req.json()
   if (!body.steam_id || !body.username) return c.json({ error: 'Steam ID 和用户名为必填' }, 400)
@@ -145,7 +145,7 @@ adminTeamRoutes.post('/api/admin/profiles', requirePermission('OWNER'), async (c
   } catch { return c.json({ error: 'Steam ID 或用户名已存在' }, 409) }
 })
 
-// API: 修改管理员
+// 改管理员信息
 adminTeamRoutes.put('/api/admin/profiles/:id', requirePermission('OWNER'), async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
@@ -162,7 +162,7 @@ adminTeamRoutes.put('/api/admin/profiles/:id', requirePermission('OWNER'), async
   return c.json({ success: true })
 })
 
-// API: 删除管理员
+// 删掉管理员
 adminTeamRoutes.delete('/api/admin/profiles/:id', requirePermission('OWNER'), async (c) => {
   const id = Number(c.req.param('id'))
   if (id === c.get('adminId')) return c.json({ error: '不能删除自己' }, 400)

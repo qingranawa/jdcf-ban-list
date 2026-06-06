@@ -18,13 +18,13 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
   <script src="https://unpkg.com/htmx.org@2.0.4"></script>
   <style>
     /* ══════════════════════════════════════════════
-       鸡蛋肠粉封禁查询 — 瑞士平面设计 + 玻璃态
+       鸡蛋肠粉封禁查询
        ══════════════════════════════════════════════ */
 
     /* ── Reset ── */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    /* ── 字体系统（瑞士 typography 核心） ── */
+    /* ── 字体系统 ── */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     :root {
       --sans: 'Inter', -apple-system, 'Segoe UI', system-ui, sans-serif;
@@ -72,7 +72,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       overflow-x: hidden;
     }
 
-    /* ── 玻璃态 mixin ── */
+    /* ── 玻璃态通用 */
     .glass {
       background: var(--glass-bg);
       backdrop-filter: blur(var(--glass-blur));
@@ -81,7 +81,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       border-radius: var(--radius);
     }
 
-    /* ── 导航（瑞士设计：清晰层级，极简） ── */
+    /* ── 导航 ── */
     nav {
       position: sticky; top: 0; z-index: 50;
       display: flex; align-items: center; justify-content: space-between;
@@ -117,7 +117,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       background: rgba(91, 141, 239, 0.15);
     }
 
-    /* ── 主容器（瑞士网格） ── */
+    /* ── 主容器 ── */
     main {
       max-width: 1280px;
       margin: 0 auto;
@@ -125,7 +125,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       overflow-x: hidden;
     }
 
-    /* ── 卡片 ── */
+    /* ── 卡片 */
     .card {
       background: var(--glass-bg);
       backdrop-filter: blur(var(--glass-blur));
@@ -138,7 +138,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     }
     .card:hover { border-color: rgba(255,255,255,0.12); }
 
-    /* ── 表格（瑞士：克制分隔线，清晰对齐） ── */
+    /* ── 表格 ── */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -165,7 +165,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     tbody tr:hover { background: rgba(255,255,255,0.03); }
     tbody tr:last-child td { border-bottom: none; }
 
-    /* ── 徽章（违规等级） ── */
+    /* ── 违规等级小标签 */
     .badge {
       display: inline-block;
       padding: 0.15rem 0.5rem;
@@ -185,7 +185,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     .badge-perm    { background: rgba(85, 85, 104, 0.2); color: var(--text-tertiary); }
     .badge-muted   { background: rgba(96, 165, 250, 0.12); color: var(--blue); }
 
-    /* ── 搜索/筛选栏 ── */
+    /* ── 搜索筛选 */
     .search-box {
       display: flex;
       gap: 0.5rem;
@@ -220,7 +220,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     }
     .search-box select:focus { border-color: var(--accent); }
 
-    /* ── 按钮 ── */
+    /* ── 按钮 */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -245,7 +245,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     .btn-ghost   { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
     .btn-ghost:hover { background: rgba(255,255,255,0.1); color: var(--text); }
 
-    /* ── 分页 ── */
+    /* ── 分页器 */
     .pagination {
       display: flex;
       gap: 0.2rem;
@@ -263,7 +263,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     .pagination a:hover { background: rgba(255,255,255,0.06); color: var(--text); }
     .pagination .current { background: var(--accent); color: #fff; }
 
-    /* ── 表单 ── */
+    /* ── 表单 */
     .form-group { margin-bottom: 1.1rem; }
     .form-group label {
       display: block;
@@ -290,7 +290,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
     }
     .form-group textarea { resize: vertical; min-height: 70px; }
 
-    /* ── 单调背景纹理 ── */
+    /* ── 背景光晕效果 */
     body::before {
       content: '';
       position: fixed;
@@ -303,7 +303,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       pointer-events: none;
     }
 
-    /* ── 页脚 ── */
+    /* ── 页脚 */
     footer {
       text-align: center;
       padding: 2.5rem 1rem;
@@ -313,7 +313,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       margin-top: 3rem;
     }
 
-    /* ── 统计数字（用于黑名单页等） ── */
+    /* ── 统计卡片 */
     .stat-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -339,7 +339,7 @@ export function Layout({ title, currentPath, children, admin }: LayoutProps) {
       letter-spacing: 0.06em;
     }
 
-    /* ── 响应式 ── */
+    /* ── 手机适配 */
     @media (max-width: 768px) {
       nav { padding: 0 1rem; flex-wrap: wrap; height: auto; min-height: 48px; gap: 0; }
       nav .nav-links {

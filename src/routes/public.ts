@@ -7,17 +7,17 @@ import { TeamPage } from '../views/team'
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
 function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null }): string {
-  // 警告无时效
+  // 警告不算封禁，没时效期限
   if (ban.ban_duration === 'warning') return 'warning'
-  // 永久封禁
+  // 永久不解封
   if (ban.ban_duration === 'permanent') return 'permanent'
   if (ban.ban_duration === 'cfba') return 'cfba'
-  // 50年永不解除
+  // 50年等于永久
   if (/^50[Yy]$/.test(ban.ban_duration)) return 'banned'
 
   let dur = ban.ban_duration
   let isMute = false
-  // 禁言处理：去掉 mute- 前缀再解析时长
+  // 禁言：先把 mute- 前缀摘了再算时间
   if (dur.startsWith('mute-')) {
     dur = dur.slice(5)
     isMute = true
@@ -29,15 +29,15 @@ function computeStatus(ban: { ban_duration: string; ban_time: string; archive_ac
     const unit = match[2].toLowerCase()
     const banTime = new Date(ban.ban_time).getTime()
     let ms = unit === 'm' ? amount * 60000 : unit === 'h' ? amount * 3600000 : amount * 86400000
-    // 未过期
+    // 还没到期
     if (Date.now() <= banTime + ms) {
       return isMute ? 'muted' : 'banned'
     }
-    // 已过期
+    // 到期了
     if (ban.archive_action === 'downgraded') return 'banned'
     return 'unbanned'
   }
-  // cfba / 禁言无时长 等
+  // cfba/警告等特殊值，直接当 banned
   return 'banned'
 }
 
@@ -67,7 +67,7 @@ publicRoutes.get('/', async (c) => {
   const total = countResult?.total || 0
   const totalPages = Math.ceil(total / limit)
 
-  // 统计数据（仅在无筛选时计算）
+  // 没筛选项才跑统计，省一次DB查询
   let stats = undefined
   if (!q && !levelFilter && !statusFilter) {
     const s = await c.env.DB.prepare(
@@ -79,7 +79,7 @@ publicRoutes.get('/', async (c) => {
         SUM(CASE WHEN violation_level='level4' THEN 1 ELSE 0 END) as l4
        FROM bans`
     ).first<{total:number;l3:number;l2:number;l1:number;l4:number}>()
-    // 统计封禁中数量（通过 duration 判断未过期的）
+    // 只数 permanent + 50y + mute
           const bannedCount = await c.env.DB.prepare(
         `SELECT COUNT(*) as c FROM bans WHERE ban_duration IN ('permanent','50y','50Y')`
       ).first<{c:number}>()
