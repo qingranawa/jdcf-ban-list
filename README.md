@@ -109,13 +109,13 @@ npx wrangler pages dev functions/ --binding DB=jdcf-db
 
 ### 部署到生产
 
-```bash
-# 通过 wrangler 直接部署
-npx wrangler pages deploy
+推送 `master` 分支后，Cloudflare Pages 自动部署，无需手动操作。
 
-# 或推送 GitHub → Cloudflare Pages 自动部署（推荐）
+```bash
 git push origin master
 ```
+
+> 部署由 Cloudflare Dashboard 中 Pages 项目的 Git 集成驱动。每次 push 到 master 都会触发构建和发布。
 
 ### 环境变量
 
