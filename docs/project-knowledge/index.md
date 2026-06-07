@@ -1,20 +1,20 @@
 ---
-last_updated: 2026-06-05
-updated_by: superpowers-memory:rebuild
-covers_branch: master@5844b8d
-triggered_by_plan: null
+last_updated: 2026-06-07
+updated_by: superpowers-memory:update
+covers_branch: master@eec24dd
+triggered_by_plan: 2026-06-05-jdcf-phase2-3-4-implementation.md
 ---
 
 # 项目知识库索引
 
 ## 文件摘要
 
-- [architecture.md](architecture.md) — Hono SSR 架构，权限分级 T1~T6+OWNER，D1 数据库
-- [tech-stack.md](tech-stack.md) — Cloudflare Pages + D1 + Turnstile + JWT + Hono
-- [features.md](features.md) — 均处于 Planned 阶段：封禁查询、公示、后台、归档
-- [conventions.md](conventions.md) — DB 命名、API 风格、权限校验、深色主题约定
-- [glossary.md](glossary.md) — 5 个核心术语定义
+- [architecture.md](architecture.md) — Hono SSR 单体架构，5 组路由，JWT 双通道，htmx 局部更新，状态机
+- [features.md](features.md) — 封禁查询/公示/后台 CRUD/批量处理/观察名单/管理组/账户/归档日志 均已实现
+- [tech-stack.md](tech-stack.md) — Hono 4.6 + htmx 2.0.4 + D1 + bcryptjs + hono/jwt，已放弃 Turnstile
+- [conventions.md](conventions.md) — RESTful API，权限数值比较，双布局，dark 主题，cross-cutting concerns
+- [glossary.md](glossary.md) — 8 个术语：封禁记录、违规等级、状态、duration 格式、权限组、观察名单、归档、JWT 双通道
 
 ## 状态说明
 
-项目为全新（仅含设计文档 `docs/superpowers/specs/2026-06-05-jdcf-ban-list-design.md`），尚无代码实现。
+项目已完整实现并部署于 Cloudflare Pages（https://jdcf-ban-list.pages.dev），D1 数据库约 156 条记录。Cron Worker 自动归档改为手动处理页。

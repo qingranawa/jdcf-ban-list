@@ -1,28 +1,36 @@
 ---
-last_updated: 2026-06-05
-updated_by: superpowers-memory:rebuild
-triggered_by_plan: null
+last_updated: 2026-06-07
+updated_by: superpowers-memory:update
+triggered_by_plan: 2026-06-05-jdcf-phase2-3-4-implementation.md
 ---
 
 # 技术栈
 
-> 项目尚未实现。以下为规划的技术栈。
+## 运行时与框架
 
-## 核心
+| 依赖 | 版本 | 用途 | 选择原因 |
+|------|------|------|---------|
+| Hono | ^4.6.0 | Web 框架，JSX SSR 渲染 | 轻量（~12KB），Cloudflare Pages 原生支持 |
+| htmx | 2.0.4 (CDN) | 局部页面更新 | 14KB，无需整页刷新即可实现搜索/翻页 |
+| Cloudflare Pages Functions | — | 边缘运行时 | 与 D1 同区域低延迟，免费额度充足 |
+| Cloudflare D1 | — | SQLite 数据库 | 边缘一致，零运维，与 Pages 同区域 |
 
-- **运行时**: Cloudflare Pages Functions（边缘计算）
-- **Web 框架**: Hono（JSX SSR 渲染）
-- **交互增强**: htmx（14KB CDN 引入）
-- **样式**: 原生 CSS（玻璃态 + 瑞士平面设计）
+## 认证与安全
 
-## 数据与认证
+| 依赖 | 版本 | 用途 |
+|------|------|------|
+| hono/jwt | 内建 | JWT 签发与验证（HS256） |
+| bcryptjs | ^2.4.3 | 密码哈希（10 轮 salt） |
 
-- **数据库**: Cloudflare D1（SQLite）
-- **认证**: JWT（`@hono/jwt`）+ bcryptjs
-- **人机验证**: Cloudflare Turnstile
+## 部署与工具
 
-## 部署与 CI
+| 工具 | 版本 | 用途 |
+|------|------|------|
+| wrangler | ^3.60.0 | Pages 部署 + D1 管理 |
+| TypeScript | ^5.5.0 | 类型检查 |
+| xlsx | ^0.18.5 | Excel 数据导入（一次性脚本） |
 
-- **部署**: Cloudflare Pages（关联 git 自动部署）
-- **定时任务**: Cloudflare Worker（独立部署，Cron Trigger `0 0 1 * *`）
-- **配置**: `wrangler.jsonc`
+## 已放弃
+
+- **Cloudflare Turnstile** — CDN 国内被屏蔽，登录表单改为纯 fetch 提交
+- **Cron Worker 自动归档** — 改为管理后台手动处理页面

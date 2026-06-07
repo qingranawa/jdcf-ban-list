@@ -1,19 +1,23 @@
 ---
-last_updated: 2026-06-05
-updated_by: superpowers-memory:rebuild
-triggered_by_plan: null
+last_updated: 2026-06-07
+updated_by: superpowers-memory:update
+triggered_by_plan: 2026-06-05-jdcf-phase2-3-4-implementation.md
 ---
 
 # 术语表
 
-**封禁记录** — 玩家因违规被服务器封禁的完整记录。包括昵称、SteamID、IP、原因、时长、等级等。→ `bans` 表
+**封禁记录** — 玩家因违规被服务器封禁的完整记录。→ `bans` 表，src/routes/public.ts
 
-**违规等级** — 从轻到重: 警告/严重警告 → 3级(30m~7d) → 2级(7d~1y) → 1级(50y) → 4级/逃逸(14d基准)
+**违规等级** — level1(50y/最重)、level2(7d~1y)、level3(30m~7d)、level4/逃逸(14d)、warning(警告)、cfba → `bans.violation_level`
 
-**处理结果** — 系统根据封禁时长与当前时间自动计算: 封禁中/已解封/永久封禁/禁言中
+**封禁状态** — computeStatus() 实时计算的 6 种状态: warning/permanent/cfba/banned/muted/unbanned → src/routes/public.ts
 
-**权限组** — T1~T6 + OWNER，控制管理员操作范围。OWNER 拥有全部权限。
+**ban_duration 格式** — `永久: permanent/cfba`、`数字+单位: 30m/7d/24h/50y`、`禁言: mute-30m` → regex `/^(\d+)([dhm])$/i`
 
-**黑名单** — 所有被封禁玩家的 steam_id 级汇总（含累计次数）。→ `blacklist` 表，仅 T3+ 可见
+**权限组** — OWNER(0)>T6(1)>T5(2)>T4(3)>T3(4)>T2(5)>T1(6)，数值越小权限越高 → src/middleware/auth.ts
 
-**月度归档** — 每月1日 Cron Worker 对已解封记录执行: 3级删除 / 2级降级 / 1/4级忽略
+**重点观察名单** — T3+ 手动维护的观察列表 → `watchlist` 表，src/routes/admin.ts
+
+**归档** — 过期违规的处理记录，写入 `archives`(摘要) + `archive_items`(明细) → schema.sql
+
+**JWT 双通道** — Authorization header（fetch/API 调用）+ httpOnly jwt cookie（页面导航）→ src/middleware/auth.ts

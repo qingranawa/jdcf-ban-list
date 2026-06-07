@@ -1,46 +1,122 @@
 ---
-last_updated: 2026-06-05
-updated_by: superpowers-memory:rebuild
-triggered_by_plan: null
+last_updated: 2026-06-07
+updated_by: superpowers-memory:update
+triggered_by_plan: 2026-06-05-jdcf-phase2-3-4-implementation.md
 ---
 
 # 功能特性
 
-> 项目尚未实现。所有功能处于设计阶段。
+## Implemented
+
+### Product Capabilities
+
+#### 封禁查询（公开首页）
+
+**Enables** — 玩家搜索/筛选所有封禁记录，按昵称/SteamID/IP 搜索，按违规等级/封禁状态过滤，分页浏览，查看统计卡片。
+
+**Actors / Entry Points** — 所有访客 → `/`（htmx 局部更新通过 HX-Request header 返回片段）
+
+**Capability Boundary** — 状态实时计算（computeStatus），不存库。分页 20 条/页。已归档+deleted 的记录不显示。
+
+**References** — architecture.md §封禁状态机，src/routes/public.ts
+
+#### 管理组公示
+
+**Enables** — 公开查看管理团队信息（游戏名、QQ、任职、主管）。
+
+**Actors / Entry Points** — 所有访客 → `/team`
+
+**Capability Boundary** — 仅显示 is_active=1 的管理员。
+
+**References** — src/routes/public.ts，src/views/team.tsx
+
+#### 管理后台 — 封禁 CRUD
+
+**Enables** — 管理员增删改封禁记录，含自定义违规等级、自定义时长、备注。仅 T1+ 可访问，仅 OWNER/T6/T5 可改他人记录。
+
+**Actors / Entry Points** — T1~OWNER → `/admin/bans`，POST/PUT/DELETE `/api/admin/bans`
+
+**Capability Boundary** — 修改他人记录需 `GROUP_RANK ≤ 2`（即 T5+）。删除直接物理删，不走归档。
+
+**References** — src/routes/admin.ts，src/views/admin-bans.tsx
+
+#### 管理后台 — 批量处理过期违规
+
+**Enables** — T1+ 管理员查看已过期的 2/3 级违规，可批量删除（3 级）或降级为 3 级（2 级），操作结果写入归档表。
+
+**Actors / Entry Points** — T1+ → `/admin/process`，POST `/api/admin/process/delete|downgrade`
+
+**Capability Boundary** — 仅处理 `is_archived=0` 且 `ban_time + ban_duration < now` 的记录。处理后标记 `is_archived=1`。
+
+**References** — architecture.md §归档处理状态机，src/routes/admin.ts
+
+#### 管理后台 — 重点观察名单
+
+**Enables** — T3+ 管理员手动维护重点观察玩家列表（SteamID、昵称、原因、备注），增删改查。
+
+**Actors / Entry Points** — T3+ → `/admin/watchlist`，REST API `/api/admin/watchlist`
+
+**Capability Boundary** — Steam ID 唯一约束。手动维护，非自动聚合。
+
+**References** — src/routes/admin.ts，src/views/admin-watchlist.tsx
+
+#### 管理后台 — 管理组管理
+
+**Enables** — T5+ 管理员创建/编辑/删除管理员账户，设置权限组、游戏名、QQ 等。
+
+**Actors / Entry Points** — T5+ → `/admin/team`，CRUD `/api/admin/profiles`
+
+**Capability Boundary** — 不能删除自己。OWNER 权限最高。新增管理员默认密码 `change_me_123`。
+
+**References** — src/routes/admin-team.ts
+
+#### 管理后台 — 归档日志
+
+**Enables** — T4+ 查看历史归档摘要（日期、处理总数、各级别处理数）。
+
+**Actors / Entry Points** — T4+ → `/admin/archive`
+
+**Capability Boundary** — 只读。归档明细存储在 archive_items 表。
+
+**References** — src/routes/admin.ts，schema.sql
+
+### User / Operator Workflows
+
+#### 账户自助管理
+
+**Enables** — 登录用户查看自己信息、修改游戏名/QQ名/密码。
+
+**Actors / Entry Points** — 已登录用户 → `/account`（客户端 JS 验证 JWT），API `/api/account`
+
+**Capability Boundary** — 不能修改权限组（需 T5+ 通过管理组管理操作）。JWT 存在 localStorage。
+
+**References** — src/routes/account.ts，src/views/account.tsx
+
+### Platform Capabilities
+
+#### JWT 认证系统
+
+**Enables** — Steam ID + 用户名 + 密码登录，颁发 7 天 JWT token，支持双通道传输（Authorization header + httpOnly cookie）。
+
+**Actors / Entry Points** — 管理员 → `/login`，POST `/api/login`
+
+**Capability Boundary** — bcryptjs 哈希。Cookie 自动携带，避免页面导航 401。
+
+**References** — architecture.md §登录流程，src/middleware/auth.ts，src/routes/auth.ts
+
+#### 权限分级中间件
+
+**Enables** — GROUP_RANK 数值比较（0=OWNER → 6=T1），requirePermission(minGroup) 控制路由访问。
+
+**Actors / Entry Points** — 路由中间件链 → `authMiddleware` + `requirePermission('Tx')`
+
+**Capability Boundary** — 数值越小权限越高。API 返回 403 JSON，HTML 页面重定向 /login。
+
+**References** — src/middleware/auth.ts
 
 ## Planned
 
-### 封禁查询（公开）
-- **Enables**: 玩家搜索/筛选封禁记录
-- **Actors**: 所有访客
-- 入口: 首页 `/`
-- 状态: 设计完成，待实现
+### 月度自动归档（Cron Worker）
 
-### 管理员公示（公开）
-- **Enables**: 查看管理团队信息
-- **Actors**: 所有访客
-- 入口: `/team`
-- 状态: 设计完成，待实现
-
-### 封禁管理（后台）
-- **Enables**: 管理员增删改封禁记录
-- **Actors**: T1~T6 / OWNER
-- 入口: `/admin/bans`（需登录）
-- 状态: 设计完成，待实现
-
-### 管理组管理（后台）
-- **Enables**: OWNER 管理所有管理员账号与权限
-- **Actors**: 仅 OWNER
-- 入口: `/admin/team`（需登录+OWNER）
-- 状态: 设计完成，待实现
-
-### 黑名单总表
-- **Enables**: T3+ 管理员查看所有被封禁玩家汇总
-- **Actors**: T3~T6 / OWNER
-- 入口: `/blacklist`
-- 状态: 设计完成，待实现
-
-### 月度归档
-- **Enables**: 每月1日自动处理过期封禁（3级删除、2级降级）
-- **Actors**: Cron Worker
-- 状态: 设计完成，待实现
+**Intent** — Cron Trigger 每月 1 日自动处理过期封禁。
+**Source** — design spec，当前以手动处理页面代替
