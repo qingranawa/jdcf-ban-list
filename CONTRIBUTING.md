@@ -91,15 +91,15 @@ seed.sql                        ← 初始管理员账号
 
 ### Cloudflare 权限
 
-协作开发需要操作 D1 数据库和 Pages 部署，服主需要把你的 Cloudflare 账号加入项目：
+协作开发需要操作 D1 数据库和 Pages 部署，你需要把 Cloudflare 账号加入项目：
 
 1. 你注册一个 [Cloudflare](https://dash.cloudflare.com/sign-up) 账号
-2. 把注册邮箱发给服主
-3. 服主在 Cloudflare Dashboard → Pages → jdcf-ban-list → Settings → Members 中添加你为 **Collaborator**
+2. 把注册邮箱发给 清然（QQ: 2816401189）
+3. 清然在 Cloudflare Dashboard → Pages → jdcf-ban-list → Settings → Members 中添加你为 **Collaborator**
 4. 你在本地生成 API Token：Dashboard → 右上角头像 → My Profile → API Tokens → Create Token → 选 **"Workers"** 模板，授权范围勾选 `Account Resources: All accounts` → `All zones`
 5. 把 Token 设到本地：`npx wrangler login` 或在 `~/.wrangler/config/default.toml` 中配置
 
-> API Token 是**私密的**，不要提交到仓库或发给任何人，包括服主。
+> API Token 是**私密的**，不要提交到仓库或发给任何人。
 
 ### 本地运行
 
@@ -230,5 +230,5 @@ Commit 格式：`type(scope): 概要`
 - 用 Prettier 格式化（`npx prettier --write .`）
 - HTML 输出一律通过 `escHtml()` / `escAttr()` 转义，别裸拼字符串
 - `console.log` / `debugger` 别留在生产代码里
-- 不引入新依赖除非确有必要，先和服主确认
+- 不引入新依赖除非确有必要，先和 清然 确认
 - 不要改无关代码、不要顺手重构、不要清理别人的"死代码"

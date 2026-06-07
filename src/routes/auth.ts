@@ -31,7 +31,7 @@ authRoutes.get('/login', (c) => {
     <p id="loginError" style="color:var(--red);margin-top:0.75rem;display:none;font-size:var(--fs-sm);"></p>
   </form>
   <p style="font-size:var(--fs-xs);color:var(--text-tertiary);margin-top:1rem;text-align:center;">
-    首次登录请联系服主获取账号信息
+    首次登录请联系 清然（QQ 2816401189）获取账号信息
   </p>
 </div>
 <script>
