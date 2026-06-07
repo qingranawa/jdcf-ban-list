@@ -89,6 +89,18 @@ seed.sql                        ← 初始管理员账号
 - pnpm（`npm install -g pnpm`）
 - Cloudflare 账号 + Wrangler CLI 登录
 
+### Cloudflare 权限
+
+协作开发需要操作 D1 数据库和 Pages 部署，服主需要把你的 Cloudflare 账号加入项目：
+
+1. 你注册一个 [Cloudflare](https://dash.cloudflare.com/sign-up) 账号
+2. 把注册邮箱发给服主
+3. 服主在 Cloudflare Dashboard → Pages → jdcf-ban-list → Settings → Members 中添加你为 **Collaborator**
+4. 你在本地生成 API Token：Dashboard → 右上角头像 → My Profile → API Tokens → Create Token → 选 **"Workers"** 模板，授权范围勾选 `Account Resources: All accounts` → `All zones`
+5. 把 Token 设到本地：`npx wrangler login` 或在 `~/.wrangler/config/default.toml` 中配置
+
+> API Token 是**私密的**，不要提交到仓库或发给任何人，包括服主。
+
 ### 本地运行
 
 ```bash
