@@ -56,15 +56,23 @@ src/
 ### 初始化表结构
 
 ```bash
+npm run db:init
+# 等同于
 npx wrangler d1 execute jdcf-db --file=schema.sql
 ```
 
-### 导入初始数据
+### 创建初始管理员
 
 ```bash
-# 先确保 .env 或系统中有 Cloudflare API Token
-npx wrangler d1 execute jdcf-db --file=seed.sql
+# 首次部署用 init-db.js，会自动建表 + 创建 OWNER 账号
+# 通过环境变量指定初始凭据（不设置则使用默认值）
+set INIT_STEAM_ID=你的Steam64位ID
+set INIT_ADMIN_USER=admin
+set INIT_ADMIN_PASSWORD=你的密码
+npm run db:seed
 ```
+
+脚本会自动生成 bcrypt 哈希并插入数据库。如果不设环境变量，默认用户名 `admin`、密码 `change_me_123`、Steam ID 为占位符（部署后记得改）。
 
 ### 查询数据
 
