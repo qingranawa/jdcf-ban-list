@@ -4,7 +4,7 @@ import { html } from 'hono/html'
 import type { Env, AdminRow } from '../db'
 import { authMiddleware, requirePermission } from '../middleware/auth'
 import { AdminLayout } from '../views/admin-layout'
-import { escHtml } from '../helpers/escape'
+import { escHtml, escAttr } from '../helpers/escape'
 
 export const adminTeamRoutes = new Hono<{ Bindings: Env }>()
 adminTeamRoutes.use('/admin/*', authMiddleware)
@@ -43,7 +43,7 @@ adminTeamRoutes.get('/admin/team', requirePermission('T5'), async (c) => {
         <td>${a.is_active ? '✅' : '❌'}</td>
         <td style="white-space:nowrap;">
           <button class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:0.78rem;" onclick="editAdmin(${a.id})">编辑</button>
-          <button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.78rem;margin-left:0.25rem;" onclick="delAdmin(${a.id},'${escHtml(a.username)}')">删除</button>
+          <button class="btn btn-danger" style="padding:0.2rem 0.5rem;font-size:0.78rem;margin-left:0.25rem;" data-username="${escAttr(a.username)}" onclick="delAdmin(${a.id},this.dataset.username)">删除</button>
         </td>
       </tr>`)}
     </tbody>

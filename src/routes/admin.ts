@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { html } from 'hono/html'
 import type { Env, BanRow, WatchlistRow } from '../db'
+import { computeStatus } from './public'
 import { authMiddleware, requirePermission, GROUP_RANK } from '../middleware/auth'
 import { escHtml, escAttr } from '../helpers/escape'
 import { AdminLayout } from '../views/admin-layout'
@@ -111,18 +112,9 @@ adminRoutes.delete('/api/admin/bans/:id', requirePermission('T1'), async (c) => 
 // ── 批量处理过期违规 ──
 
 // ban_time + ban_duration 跟现在比，过期没
-function isBanExpired(ban: { ban_time: string; ban_duration: string }): boolean {
-  if (ban.ban_duration === 'permanent') return false
-  if (/^50[Yy]$/.test(ban.ban_duration)) return false
-  if (ban.ban_duration === 'warning' || ban.ban_duration === 'cfba') return false
-  let dur = ban.ban_duration
-  if (dur.startsWith('mute-')) dur = dur.slice(5)
-  const m = dur.match(/^(\d+)([dhm])$/i)
-  if (!m) return false
-  const amount = parseInt(m[1])
-  const unit = m[2].toLowerCase()
-  const ms = unit === 'm' ? amount * 60000 : unit === 'h' ? amount * 3600000 : amount * 86400000
-  return Date.now() > new Date(ban.ban_time).getTime() + ms
+// 复用 public.ts 的 computeStatus —— 返回 'unbanned' 就是已过期
+function isBanExpired(ban: { ban_time: string; ban_duration: string; archive_action: string | null }): boolean {
+  return computeStatus(ban) === 'unbanned'
 }
 
 // 处理页，T1就能看
@@ -166,7 +158,7 @@ adminRoutes.post('/api/admin/process/delete', requirePermission('T1'), async (c)
   // 拿出勾选的记录
   const placeholders = ids.map(() => '?').join(',')
   const bans = await c.env.DB.prepare(
-    `SELECT * FROM bans WHERE id IN (${placeholders}) AND is_archived = 0`
+    `SELECT * FROM bans WHERE id IN (${placeholders}) AND is_archived = 0 AND violation_level = 'level3'`
   ).bind(...ids).all<BanRow>()
 
   if (bans.results.length === 0) return c.json({ error: '没有可处理的记录' }, 400)
@@ -179,17 +171,16 @@ adminRoutes.post('/api/admin/process/delete', requirePermission('T1'), async (c)
   // 写归档日志摘要
   const archiveResult = await c.env.DB.prepare(
     `INSERT INTO archives (archive_date, total_processed, l3_deleted, l2_downgraded, l1_ignored, l4_ignored)
-     VALUES (date('now'), ?, ?, 0, 0, 0)`
+     VALUES (datetime('now'), ?, ?, 0, 0, 0)`
   ).bind(bans.results.length, bans.results.length).run()
   const archiveId = archiveResult.meta.last_row_id
 
-  // 写归档明细（每条记清楚）
-  for (const ban of bans.results) {
-    await c.env.DB.prepare(
-      `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration)
-       VALUES (?, ?, ?, ?, ?, NULL, 'deleted', 'unbanned', ?)`
-    ).bind(archiveId, ban.id, ban.nickname, ban.steam_id, ban.violation_level, ban.ban_duration).run()
-  }
+  // 写归档明细（批量）
+  const deleteValues = bans.results.map(() => '(?, ?, ?, ?, ?, NULL, \'deleted\', \'unbanned\', ?)').join(',')
+  const deleteParams = bans.results.flatMap(ban => [archiveId, ban.id, ban.nickname, ban.steam_id, ban.violation_level, ban.ban_duration])
+  await c.env.DB.prepare(
+    `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration) VALUES ${deleteValues}`
+  ).bind(...deleteParams).run()
 
   return c.json({ success: true, processed: bans.results.length })
 })
@@ -215,17 +206,16 @@ adminRoutes.post('/api/admin/process/downgrade', requirePermission('T1'), async 
   // 写归档摘要
   const archiveResult = await c.env.DB.prepare(
     `INSERT INTO archives (archive_date, total_processed, l3_deleted, l2_downgraded, l1_ignored, l4_ignored)
-     VALUES (date('now'), ?, 0, ?, 0, 0)`
+     VALUES (datetime('now'), ?, 0, ?, 0, 0)`
   ).bind(bans.results.length, bans.results.length).run()
   const archiveId = archiveResult.meta.last_row_id
 
-  // 写归档明细
-  for (const ban of bans.results) {
-    await c.env.DB.prepare(
-      `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration)
-       VALUES (?, ?, ?, ?, ?, 'level3', 'downgraded', 'unbanned', ?)`
-    ).bind(archiveId, ban.id, ban.nickname, ban.steam_id, ban.violation_level, ban.ban_duration).run()
-  }
+  // 写归档明细（批量）
+  const downgradeValues = bans.results.map(() => "(?, ?, ?, ?, ?, 'level3', 'downgraded', 'unbanned', ?)").join(',')
+  const downgradeParams = bans.results.flatMap(ban => [archiveId, ban.id, ban.nickname, ban.steam_id, ban.violation_level, ban.ban_duration])
+  await c.env.DB.prepare(
+    `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration) VALUES ${downgradeValues}`
+  ).bind(...downgradeParams).run()
 
   return c.json({ success: true, processed: bans.results.length })
 })

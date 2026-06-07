@@ -92,5 +92,4 @@ CREATE INDEX IF NOT EXISTS idx_bans_violation_level ON bans(violation_level);
 CREATE INDEX IF NOT EXISTS idx_bans_handled_by ON bans(handled_by);
 CREATE INDEX IF NOT EXISTS idx_bans_is_archived ON bans(is_archived);
 CREATE INDEX IF NOT EXISTS idx_admins_permission_group ON admins(permission_group);
-CREATE INDEX IF NOT EXISTS idx_blacklist_steam_id ON blacklist(steam_id);
 CREATE INDEX IF NOT EXISTS idx_archive_items_archive_id ON archive_items(archive_id);

@@ -6,7 +6,7 @@ import { TeamPage } from '../views/team'
 
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
-function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null }): string {
+export function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null }): string {
   // 警告不算封禁，没时效期限
   if (ban.ban_duration === 'warning') return 'warning'
   // 永久不解封
@@ -101,11 +101,12 @@ publicRoutes.get('/', async (c) => {
     status: computeStatus(ban),
   }))
 
+  // 已归档删除的不展示（先于状态筛选，避免已归档项污染状态筛选项）
+  results = results.filter(b => !(b.is_archived === 1 && b.archive_action === 'deleted'))
+
   if (statusFilter) {
     results = results.filter(b => b.status === statusFilter)
   }
-
-  results = results.filter(b => !(b.is_archived === 1 && b.archive_action === 'deleted'))
 
   if (c.req.header('HX-Request')) {
     return c.html(BanTable({
@@ -142,7 +143,7 @@ publicRoutes.get('/api/bans', async (c) => {
   const offset = (page - 1) * limit
 
   const rows = await c.env.DB.prepare(
-    'SELECT b.*, a.game_name as handled_by_name FROM bans b LEFT JOIN admins a ON b.handled_by = a.id ORDER BY b.created_at DESC LIMIT ? OFFSET ?'
+    'SELECT b.*, a.game_name as handled_by_name FROM bans b LEFT JOIN admins a ON b.handled_by = a.id WHERE NOT (b.is_archived = 1 AND b.archive_action = \'deleted\') ORDER BY b.created_at DESC LIMIT ? OFFSET ?'
   ).bind(limit, offset).all()
 
   return c.json({ data: rows.results, page, limit })

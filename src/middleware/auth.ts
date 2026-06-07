@@ -78,6 +78,8 @@ export const requirePermission = (minGroup: string) =>
     }
 
     if (userRank > requiredRank) {
+      const accept = c.req.header('Accept') || ''
+      if (accept.includes('text/html')) return c.redirect('/login')
       return c.json({ error: '权限不足' }, 403)
     }
 
