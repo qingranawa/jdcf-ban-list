@@ -3,3 +3,4 @@ dist/
 .wrangler/
 *.local.json
 .dev.vars
+.codex/
