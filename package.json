@@ -17,7 +17,7 @@
     "@types/bcryptjs": "^2.4.6",
     "mammoth": "^1.12.0",
     "typescript": "^5.5.0",
-    "wrangler": "^3.60.0",
+    "wrangler": "^4.104.0",
     "xlsx": "^0.18.5"
   }
 }
