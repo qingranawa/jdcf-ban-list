@@ -40,18 +40,16 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
     </div>
   </div>
 
-  <div style="height:56px;"></div>
-</div>
-
-<div style="position:sticky;bottom:0;z-index:10;margin:0 calc(-1 * var(--spacing-lg));padding:var(--spacing-md) var(--spacing-lg);border-top:1px solid var(--separator);display:flex;gap:var(--spacing-md);align-items:center;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);width:calc(100% + 2 * var(--spacing-lg));">
-  <label style="display:flex;align-items:center;gap:var(--spacing-sm);font-size:14px;color:var(--label-2);cursor:pointer;">
-    <input type="checkbox" id="selectAll" onchange="toggleAll()" style="accent-color:var(--cyan);width:16px;height:16px;">
-    全选
-  </label>
-  <span id="selectedCount" style="font-size:14px;color:var(--label-3);">已选 0</span>
-  <span style="flex:1;"></span>
-  <button class="cyber-btn cyber-btn-primary" onclick="batchDowngrade()" id="downgradeBtn2" disabled>降级选中</button>
-  <button class="cyber-btn cyber-btn-danger" onclick="batchDelete()" id="deleteBtn2" disabled>删除选中</button>
+  <div style="position:sticky;bottom:var(--spacing-lg);margin-top:var(--spacing-lg);z-index:10;border:1px solid var(--separator);border-radius:12px;padding:var(--spacing-md) var(--spacing-lg);display:flex;gap:var(--spacing-md);align-items:center;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">
+    <label style="display:flex;align-items:center;gap:var(--spacing-sm);font-size:14px;color:var(--label-2);cursor:pointer;">
+      <input type="checkbox" id="selectAll" onchange="toggleAll()" style="accent-color:var(--cyan);width:16px;height:16px;">
+      全选
+    </label>
+    <span id="selectedCount" style="font-size:14px;color:var(--label-3);">已选 0</span>
+    <span style="flex:1;"></span>
+    <button class="cyber-btn cyber-btn-primary" onclick="batchDowngrade()" id="downgradeBtn2" disabled>降级选中</button>
+    <button class="cyber-btn cyber-btn-danger" onclick="batchDelete()" id="deleteBtn2" disabled>删除选中</button>
+  </div>
 </div>
 
 <script>

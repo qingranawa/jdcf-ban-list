@@ -118,7 +118,7 @@ body::after {
 .cyber-glass, .cyber-glass-sm, .cyber-card, .cyber-stat-card,
 .cyber-table-wrap, .cyber-btn, .cyber-search, .cyber-input,
 .cyber-pagination button, .cyber-pagination a,
-.cyber-grouped, .cyber-sidebar {
+.cyber-grouped {
   background: transparent;
   border: 1px solid var(--glass-border);
 }
