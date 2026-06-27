@@ -40,23 +40,10 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
     </div>
   </div>
 
-  <div style="padding-bottom:70px;"></div>
+  <div style="height:56px;"></div>
 </div>
 
-<style>
-.batch-bar {
-  position: fixed; bottom: 0; left: 240px; right: 0; z-index: 10;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-top: 1px solid var(--separator);
-  display: flex; gap: var(--spacing-md); align-items: center;
-  background: rgba(255,255,255,.08);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-}
-@media (max-width: 768px) {
-  .batch-bar { left: 0; }
-}
-</style>
-<div class="batch-bar">
+<div style="position:sticky;bottom:0;z-index:10;margin:0 calc(-1 * var(--spacing-lg));padding:var(--spacing-md) var(--spacing-lg);border-top:1px solid var(--separator);display:flex;gap:var(--spacing-md);align-items:center;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);width:calc(100% + 2 * var(--spacing-lg));">
   <label style="display:flex;align-items:center;gap:var(--spacing-sm);font-size:14px;color:var(--label-2);cursor:pointer;">
     <input type="checkbox" id="selectAll" onchange="toggleAll()" style="accent-color:var(--cyan);width:16px;height:16px;">
     全选
