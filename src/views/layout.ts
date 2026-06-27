@@ -38,10 +38,6 @@ ${Styles()}
   ${props.children}
 </main>
 
-<a href="/admin/bans" id="quickAddFab" style="display:none;position:fixed;bottom:84px;right:16px;z-index:200;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--magenta),#ff0088);color:#fff;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(255,0,136,.5);transition:transform .2s,box-shadow .2s;text-decoration:none;">
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-</a>
-
 <nav class="cyber-nav" aria-label="主导航">
   <div class="nav-brand">
     <span class="nav-brand-text">鸡蛋肠粉服务器</span>
@@ -61,7 +57,7 @@ ${Styles()}
     <a href="/account" id="accountTab" style="display:none;">
       ${icon('gear', 20)}<span>账户</span>
     </a>
-    <a href="/admin/bans" id="addBanTab" style="display:none;">
+    <a href="#" id="addBanTab" style="display:none;" onclick="openGlobalBanSheet();return false;">
       ${icon('bolt', 20)}<span>添加封禁</span>
     </a>
     <a href="/login" id="loginTab">
@@ -69,6 +65,35 @@ ${Styles()}
     </a>
   </div>
 </nav>
+
+<!-- Global Add Ban Modal -->
+<div id="globalBanSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="新增封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeGlobalBanSheet()">
+  <div class="cyber-sheet">
+    <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
+      <span class="sheet-title">新增封禁</span>
+      <button type="button" class="sheet-close" onclick="closeGlobalBanSheet()">✕</button>
+    </div>
+    <div class="sheet-body">
+      <form id="globalBanForm">
+        <div class="cyber-form-group"><label>昵称 *</label><input type="text" name="nickname" required class="cyber-input" /></div>
+        <div class="cyber-form-group"><label>Steam ID *</label><input type="text" name="steam_id" required placeholder="76561199…" class="cyber-input" /></div>
+        <div class="cyber-form-group"><label>IP（选填）</label><input type="text" name="ip_address" class="cyber-input" /></div>
+        <div class="cyber-form-group"><label>原因</label><input type="text" name="reason" class="cyber-input" /></div>
+        <div class="cyber-form-group"><label>封禁时长</label><input type="text" name="ban_duration" placeholder="7d / 30m / 1h / permanent" class="cyber-input" /></div>
+        <div class="cyber-form-group">
+          <label>违规等级</label>
+          <select name="violation_level" class="cyber-input">
+            <option value="level3" selected>3级违规</option><option value="level2">2级违规</option>
+            <option value="level1">1级违规</option><option value="warning">警告</option>
+          </select>
+        </div>
+        <div class="cyber-form-group"><label>备注</label><textarea name="notes" rows="3" class="cyber-input"></textarea></div>
+        <div class="cyber-form-group"><label>联合封禁管理员（选填）</label><input type="text" name="co_handlers" placeholder="用逗号分隔多个管理员" class="cyber-input" /></div>
+        <button type="submit" class="cyber-btn cyber-btn-primary" style="width:100%;justify-content:center;">提交封禁</button>
+      </form>
+    </div>
+  </div>
+</div>
 
 <script>
 (function() {
@@ -121,18 +146,57 @@ ${Styles()}
   var accountTab = document.getElementById('accountTab');
   var addBanTab = document.getElementById('addBanTab');
   var loginTab = document.getElementById('loginTab');
-  var quickAddFab = document.getElementById('quickAddFab');
   if (jwt) {
     try {
       var payload = JSON.parse(atob(jwt.split('.')[1]));
       accountTab.style.display = '';
       loginTab.style.display = 'none';
-      if (payload.permissionGroup) {
-        addBanTab.style.display = '';
-        if (quickAddFab) quickAddFab.style.display = 'flex';
-      }
+      if (payload.permissionGroup) addBanTab.style.display = '';
     } catch(e) {}
   }
+})();
+
+// ─── Global Add Ban Modal ───
+function openGlobalBanSheet() {
+  var f = document.getElementById('globalBanForm');
+  if (f) f.reset();
+  var el = document.getElementById('globalBanSheet');
+  if (el) el.classList.add('open');
+}
+function closeGlobalBanSheet() {
+  var el = document.getElementById('globalBanSheet');
+  if (el) el.classList.remove('open');
+}
+function showToast(t, type) {
+  var el = document.getElementById('cyberToast') || (function(){
+    var d = document.createElement('div'); d.id = 'cyberToast'; d.className = 'cyber-toast';
+    d.setAttribute('role','status'); d.setAttribute('aria-live','polite');
+    document.body.appendChild(d); return d;
+  })();
+  el.textContent = t; el.className = 'cyber-toast ' + type;
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2500);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('globalBanForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var jwt = localStorage.getItem('jwt');
+    if (!jwt) { showToast('请先登录', 'error'); return; }
+    var data = Object.fromEntries(new FormData(this));
+    var resp = await fetch('/api/admin/bans', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+      body: JSON.stringify(data),
+    });
+    if (resp.ok) {
+      closeGlobalBanSheet();
+      showToast('封禁已添加', 'success');
+      setTimeout(function(){ location.reload(); }, 800);
+    } else {
+      var r = await resp.json(); showToast(r.error || '添加失败', 'error');
+    }
+  });
+});
 })();
 </script>
 </body>
