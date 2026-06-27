@@ -39,13 +39,10 @@ export const Styles = () => html`
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --glass-bg: rgba(255,255,255,.04);
-
+  --glass-bg: transparent;
   --glass-bg-hover: rgba(255,255,255,.06);
-  --glass-border: rgba(255,255,255,.06);
-  --glass-border-hover: rgba(255,255,255,.12);
-  --glass-blur: 20px;
-  --glass-blur-sm: 12px;
+  --glass-border: rgba(255,255,255,.2);
+  --glass-border-hover: rgba(255,255,255,.35);
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -117,46 +114,13 @@ body::after {
 ::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--label-3); }
 
-/* ─── Glass: with background fill ─── */
-@supports (backdrop-filter: blur(1px)) {
-  .cyber-glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-  }
-  .cyber-glass-sm, .cyber-btn, .cyber-search, .cyber-input,
-  .cyber-pagination button, .cyber-pagination a,
-  .cyber-grouped, .cyber-sidebar {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur-sm));
-    -webkit-backdrop-filter: blur(var(--glass-blur-sm));
-    border: 1px solid var(--glass-border);
-  }
-}
-@supports not (backdrop-filter: blur(1px)) {
-  .cyber-glass, .cyber-glass-sm, .cyber-btn, .cyber-search,
-  .cyber-input, .cyber-pagination button, .cyber-pagination a,
-  .cyber-grouped, .cyber-sidebar {
-    background: rgba(10,10,10,.85);
-    border: 1px solid var(--separator);
-  }
-}
-
-/* ─── Glass: transparent fill (blur + border only) ─── */
-@supports (backdrop-filter: blur(1px)) {
-  .cyber-card, .cyber-stat-card, .cyber-table-wrap {
-    background: transparent;
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
-  }
-}
-@supports not (backdrop-filter: blur(1px)) {
-  .cyber-card, .cyber-stat-card, .cyber-table-wrap {
-    background: rgba(10,10,10,.5);
-    border: 1px solid var(--separator);
-  }
+/* ─── Glass (transparent + white border, no blur) ─── */
+.cyber-glass, .cyber-glass-sm, .cyber-card, .cyber-stat-card,
+.cyber-table-wrap, .cyber-btn, .cyber-search, .cyber-input,
+.cyber-pagination button, .cyber-pagination a,
+.cyber-grouped, .cyber-sidebar {
+  background: transparent;
+  border: 1px solid var(--glass-border);
 }
 
 /* ─── Buttons ─── */
@@ -248,7 +212,6 @@ body::after {
 #list-wrap.htmx-request .cyber-table-wrap::after {
   content: ''; position: absolute; inset: 0; z-index: 5;
   background: rgba(0,0,0,.4);
-  backdrop-filter: blur(2px);
 }
 #list-wrap.htmx-request .cyber-table-wrap::before {
   content: ''; position: absolute; top: 50%; left: 50%; z-index: 6;
@@ -289,9 +252,7 @@ body::after {
 
 /* ─── Segmented Control ─── */
 .cyber-segmented {
-  display: inline-flex; background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur-sm));
-  -webkit-backdrop-filter: blur(var(--glass-blur-sm));
+  display: inline-flex;
   border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -307,15 +268,14 @@ body::after {
 /* ─── Bottom Sheet ─── */
 .cyber-sheet-overlay {
   position: fixed; inset: 0; z-index: 1000;
-  background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+  background: rgba(0,0,0,.6);
   opacity: 0; pointer-events: none; transition: opacity .3s;
   display: flex; align-items: flex-end; justify-content: center;
 }
 .cyber-sheet-overlay.open { opacity: 1; pointer-events: auto; }
 .cyber-sheet {
   width: 100%; max-width: 440px;
-  background: rgba(0,0,0,.6); backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  background: rgba(0,0,0,.6);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   padding: var(--spacing-md) var(--spacing-lg);
@@ -467,8 +427,7 @@ body::after {
 .cyber-nav {
   display: flex; align-items: center; justify-content: center;
   position: fixed; left: 0; right: 0; z-index: 100;
-  background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+  background: transparent;
   bottom: 0; top: auto;
   height: 60px; padding: 0 var(--spacing-md);
 }
@@ -551,8 +510,7 @@ body::after {
     top: 0; bottom: auto;
     height: 56px;
     padding: 0 var(--spacing-xl);
-    background: var(--glass-bg); backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.4);
+    background: transparent;
   }
   .cyber-nav::before {
     top: auto; bottom: 0;

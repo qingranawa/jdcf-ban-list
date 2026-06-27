@@ -41,7 +41,7 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
   </div>
 
   <!-- bottom action bar -->
-  <div style="position:sticky;bottom:0;margin-top:var(--spacing-lg);padding:var(--spacing-md) 0;background:var(--glass-bg);backdrop-filter:blur(var(--glass-blur-sm));-webkit-backdrop-filter:blur(var(--glass-blur-sm));border-top:1px solid var(--separator);display:flex;gap:var(--spacing-md);align-items:center;">
+  <div style="position:sticky;bottom:0;margin-top:var(--spacing-lg);padding:var(--spacing-md) 0;border-top:1px solid var(--separator);display:flex;gap:var(--spacing-md);align-items:center;">
     <label style="display:flex;align-items:center;gap:var(--spacing-sm);font-size:14px;color:var(--label-2);cursor:pointer;">
       <input type="checkbox" id="selectAll" onchange="toggleAll()" style="accent-color:var(--cyan);width:16px;height:16px;">
       全选
