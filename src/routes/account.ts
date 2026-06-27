@@ -1,3 +1,4 @@
+// > Self-service account routes — view & edit own profile
 import { Hono } from 'hono'
 import bcrypt from 'bcryptjs'
 import type { Env, AdminRow } from '../db'
@@ -7,7 +8,7 @@ import { AccountPage } from '../views/account'
 
 export const accountRoutes = new Hono<{ Bindings: Env; Variables: Variables }>()
 
-// 账户页 —— 客户端自己验 JWT，服务端不拦
+// * 账户页 — 客户端自己验 JWT，服务端不拦（页面本身无敏感信息）
 accountRoutes.get('/account', (c) => {
   return c.html(AdminLayout({
     title: '账户',
@@ -17,7 +18,7 @@ accountRoutes.get('/account', (c) => {
   }))
 })
 
-// 查自己的信息
+// * 查自己的信息
 accountRoutes.get('/api/account', authMiddleware, async (c) => {
   const id = c.get('adminId')
   const admin = await c.env.DB.prepare(
@@ -27,7 +28,7 @@ accountRoutes.get('/api/account', authMiddleware, async (c) => {
   return c.json(admin)
 })
 
-// 改自己的信息
+// * 改自己的信息 — 密码留空则不修改
 accountRoutes.put('/api/account', authMiddleware, async (c) => {
   const id = c.get('adminId')
   const body = await c.req.json()

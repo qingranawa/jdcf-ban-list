@@ -1,3 +1,4 @@
+// > Public routes — ban list, team info, stats (no auth required)
 import { Hono } from 'hono'
 import type { Env, BanRow, AdminRow } from '../db'
 import { Layout } from '../views/layout'
@@ -7,6 +8,9 @@ import { StatsPage, type StatsData } from '../views/stats'
 
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
+// * Core status computer — used by both public and admin routes
+// * Returns: 'banned' | 'unbanned' | 'permanent' | 'muted' | 'warning' | 'cfba'
+// ? 移除 archive_action 检查是因为已归档记录不会在此路由出现
 export function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null }): string {
   // ! 警告不算封禁，没时效期限
   if (ban.ban_duration === 'warning') return 'warning'
@@ -55,8 +59,9 @@ publicRoutes.get('/', async (c) => {
   const params: unknown[] = []
 
   if (q) {
-    where += ' AND (b.nickname LIKE ? OR b.steam_id LIKE ? OR b.ip_address LIKE ?)'
-    const pattern = `%${q}%`
+    where += ' AND (b.nickname LIKE ? ESCAPE \'\\\' OR b.steam_id LIKE ? ESCAPE \'\\\' OR b.ip_address LIKE ? ESCAPE \'\\\')'
+    const escaped = q.replace(/[%_\\]/g, '\\$&')
+    const pattern = `%${escaped}%`
     params.push(pattern, pattern, pattern)
   }
   if (levelFilter) {
@@ -94,8 +99,8 @@ publicRoutes.get('/', async (c) => {
     results = bans.results.map(ban => ({ ...ban, status: computeStatus(ban) }))
   }
 
-  // 没筛选项才跑统计，省一次DB查询
-  let stats = undefined
+  // * 没筛选项才跑统计，省一次 DB 查询
+  let stats: { total: number; level3: number; level2: number; level1: number; level4: number; warning: number; other: number; banned: number } | undefined
   if (!q && !levelFilter && !statusFilter) {
     const s = await c.env.DB.prepare(
       `SELECT

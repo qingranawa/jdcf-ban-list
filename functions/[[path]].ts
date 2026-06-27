@@ -1,3 +1,5 @@
+// > Cloudflare Pages entry point — mounts all route modules
+// ! CORS 白名单需同步自定义域名变更
 import { Hono } from 'hono'
 import { handle } from 'hono/cloudflare-pages'
 import { cors } from 'hono/cors'
@@ -13,8 +15,14 @@ app.use('*', cors({ origin: ['https://jdcf-ban-list.pages.dev', 'http://localhos
 
 app.route('/', publicRoutes)
 app.route('/', authRoutes)
-app.route('/', adminRoutes)      // 需 JWT 认证的管理路由
+app.route('/', adminRoutes)
 app.route('/', accountRoutes)
+
+// * Catches all unhandled promise rejections from route handlers
+app.onError((err, c) => {
+  console.error('Unhandled error:', err)
+  return c.json({ error: '服务器内部错误' }, 500)
+})
 
 const honoHandler = handle(app)
 

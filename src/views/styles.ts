@@ -86,25 +86,25 @@ body::before {
   will-change: transform;
 }
 .mesh-sphere {
-  position: absolute; border-radius: 50%; filter: blur(120px); opacity: .35;
-  animation: meshDrift 20s ease-in-out infinite;
+  position: absolute; border-radius: 50%; filter: blur(40px); opacity: .35;
+  animation: meshDrift 40s ease-in-out infinite;
 }
-.mesh-sphere:nth-child(1) { width:500px;height:500px;top:-10%;left:-5%;background:var(--cyan);opacity:.15;animation-delay:0s; }
-.mesh-sphere:nth-child(2) { width:400px;height:400px;bottom:-8%;right:-3%;background:var(--magenta);opacity:.12;animation-delay:-7s; }
-.mesh-sphere:nth-child(3) { width:300px;height:300px;top:40%;left:50%;background:var(--amber);opacity:.08;animation-delay:-14s; }
+.mesh-sphere:nth-child(1) { width:300px;height:300px;top:-5%;left:-3%;background:var(--cyan);opacity:.12;animation-delay:0s; }
+.mesh-sphere:nth-child(2) { width:250px;height:250px;bottom:-5%;right:-2%;background:var(--magenta);opacity:.10;animation-delay:-13s; }
+.mesh-sphere:nth-child(3) { width:180px;height:180px;top:45%;left:50%;background:var(--amber);opacity:.06;animation-delay:-26s; }
 
 @keyframes meshDrift {
   0%,100% { transform: translate(0,0) scale(1); }
-  33% { transform: translate(40px,-30px) scale(1.1); }
-  66% { transform: translate(-20px,40px) scale(.95); }
+  33% { transform: translate(30px,-20px) scale(1.05); }
+  66% { transform: translate(-15px,25px) scale(.95); }
 }
 
 /* Grain texture overlay */
 body::after {
   content: ''; position: fixed; inset: 0; z-index: -1;
-  opacity: .035;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 256px 256px;
+  opacity: .03;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAFklEQVQoU2NkYPj/n4EBCxgVqBQwAABbMAn/5e9KKQAAAABJRU5ErkJggg==");
+  background-size: 10px 10px;
   pointer-events: none;
 }
 

@@ -1,3 +1,5 @@
+// > Public layout — full HTML shell with nav, global modal, scroll effects
+// ! 全局新增封禁 Modal (globalBanSheet) 在此定义，确保所有页面可用
 import { html } from 'hono/html'
 import { Styles } from './styles'
 import { icon } from './icons'
@@ -11,6 +13,7 @@ type LayoutProps = {
 
 export function Layout(props: LayoutProps) {
   const isActive = (p: string) => props.currentPath === p || props.currentPath.startsWith(p + '/')
+  // * 每次刷新随机选一张背景图
   const bgPath = getRandomBg()
   return html`
 <!DOCTYPE html>

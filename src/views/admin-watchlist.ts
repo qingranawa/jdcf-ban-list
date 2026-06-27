@@ -1,3 +1,5 @@
+// > Watchlist page — track suspicious players across sessions
+// ! T3 及以上可访问；Steam ID 在该列表中唯一（UNIQUE 约束）
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
 import { icon } from './icons'
@@ -67,6 +69,7 @@ function openSheet() {
 function closeSheet() { document.getElementById('watchSheet').classList.remove('open'); }
 async function editWatch(id) {
   const resp = await fetch('/api/admin/watchlist/' + id, { headers: { 'Authorization': 'Bearer ' + jwt } });
+  if (!resp.ok) { showToast('获取记录失败', 'error'); return; }
   const d = await resp.json();
   const f = document.getElementById('watchForm');
   f.querySelector('[name=id]').value = d.id;

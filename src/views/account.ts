@@ -1,8 +1,8 @@
+// > Account settings page — view profile, edit game name / QQ / password
 import { html } from 'hono/html'
 
 export function AccountPage() {
-  return html`
-<div style="max-width:500px;margin:0 auto;padding:var(--spacing-lg) var(--spacing-md);">
+  return html`<div style="max-width:500px;margin:0 auto;padding:var(--spacing-lg) var(--spacing-md);">
   <h1 class="cyber-title" style="font-size:32px;margin-bottom:var(--spacing-lg);">账户设置</h1>
 
   <div class="cyber-grouped" style="margin-bottom:var(--spacing-lg);">
@@ -48,6 +48,7 @@ export function AccountPage() {
   var group = payload.permissionGroup;
 
   fetch('/api/account', { headers: { 'Authorization': 'Bearer ' + jwt } })
+    // ? 使用 innerHTML 配合自定义 esc() 转义，保证 XSS 安全
     .then(function(r) { return r.json(); })
     .then(function(d) {
       document.getElementById('userInfo').innerHTML =

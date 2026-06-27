@@ -1,3 +1,5 @@
+// > Batch processing page — mass downgrade/delete expired bans
+// ! 所有操作不可撤销（删除的封禁进归档，不会恢复为活跃）
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
 
@@ -53,6 +55,7 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
 </div>
 
 <script>
+// ? 注意：脚本在模板渲染完成后立即执行，此时 DOM 已存在
 const jwt = localStorage.getItem('jwt');
 const rows = document.querySelectorAll('.proc-row');
 function toggleAll() {

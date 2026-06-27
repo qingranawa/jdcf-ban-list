@@ -51,7 +51,7 @@ function genPages(current: number, total: number): (number|string)[] {
 }
 
 function enc(s: string): string { return encodeURIComponent(s) }
-function fmtHandlers(name: string | null, co: string): string {
+function fmtHandlers(name: string | null, co: string | null): string {
   const parts: string[] = []
   if (name) parts.push(name)
   if (co) co.split(',').map(s => s.trim()).filter(Boolean).forEach(s => parts.push(s))
@@ -135,7 +135,8 @@ export function BanTable(props: TableProps) {
 </div>`
 }
 
-// ── Full home page (first load) ──
+// * 首页完整渲染 — 包含统计卡片（仅首次加载时渲染）
+// * HTMX 局部刷新时只复用 BanTable，不重复渲染 HomePage
 type HomePageProps = TableProps & {
   stats?: { total: number; level3: number; level2: number; level1: number; level4: number; warning: number; other: number; banned: number };
 }

@@ -1,3 +1,5 @@
+// > Auth routes — login page & JWT token exchange
+// ! 登录无速率限制 — 生产环境建议加 Cloudflare Turnstile 或 IP 限流
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
 import bcrypt from 'bcryptjs'
@@ -15,6 +17,8 @@ authRoutes.get('/login', (c) => {
   }))
 })
 
+// * JWT 令牌通过 JSON body 和 Set-Cookie 双重返回
+// * 客户端存 localStorage；HttpOnly cookie 用于页面导航鉴权
 authRoutes.post('/api/login', async (c) => {
   const { steam_id, username, password } = await c.req.json<{
     steam_id: string;
@@ -22,6 +26,7 @@ authRoutes.post('/api/login', async (c) => {
     password: string;
   }>()
 
+  // ? 用 steam_id + username 双重匹配，防止仅凭一项猜出账号
   const admin = await c.env.DB.prepare(
     'SELECT * FROM admins WHERE steam_id = ? AND username = ? AND is_active = 1'
   ).bind(steam_id, username).first<AdminRow>()
@@ -35,6 +40,7 @@ authRoutes.post('/api/login', async (c) => {
     return c.json({ error: '账号或密码错误' }, 401)
   }
 
+  // * 7 天有效，无刷新机制
   const token = await sign(
     {
       adminId: admin.id,

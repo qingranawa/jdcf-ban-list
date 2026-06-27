@@ -1,3 +1,5 @@
+// > Admin routes — ban CRUD, batch processing, watchlist, team management
+// ! 所有 /admin/* 和 /api/admin/* 路由均需 JWT 认证
 import { Hono } from 'hono'
 import { html } from 'hono/html'
 import bcrypt from 'bcryptjs'
@@ -11,7 +13,6 @@ import { AdminProcessPage } from '../views/admin-process'
 import { AdminWatchlistPage } from '../views/admin-watchlist'
 import { AdminTeamPage } from '../views/admin-team'
 
-// ── 后台路由 —— 全都要登录 ──
 export const adminRoutes = new Hono<{ Bindings: Env }>()
 adminRoutes.use('/admin/*', authMiddleware)
 adminRoutes.use('/api/admin/*', authMiddleware)
@@ -62,6 +63,9 @@ adminRoutes.post('/api/admin/bans', requirePermission('T1'), async (c) => {
   const body = await c.req.json()
   const adminId = c.get('adminId')
   if (!body.nickname || !body.steam_id) return c.json({ error: '昵称和 Steam ID 为必填' }, 400)
+  if (body.ban_duration && !/^(\d+[dhmy]|mute-\d+[dhmy]|permanent|warning|cfba|50[Yy])$/.test(body.ban_duration)) {
+    return c.json({ error: '封禁时长格式无效，支持: 数字+d/h/m/y, permanent, warning, cfba' }, 400)
+  }
 
   const level = body.violation_level_custom || body.violation_level || 'level3'
 
@@ -111,14 +115,14 @@ adminRoutes.delete('/api/admin/bans/:id', requirePermission('T1'), async (c) => 
 
 // ── 批量处理过期违规 ──
 
-// ban_time + ban_duration 跟现在比，过期没
-// 复用 public.ts 的 computeStatus —— 返回 'unbanned' 就是已过期
+// * 复用 public.ts 的 computeStatus —— 返回 'unbanned' 就是已过期
 function isBanExpired(ban: { ban_time: string; ban_duration: string; archive_action: string | null }): boolean {
   return computeStatus(ban) === 'unbanned'
 }
 
-// D1 限制 100 bindings/statement. archive_items 每条 6 bindings (四常量化省 3)，
-// 每批最多 16 条 (16×6=96)
+// * D1 限制 100 bindings/statement，archive_items 每条 9 bindings，
+// * 每批最多 11 条（11×9=99）避免超过限制
+// ! 所有字段已参数化绑定，杜绝 SQL 注入
 async function writeArchiveItemsChunked(
   db: D1Database,
   archiveId: number,
@@ -126,14 +130,15 @@ async function writeArchiveItemsChunked(
   action: string,
   newLevel: string | null
 ) {
-  const CHUNK = 16
+  const CHUNK = 11
   for (let i = 0; i < bans.length; i += CHUNK) {
     const chunk = bans.slice(i, i + CHUNK)
     const values = chunk.map(() =>
-      `(?,?,?,?,?,${newLevel ? `'${newLevel}'` : 'NULL'},'${action}','unbanned',?)`
+      `(?,?,?,?,?,?,?,?,?)`
     ).join(',')
     const params = chunk.flatMap(b => [
-      archiveId, b.id, b.nickname, b.steam_id, b.violation_level, b.ban_duration
+      archiveId, b.id, b.nickname, b.steam_id, b.violation_level,
+      newLevel || null, action, 'unbanned', b.ban_duration
     ])
     await db.prepare(
       `INSERT INTO archive_items (archive_id, ban_id, nickname, steam_id, original_level, new_level, action, original_status, original_duration) VALUES ${values}`
@@ -175,7 +180,7 @@ adminRoutes.get('/api/admin/process', requirePermission('T5'), async (c) => {
   return c.json({ data: rows.results.filter((b: any) => isBanExpired(b)) })
 })
 
-// 批量删除 —— 打成 deleted 扔归档
+// * 批量删除 —— 标记 is_archived + archive_action='deleted' 扔归档
 adminRoutes.post('/api/admin/process/delete', requirePermission('T5'), async (c) => {
   const body = await c.req.json()
   const ids: number[] = body.ids || []
@@ -207,7 +212,7 @@ adminRoutes.post('/api/admin/process/delete', requirePermission('T5'), async (c)
   return c.json({ success: true, processed: bans.results.length })
 })
 
-// 批量降级 —— level2→level3，不归档隐藏但留审计记录
+// * 批量降级 —— level2→level3，记录不隐藏但留审计跟踪
 adminRoutes.post('/api/admin/process/downgrade', requirePermission('T5'), async (c) => {
   const body = await c.req.json()
   const ids: number[] = body.ids || []
@@ -374,7 +379,8 @@ adminRoutes.get('/api/admin/profiles/:id', requirePermission('T5'), async (c) =>
 adminRoutes.post('/api/admin/profiles', requirePermission('T5'), async (c) => {
   const body = await c.req.json()
   if (!body.steam_id || !body.username) return c.json({ error: 'Steam ID 和用户名为必填' }, 400)
-  const password = body.password || 'change_me_123'
+  if (!body.password) return c.json({ error: '密码为必填' }, 400)
+  const password = body.password
   const hash = await bcrypt.hash(password, 10)
   try {
     await c.env.DB.prepare(

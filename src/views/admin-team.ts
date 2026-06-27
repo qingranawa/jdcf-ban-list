@@ -1,3 +1,5 @@
+// > Admin team management — CRUD for admin accounts
+// ! 仅 T5 及以上可访问；创建管理员时密码为必填
 import { html } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
 import { icon } from './icons'
@@ -81,6 +83,7 @@ function openAddSheet() {
 function closeSheet() { document.getElementById('adminSheet').classList.remove('open'); }
 async function openEditSheet(id) {
   const resp = await fetch('/api/admin/profiles/' + id, { headers: { 'Authorization': 'Bearer ' + jwt } });
+  if (!resp.ok) { showToast('获取管理员信息失败', 'error'); return; }
   const data = await resp.json();
   const form = document.getElementById('adminForm');
   form.querySelector('[name=id]').value = data.id;

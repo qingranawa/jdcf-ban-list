@@ -1,3 +1,5 @@
+// > Stats dashboard — Chart.js doughnut/bar charts with percentage labels
+// ! JSON.stringify 输出中的 </ 被转义为 <\/ 防止 XSS
 import { html, raw } from 'hono/html'
 import { escHtml } from '../helpers/escape'
 
@@ -15,7 +17,7 @@ export type StatsData = {
 }
 
 export function StatsPage(props: StatsData) {
-  const dataJson = JSON.stringify(props)
+  const dataJson = JSON.stringify(props).replace(/<\//g, '<\\/')
   return html`
 <div class="cyber-page" style="max-width:900px;margin:0 auto;padding:var(--spacing-xl) var(--spacing-md) var(--spacing-lg);">
 
@@ -43,6 +45,9 @@ export function StatsPage(props: StatsData) {
       if (!el) return;
       try { new Chart(el.getContext('2d'), cfg); } catch(e){}
     }
+    // * 自定义 afterDraw 插件在饼图上显示百分比标签
+    // * 只显示 ≥4% 的扇区，避免标签挤在一起
+    // ? 未使用 chartjs-plugin-datalabels 以避免 CDN 兼容问题
     function pctLabelPlugin() {
       return {
         id:'pctLabels',
