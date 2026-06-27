@@ -14,8 +14,8 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
         <div style="font-family:var(--sans);font-size:14px;color:var(--label-2);text-transform:uppercase;letter-spacing:.05em;">待处理 2级</div>
         <div id="l2Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--magenta);">${props.level2Bans.length}</div>
       </div>
-      <button class="cyber-btn cyber-btn-primary" onclick="batchDowngrade()" id="downgradeBtn" ${props.level2Bans.length === 0 ? 'disabled' : ''}>
-        降级为 3级
+      <button class="cyber-btn cyber-btn-primary" onclick="downgradeAllL2()" id="downgradeBtn" ${props.level2Bans.length === 0 ? 'disabled' : ''}>
+        一键降级2级
       </button>
     </div>
     <div class="cyber-card" style="flex:1;min-width:200px;padding:var(--spacing-lg);display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;">
@@ -23,24 +23,24 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
         <div style="font-family:var(--sans);font-size:14px;color:var(--label-2);text-transform:uppercase;letter-spacing:.05em;">待处理 3级</div>
         <div id="l3Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--cyan);">${props.level3Bans.length}</div>
       </div>
-      <button class="cyber-btn cyber-btn-danger" onclick="batchDelete()" id="deleteBtn" ${props.level3Bans.length === 0 ? 'disabled' : ''}>
-        删除
+      <button class="cyber-btn cyber-btn-danger" onclick="deleteAllL3()" id="deleteBtn" ${props.level3Bans.length === 0 ? 'disabled' : ''}>
+        一键删除3级
       </button>
     </div>
   </div>
 
   <div style="display:grid;gap:var(--spacing-lg);grid-template-columns:1fr 1fr;">
-    <div>
+    <div id="level2Table">
       <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--magenta);margin-bottom:var(--spacing-sm);">2级违规（降级为 3 级）</div>
       <div class="cyber-table-wrap">${renderTable(props.level2Bans, 'magenta')}</div>
     </div>
-    <div>
+    <div id="level3Table">
       <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--cyan);margin-bottom:var(--spacing-sm);">3级违规（删除）</div>
       <div class="cyber-table-wrap">${renderTable(props.level3Bans, 'cyan')}</div>
     </div>
   </div>
 
-  <div style="position:sticky;bottom:var(--spacing-lg);margin-top:var(--spacing-lg);z-index:10;border:1px solid var(--separator);border-radius:12px;padding:var(--spacing-md) var(--spacing-lg);display:flex;gap:var(--spacing-md);align-items:center;background:rgba(255,255,255,.08);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">
+  <div style="position:sticky;bottom:var(--spacing-lg);margin-top:var(--spacing-lg);z-index:10;border:1px solid var(--separator);border-radius:12px;padding:var(--spacing-md) var(--spacing-lg);display:flex;gap:var(--spacing-md);align-items:center;background:rgba(255,255,255,.15);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">
     <label style="display:flex;align-items:center;gap:var(--spacing-sm);font-size:14px;color:var(--label-2);cursor:pointer;">
       <input type="checkbox" id="selectAll" onchange="toggleAll()" style="accent-color:var(--cyan);width:16px;height:16px;">
       全选
@@ -58,6 +58,11 @@ const rows = document.querySelectorAll('.proc-row');
 function toggleAll() {
   var checked = document.getElementById('selectAll').checked;
   rows.forEach(function(r) { r.querySelector('input[type=checkbox]').checked = checked; });
+  updateCount();
+}
+function toggleTableRows(checkbox) {
+  var table = checkbox.closest('table');
+  table.querySelectorAll('.proc-row input[type=checkbox]').forEach(function(c) { c.checked = checkbox.checked; });
   updateCount();
 }
 rows.forEach(function(r) {
@@ -97,6 +102,28 @@ async function batchDelete() {
   if (resp.ok) { location.reload(); }
   else showToast('操作失败', 'error');
 }
+async function downgradeAllL2() {
+  var ids = Array.from(document.querySelectorAll('#level2Table .proc-row')).map(function(r) { return parseInt(r.dataset.id); });
+  if (!ids.length) return;
+  if (!confirm('确认将全部 ' + ids.length + ' 条 2 级违规降级为 3 级？')) return;
+  var resp = await fetch('/api/admin/process/downgrade', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+    body: JSON.stringify({ ids: ids }),
+  });
+  if (resp.ok) { location.reload(); }
+  else showToast('操作失败', 'error');
+}
+async function deleteAllL3() {
+  var ids = Array.from(document.querySelectorAll('#level3Table .proc-row')).map(function(r) { return parseInt(r.dataset.id); });
+  if (!ids.length) return;
+  if (!confirm('确认删除全部 ' + ids.length + ' 条 3 级违规？此操作不可撤销。')) return;
+  var resp = await fetch('/api/admin/process/delete', {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+    body: JSON.stringify({ ids: ids }),
+  });
+  if (resp.ok) { location.reload(); }
+  else showToast('操作失败', 'error');
+}
 function showToast(t, type) {
   var el = document.getElementById('cyberToast') || (function(){
     var d = document.createElement('div'); d.id = 'cyberToast'; d.className = 'cyber-toast';
@@ -114,7 +141,7 @@ function renderTable(bans: ProcBan[], accent: string): ReturnType<typeof html> {
   return html`
 <table class="cyber-table">
   <thead><tr>
-    <th style="width:32px;"><input type="checkbox" style="accent-color:var(--cyan);width:14px;height:14px;" onchange="updateCount()"></th>
+    <th style="width:32px;"><input type="checkbox" style="accent-color:var(--cyan);width:14px;height:14px;" onchange="toggleTableRows(this)"></th>
     <th>昵称</th><th>Steam ID</th><th>原因</th><th>时长</th><th>时间</th>
   </tr></thead>
   <tbody>
