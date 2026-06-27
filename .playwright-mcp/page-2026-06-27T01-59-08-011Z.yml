@@ -1,0 +1,64 @@
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - heading "封禁查询" [level=1] [ref=e6]
+        - paragraph [ref=e7]: CN 鸡蛋肠粉服务器 · 违规封禁记录公示
+      - generic [ref=e8]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: "0"
+          - generic [ref=e11]: 总封禁
+        - generic [ref=e12]:
+          - generic [ref=e13]: "0"
+          - generic [ref=e14]: 3级违规
+        - generic [ref=e15]:
+          - generic [ref=e16]: "0"
+          - generic [ref=e17]: 2级违规
+        - generic [ref=e18]:
+          - generic [ref=e19]: "0"
+          - generic [ref=e20]: 1级违规
+      - generic [ref=e21]:
+        - generic [ref=e23]:
+          - img [ref=e25]
+          - searchbox "搜索昵称 / Steam ID / IP…" [ref=e28]
+        - generic [ref=e30]:
+          - button "全部" [ref=e31] [cursor=pointer]
+          - button "3级" [ref=e32] [cursor=pointer]
+          - button "2级" [ref=e33] [cursor=pointer]
+          - button "1级" [ref=e34] [cursor=pointer]
+          - button "封禁中" [ref=e35] [cursor=pointer]
+        - generic [ref=e36]:
+          - generic [ref=e38]:
+            - text: 共
+            - strong [ref=e39]: "0"
+            - text: 条记录
+          - table [ref=e41]:
+            - rowgroup [ref=e42]:
+              - row "昵称 Steam ID 原因 等级 状态 时长 时间" [ref=e43]:
+                - columnheader "昵称" [ref=e44]
+                - columnheader "Steam ID" [ref=e45]
+                - columnheader "原因" [ref=e46]
+                - columnheader "等级" [ref=e47]
+                - columnheader "状态" [ref=e48]
+                - columnheader "时长" [ref=e49]
+                - columnheader "时间" [ref=e50]
+            - rowgroup [ref=e51]:
+              - row "没有找到匹配的封禁记录" [ref=e52]:
+                - cell "没有找到匹配的封禁记录" [ref=e53]
+  - navigation "主导航" [ref=e54]:
+    - generic [ref=e55]:
+      - generic [ref=e56]: JDCF
+      - generic [ref=e57]: 封禁查询
+    - generic [ref=e58]:
+      - link "首页" [ref=e59] [cursor=pointer]:
+        - /url: /
+        - img [ref=e60]
+        - generic [ref=e62]: 首页
+      - link "管理组" [ref=e63] [cursor=pointer]:
+        - /url: /team
+        - img [ref=e64]
+        - generic [ref=e69]: 管理组
+      - link "登录" [ref=e70] [cursor=pointer]:
+        - /url: /login
+        - img [ref=e71]
+        - generic [ref=e73]: 登录

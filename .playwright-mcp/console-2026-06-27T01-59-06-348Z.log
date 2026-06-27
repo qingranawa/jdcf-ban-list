@@ -1,0 +1,4 @@
+[     894ms] [ERROR] Failed to find a valid digest in the 'integrity' attribute for resource 'https://unpkg.com/htmx.org@2.0.4' with computed SHA-384 integrity 'HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+'. The resource has been blocked. @ http://127.0.0.1:8788/:0
+[    1041ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8788/images/bg/3.jpg:0
+[    1559ms] [WARNING] <meta name="apple-mobile-web-app-capable" content="yes"> is deprecated. Please include <meta name="mobile-web-app-capable" content="yes"> @ http://127.0.0.1:8788/:0
+[    1589ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://127.0.0.1:8788/favicon.ico:0

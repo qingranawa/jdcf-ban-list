@@ -1,0 +1,10 @@
+{
+  "name": "jdcf-ban-archive",
+  "main": "index.ts",
+  "compatibility_date": "2025-07-18",
+  "triggers": { "crons": ["0 0 1 * *"] },
+  "vars": {
+    "PAGES_URL": "https://jdcf-ban-list.pages.dev",
+    "CRON_ARCHIVE_SECRET": "dev-cron-secret-change-in-production"
+  }
+}
