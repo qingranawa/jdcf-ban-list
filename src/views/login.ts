@@ -9,7 +9,7 @@ export function LoginPage() {
       <p style="font-size:15px;color:var(--label-2);margin-top:var(--spacing-xs);">CN 鸡蛋肠粉服务器</p>
     </div>
 
-    <div class="cyber-card" style="padding:var(--spacing-lg);">
+    <div class="cyber-card" style="padding:var(--spacing-lg);background:var(--glass-bg);">
       <form id="loginForm">
         <div class="cyber-form-group">
           <label>Steam 64位ID</label>

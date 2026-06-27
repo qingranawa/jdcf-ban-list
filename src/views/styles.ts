@@ -39,7 +39,7 @@ export const Styles = () => html`
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 16px;
-  --glass-bg: transparent;
+  --glass-bg: rgba(255,255,255,.04);
 
   --glass-bg-hover: rgba(255,255,255,.06);
   --glass-border: rgba(255,255,255,.06);
@@ -117,9 +117,9 @@ body::after {
 ::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--label-3); }
 
-/* ─── Glass — shared (one source of truth) ─── */
+/* ─── Glass: with background fill ─── */
 @supports (backdrop-filter: blur(1px)) {
-  .cyber-glass, .cyber-card, .cyber-stat-card, .cyber-table-wrap {
+  .cyber-glass {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
@@ -135,11 +135,26 @@ body::after {
   }
 }
 @supports not (backdrop-filter: blur(1px)) {
-  .cyber-glass, .cyber-glass-sm, .cyber-card, .cyber-stat-card,
-  .cyber-table-wrap, .cyber-btn, .cyber-search, .cyber-input,
-  .cyber-pagination button, .cyber-pagination a,
+  .cyber-glass, .cyber-glass-sm, .cyber-btn, .cyber-search,
+  .cyber-input, .cyber-pagination button, .cyber-pagination a,
   .cyber-grouped, .cyber-sidebar {
     background: rgba(10,10,10,.85);
+    border: 1px solid var(--separator);
+  }
+}
+
+/* ─── Glass: transparent fill (blur + border only) ─── */
+@supports (backdrop-filter: blur(1px)) {
+  .cyber-card, .cyber-stat-card, .cyber-table-wrap {
+    background: transparent;
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+  }
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .cyber-card, .cyber-stat-card, .cyber-table-wrap {
+    background: rgba(10,10,10,.5);
     border: 1px solid var(--separator);
   }
 }
