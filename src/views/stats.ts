@@ -63,7 +63,6 @@ export function StatsPage(props: StatsData) {
         }
       };
     }
-    }
 
     // Pie
     initChart('levelPieChart', {
