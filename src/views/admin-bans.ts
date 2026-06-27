@@ -42,6 +42,15 @@ function stBadge(s: string): string {
   return m[s] || 'cyber-badge-neutral'
 }
 function fmt(t: string): string { if (!t) return '—'; const d=new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+function genPages(current: number, total: number): (number|string)[] {
+  if (total <= 7) return Array.from({length:total},(_,i)=>i+1)
+  const pages: (number|string)[] = [1]
+  if (current > 3) pages.push('…')
+  for (let i = Math.max(2, current-1); i <= Math.min(total-1, current+1); i++) pages.push(i)
+  if (current < total-2) pages.push('…')
+  if (total > 1) pages.push(total)
+  return pages
+}
 function fmtHandlers(name: string | null, co: string): string {
   const parts: string[] = []
   if (name) parts.push(name)
@@ -87,17 +96,25 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
     ${AdminBanTable({ bans: props.bans })}
   </div>
 
-  ${totalPages > 1 ? html`
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--spacing-lg);">
     <span style="font-size:13px;color:var(--label-3);">共 ${total} 条，第 ${page}/${totalPages} 页</span>
-    <div class="cyber-pagination" style="margin-top:0;">
-      ${page > 1 ? html`<a href="/admin/bans?page=${page-1}&per_page=${perPage}${archived?'&archived=1':''}">←</a>` : ''}
-      ${Array.from({length:Math.min(totalPages,7)},(_,i)=>i+1).map(p => html`
-        ${p === page ? html`<span class="current">${p}</span>` : html`<a href="/admin/bans?page=${p}&per_page=${perPage}${archived?'&archived=1':''}">${p}</a>`}
-      `)}
-      ${page < totalPages ? html`<a href="/admin/bans?page=${page+1}&per_page=${perPage}${archived?'&archived=1':''}">→</a>` : ''}
+    <div style="display:flex;align-items:center;gap:var(--spacing-sm);">
+      <select class="cyber-input" style="width:auto;min-width:90px;" onchange="window.location.href='/admin/bans${archived ? '?archived=1&' : '?'}per_page='+this.value">
+        <option value="10" ${perPage===10?'selected':''}>10条/页</option>
+        <option value="25" ${perPage===25?'selected':''}>25条/页</option>
+        <option value="50" ${perPage===50?'selected':''}>50条/页</option>
+        <option value="100" ${perPage===100?'selected':''}>100条/页</option>
+      </select>
+      ${totalPages > 1 ? html`
+      <div class="cyber-pagination" style="margin-top:0;">
+        ${page > 1 ? html`<a href="/admin/bans?page=${page-1}&per_page=${perPage}${archived?'&archived=1':''}">←</a>` : ''}
+        ${genPages(page, totalPages).map(p => typeof p === 'number' ? html`
+          ${p === page ? html`<span class="current" aria-current="page">${p}</span>` : html`<a href="/admin/bans?page=${p}&per_page=${perPage}${archived?'&archived=1':''}">${p}</a>`}`
+        : html`<span>…</span>`)}
+        ${page < totalPages ? html`<a href="/admin/bans?page=${page+1}&per_page=${perPage}${archived?'&archived=1':''}">→</a>` : ''}
+      </div>` : ''}
     </div>
-  </div>` : ''}
+  </div>
 
   <!-- Add Ban Modal -->
   <div id="banSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="新增封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeBanSheet()">

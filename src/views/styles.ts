@@ -571,12 +571,13 @@ body::after {
 .cyber-input {
   width: 100%; padding: 10px 12px; border-radius: var(--radius-sm);
   font-family: var(--body); font-size: 14px; color: var(--label-1);
-  outline: none; transition: border-color .2s;
+  background: rgba(0,0,0,.45); outline: none; transition: border-color .2s;
 }
 .cyber-input:focus { border-color: var(--magenta); box-shadow: 0 0 0 3px rgba(255,0,170,.12); }
 .cyber-input::placeholder { color: var(--label-3); }
 textarea.cyber-input { resize: vertical; min-height: 60px; }
-select.cyber-input { appearance: none; cursor: pointer; }
+select.cyber-input { appearance: none; cursor: pointer; background: #0d0d1a; }
+select.cyber-input option { background: #0d0d1a; color: var(--label-1); }
 
 /* ─── Admin Content ─── */
 .cyber-admin-content {

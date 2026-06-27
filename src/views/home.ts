@@ -94,7 +94,7 @@ export function BanTable(props: TableProps) {
 <div class="table-wrap" style="padding:0 var(--spacing-md) var(--spacing-md);">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px var(--spacing-sm);">
     <span style="font-size:13px;color:var(--label-2);font-family:var(--sans);">共 <strong style="color:var(--cyan);">${props.total}</strong> 条记录</span>
-    <select onchange="window.location.href='/?per_page='+this.value+'&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" style="background:transparent;border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:4px 8px;font-size:13px;color:var(--label-2);font-family:var(--sans);cursor:pointer;">
+    <select onchange="window.location.href='/?per_page='+this.value+'&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" style="background:#0d0d1a;border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:4px 8px;font-size:13px;color:var(--label-2);font-family:var(--sans);cursor:pointer;">
       <option value="10" ${props.perPage===10?'selected':''}>10条/页</option>
       <option value="25" ${props.perPage===25?'selected':''}>25条/页</option>
       <option value="50" ${props.perPage===50?'selected':''}>50条/页</option>
@@ -167,10 +167,6 @@ export function HomePage(props: HomePageProps) {
     <div class="cyber-stat-card">
       <div class="cyber-stat-value stat-red">${s.level1}</div>
       <div class="cyber-stat-label">1级违规</div>
-    </div>
-    <div class="cyber-stat-card">
-      <div class="cyber-stat-value">${s.level4||0}</div>
-      <div class="cyber-stat-label">4级(逃逸)</div>
     </div>
     <div class="cyber-stat-card">
       <div class="cyber-stat-value" style="background:linear-gradient(135deg,var(--amber),#886600);-webkit-background-clip:text;background-clip:text;">${s.warning||0}</div>
