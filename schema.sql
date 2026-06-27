@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS bans (
   violation_level TEXT NOT NULL,
   notes           TEXT NOT NULL DEFAULT '',
   handled_by      INTEGER,
+  co_handlers     TEXT NOT NULL DEFAULT '',
   is_archived     INTEGER NOT NULL DEFAULT 0,
   archive_action  TEXT,
   archived_at     TEXT,

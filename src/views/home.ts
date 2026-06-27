@@ -6,11 +6,11 @@ type Ban = {
   id: number; nickname: string; steam_id: string; ip_address: string;
   reason: string; ban_time: string; ban_duration: string;
   violation_level: string; status: string; notes: string;
-  handled_by_name: string | null;
+  handled_by_name: string | null; co_handlers: string;
 }
 
 type TableProps = {
-  bans: Ban[]; page: number; totalPages: number; total: number;
+  bans: Ban[]; page: number; totalPages: number; total: number; perPage: number;
   query: string; levelFilter: string; statusFilter: string;
 }
 
@@ -51,6 +51,12 @@ function genPages(current: number, total: number): (number|string)[] {
 }
 
 function enc(s: string): string { return encodeURIComponent(s) }
+function fmtHandlers(name: string | null, co: string): string {
+  const parts: string[] = []
+  if (name) parts.push(name)
+  if (co) co.split(',').map(s => s.trim()).filter(Boolean).forEach(s => parts.push(s))
+  return parts.length ? parts.join(', ') : (name === null ? '系统' : '—')
+}
 function fmtTime(iso: string): string {
   if (!iso) return '—'
   const d = new Date(iso)
@@ -88,14 +94,20 @@ export function BanTable(props: TableProps) {
 <div class="table-wrap" style="padding:0 var(--spacing-md) var(--spacing-md);">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px var(--spacing-sm);">
     <span style="font-size:13px;color:var(--label-2);font-family:var(--sans);">共 <strong style="color:var(--cyan);">${props.total}</strong> 条记录</span>
+    <select onchange="window.location.href='/?per_page='+this.value+'&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" style="background:transparent;border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:4px 8px;font-size:13px;color:var(--label-2);font-family:var(--sans);cursor:pointer;">
+      <option value="10" ${props.perPage===10?'selected':''}>10条/页</option>
+      <option value="25" ${props.perPage===25?'selected':''}>25条/页</option>
+      <option value="50" ${props.perPage===50?'selected':''}>50条/页</option>
+      <option value="100" ${props.perPage===100?'selected':''}>100条/页</option>
+    </select>
   </div>
   <div class="cyber-table-wrap">
   <table class="cyber-table">
     <thead><tr>
-      <th>昵称</th><th>Steam ID</th><th>原因</th><th>等级</th><th>状态</th><th>时长</th><th>时间</th>
+      <th>昵称</th><th>Steam ID</th><th>原因</th><th>等级</th><th>状态</th><th>操作员</th><th>时长</th><th>时间</th>
     </tr></thead>
     <tbody>      ${props.bans.length === 0 ? html`
-      <tr><td colspan="7" style="text-align:center;padding:3rem 1rem;color:var(--label-3);font-size:15px;">没有找到匹配的封禁记录</td></tr>`
+      <tr><td colspan="8" style="text-align:center;padding:3rem 1rem;color:var(--label-3);font-size:15px;">没有找到匹配的封禁记录</td></tr>`
       : props.bans.map(ban => html`
       <tr>
         <td><strong style="font-weight:600;font-family:var(--sans);">${escHtml(ban.nickname)}</strong></td>
@@ -103,6 +115,7 @@ export function BanTable(props: TableProps) {
         <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--label-2);" title="${escAttr(ban.reason)}">${escHtml(ban.reason)}</td>
         <td><span class="cyber-badge ${levelBadge(ban.violation_level)}">${levelLabel(ban.violation_level)}</span></td>
         <td><span class="cyber-badge ${statusBadge(ban.status)}">${statusLabel(ban.status)}</span></td>
+        <td style="font-size:13px;color:var(--label-2);font-family:var(--mono);">${fmtHandlers(ban.handled_by_name, ban.co_handlers)}</td>
         <td style="font-size:13px;color:var(--label-2);font-family:var(--mono);">${fmtDuration(ban.ban_duration)}</td>
         <td style="white-space:nowrap;font-size:13px;color:var(--label-3);font-family:var(--mono);">${fmtTime(ban.ban_time)}</td>
       </tr>`)}
@@ -112,11 +125,11 @@ export function BanTable(props: TableProps) {
 
   ${props.totalPages > 1 ? html`
   <div class="cyber-pagination">
-    ${props.page > 1 ? html`<a href="?page=${props.page-1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${props.page-1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target="#list-wrap" hx-push-url="true">←</a>` : ''}
+    ${props.page > 1 ? html`<a href="?page=${props.page-1}&per_page=${props.perPage}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${props.page-1}&per_page=${props.perPage}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target="#list-wrap" hx-push-url="true">←</a>` : ''}
     ${genPages(props.page, props.totalPages).map(p => typeof p === 'number' ? html`
-      ${p === props.page ? html`<span class="current" aria-current="page">${p}</span>` : html`<a href="?page=${p}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${p}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target="#list-wrap" hx-push-url="true">${p}</a>`}`
+      ${p === props.page ? html`<span class="current" aria-current="page">${p}</span>` : html`<a href="?page=${p}&per_page=${props.perPage}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${p}&per_page=${props.perPage}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target="#list-wrap" hx-push-url="true">${p}</a>`}`
     : html`<span>…</span>`)}
-    ${props.page < props.totalPages ? html`<a href="?page=${props.page+1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${props.page+1}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target="#list-wrap" hx-push-url="true">→</a>` : ''}
+    ${props.page < props.totalPages ? html`<a href="?page=${props.page+1}&per_page=${props.perPage}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-get="/?page=${props.page+1}&per_page=${props.perPage}&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" hx-target="#list-wrap" hx-push-url="true">→</a>` : ''}
   </div>` : ''}
 </div>
 </div>`
@@ -124,7 +137,7 @@ export function BanTable(props: TableProps) {
 
 // ── Full home page (first load) ──
 type HomePageProps = TableProps & {
-  stats?: { total: number; level3: number; level2: number; level1: number; banned: number };
+  stats?: { total: number; level3: number; level2: number; level1: number; level4: number; warning: number; other: number; banned: number };
 }
 
 export function HomePage(props: HomePageProps) {
@@ -155,8 +168,18 @@ export function HomePage(props: HomePageProps) {
       <div class="cyber-stat-value stat-red">${s.level1}</div>
       <div class="cyber-stat-label">1级违规</div>
     </div>
+    <div class="cyber-stat-card">
+      <div class="cyber-stat-value">${s.level4||0}</div>
+      <div class="cyber-stat-label">4级(逃逸)</div>
+    </div>
+    <div class="cyber-stat-card">
+      <div class="cyber-stat-value" style="background:linear-gradient(135deg,var(--amber),#886600);-webkit-background-clip:text;background-clip:text;">${s.warning||0}</div>
+      <div class="cyber-stat-label">警告/其他</div>
+    </div>
   </div>` : ''}
 
   ${BanTable(props)}
-</div>`
+</div>
+
+`
 }

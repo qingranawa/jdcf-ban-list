@@ -3,6 +3,7 @@ import type { Env, BanRow, AdminRow } from '../db'
 import { Layout } from '../views/layout'
 import { HomePage, BanTable } from '../views/home'
 import { TeamPage } from '../views/team'
+import { StatsPage, type StatsData } from '../views/stats'
 
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
@@ -43,7 +44,8 @@ export function computeStatus(ban: { ban_duration: string; ban_time: string; arc
 
 publicRoutes.get('/', async (c) => {
   const page = Math.max(1, parseInt(c.req.query('page') || '1'))
-  const limit = 20
+  const perPage = Math.min(100, Math.max(10, parseInt(c.req.query('per_page') || '25')))
+  const limit = perPage
   const offset = (page - 1) * limit
   const q = c.req.query('q') || ''
   const levelFilter = c.req.query('level') || ''
@@ -101,18 +103,20 @@ publicRoutes.get('/', async (c) => {
         SUM(CASE WHEN violation_level='level3' THEN 1 ELSE 0 END) as l3,
         SUM(CASE WHEN violation_level='level2' THEN 1 ELSE 0 END) as l2,
         SUM(CASE WHEN violation_level='level1' THEN 1 ELSE 0 END) as l1,
-        SUM(CASE WHEN violation_level='level4' THEN 1 ELSE 0 END) as l4
+        SUM(CASE WHEN violation_level='level4' THEN 1 ELSE 0 END) as l4,
+        SUM(CASE WHEN violation_level='warning' THEN 1 ELSE 0 END) as warning,
+        SUM(CASE WHEN violation_level NOT IN ('level3','level2','level1','level4','warning') THEN 1 ELSE 0 END) as other
        FROM bans WHERE is_archived = 0`
-    ).first<{total:number;l3:number;l2:number;l1:number;l4:number}>()
+    ).first<{total:number;l3:number;l2:number;l1:number;l4:number;warning:number;other:number}>()
           const bannedCount = await c.env.DB.prepare(
         `SELECT COUNT(*) as c FROM bans WHERE is_archived = 0 AND ban_duration IN ('permanent','50y','50Y')`
       ).first<{c:number}>()
-    stats = { total: s?.total||0, level3: s?.l3||0, level2: s?.l2||0, level1: s?.l1||0, banned: bannedCount?.c||0 }
+    stats = { total: s?.total||0, level3: s?.l3||0, level2: s?.l2||0, level1: s?.l1||0, level4: s?.l4||0, warning: s?.warning||0, other: s?.other||0, banned: bannedCount?.c||0 }
   }
 
-  if (c.req.header('HX-Request')) {
+    if (c.req.header('HX-Request')) {
     return c.html(BanTable({
-      bans: results, page, totalPages, total,
+      bans: results, page, totalPages, total, perPage,
       query: q, levelFilter, statusFilter,
     }))
   }
@@ -121,7 +125,7 @@ publicRoutes.get('/', async (c) => {
     title: '封禁列表',
     currentPath: '/',
     children: HomePage({
-      bans: results, page, totalPages, total,
+      bans: results, page, totalPages, total, perPage,
       query: q, levelFilter, statusFilter, stats,
     }),
   }))
@@ -129,13 +133,76 @@ publicRoutes.get('/', async (c) => {
 
 publicRoutes.get('/team', async (c) => {
   const result = await c.env.DB.prepare(
-    'SELECT game_name, username, qq_name, permission_group, position, supervisor FROM admins WHERE is_active = 1 ORDER BY id ASC'
+    'SELECT steam_id, game_name, username, qq_name, permission_group, position, supervisor FROM admins WHERE is_active = 1 ORDER BY id ASC'
   ).all<AdminRow>()
 
   return c.html(Layout({
     title: '管理组',
     currentPath: '/team',
     children: TeamPage({ admins: result.results }),
+  }))
+})
+
+function fmtDuration(d: string): string {
+  if (!d) return '—'
+  const m: Record<string,string> = { m:'分钟', h:'小时', d:'天', y:'年', permanent:'永久', warning:'警告', cfba:'CFBA', mute:'禁言' }
+  if (d.startsWith('mute-')) return '禁言' + d.replace('mute-', '')
+  if (m[d]) return m[d]
+  const parts = d.match(/^(\d+)([dhmy])$/i)
+  if (parts) return parts[1] + m[parts[2].toLowerCase()] || ''
+  return d
+}
+
+publicRoutes.get('/stats', async (c) => {
+  const s = await c.env.DB.prepare(
+    `SELECT
+      COUNT(*) as total,
+      SUM(CASE WHEN violation_level='level3' THEN 1 ELSE 0 END) as l3,
+      SUM(CASE WHEN violation_level='level2' THEN 1 ELSE 0 END) as l2,
+      SUM(CASE WHEN violation_level='level1' THEN 1 ELSE 0 END) as l1,
+      SUM(CASE WHEN violation_level='level4' THEN 1 ELSE 0 END) as l4,
+      SUM(CASE WHEN violation_level='warning' THEN 1 ELSE 0 END) as warning,
+      SUM(CASE WHEN violation_level NOT IN ('level3','level2','level1','level4','warning') THEN 1 ELSE 0 END) as other
+     FROM bans WHERE is_archived = 0`
+  ).first<{total:number;l3:number;l2:number;l1:number;l4:number;warning:number;other:number}>()
+
+  const topDay = await c.env.DB.prepare(
+    `SELECT DATE(ban_time) as label, COUNT(*) as count FROM bans WHERE is_archived = 0 GROUP BY label ORDER BY count DESC LIMIT 1`
+  ).first<{label:string;count:number}>()
+
+  const topMonth = await c.env.DB.prepare(
+    `SELECT strftime('%Y-%m', ban_time) as label, COUNT(*) as count FROM bans WHERE is_archived = 0 GROUP BY label ORDER BY count DESC LIMIT 1`
+  ).first<{label:string;count:number}>()
+
+  const topYear = await c.env.DB.prepare(
+    `SELECT strftime('%Y', ban_time) as label, COUNT(*) as count FROM bans WHERE is_archived = 0 GROUP BY label ORDER BY count DESC LIMIT 1`
+  ).first<{label:string;count:number}>()
+
+  const durations = await c.env.DB.prepare(
+    `SELECT ban_duration, COUNT(*) as count FROM bans WHERE is_archived = 0 GROUP BY ban_duration ORDER BY count DESC LIMIT 10`
+  ).all<{ban_duration:string;count:number}>()
+
+  const total = s?.total || 0
+  const levels: StatsData['levels'] = [
+    { label: '3级违规', value: s?.l3||0, color: '#00f0ff' },
+    { label: '2级违规', value: s?.l2||0, color: '#ff00aa' },
+    { label: '1级', value: s?.l1||0, color: '#ff3355' },
+    { label: '4级(逃逸)', value: s?.l4||0, color: '#ffb000' },
+    { label: '警告', value: s?.warning||0, color: '#66ffcc' },
+    { label: '其他', value: s?.other||0, color: '#888888' },
+  ].filter(l => l.value > 0)
+
+  return c.html(Layout({
+    title: '统计信息',
+    currentPath: '/stats',
+    children: StatsPage({
+      total,
+      levels,
+      topDay: topDay || null,
+      topMonth: topMonth || null,
+      topYear: topYear || null,
+      durations: (durations?.results||[]).map(d => ({ label: fmtDuration(d.ban_duration), count: d.count })),
+    }),
   }))
 })
 

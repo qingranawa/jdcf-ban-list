@@ -18,10 +18,4 @@ app.route('/', accountRoutes)
 
 const honoHandler = handle(app)
 
-export const onRequest = async (context: any) => {
-  const url = new URL(context.request.url)
-  if (url.pathname.startsWith('/images/')) {
-    return context.env.ASSETS.fetch(url.origin + url.pathname)
-  }
-  return honoHandler(context)
-}
+export const onRequest = honoHandler

@@ -20,6 +20,7 @@ export type BanRow = {
   violation_level: string;
   notes: string;
   handled_by: number | null;
+  co_handlers: string;
   is_archived: number;
   archive_action: string | null;
   archived_at: string | null;

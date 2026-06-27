@@ -38,6 +38,10 @@ ${Styles()}
   ${props.children}
 </main>
 
+<a href="/admin/bans" id="quickAddFab" style="display:none;position:fixed;bottom:84px;right:16px;z-index:200;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,var(--magenta),#ff0088);color:#fff;cursor:pointer;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(255,0,136,.5);transition:transform .2s,box-shadow .2s;text-decoration:none;">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+</a>
+
 <nav class="cyber-nav" aria-label="主导航">
   <div class="nav-brand">
     <span class="nav-brand-text">鸡蛋肠粉服务器</span>
@@ -51,8 +55,14 @@ ${Styles()}
     <a href="/team" class="${isActive('/team') ? 'active' : ''}" ${isActive('/team') ? 'aria-current="page"' : ''}>
       ${icon('users', 20)}<span>管理组</span>
     </a>
+    <a href="/stats" class="${isActive('/stats') ? 'active' : ''}" ${isActive('/stats') ? 'aria-current="page"' : ''}>
+      ${icon('chart.bar', 20)}<span>统计信息</span>
+    </a>
     <a href="/account" id="accountTab" style="display:none;">
       ${icon('gear', 20)}<span>账户</span>
+    </a>
+    <a href="/admin/bans" id="addBanTab" style="display:none;">
+      ${icon('bolt', 20)}<span>添加封禁</span>
     </a>
     <a href="/login" id="loginTab">
       ${icon('shield', 20)}<span>登录</span>
@@ -109,12 +119,18 @@ ${Styles()}
 
   var jwt = localStorage.getItem('jwt');
   var accountTab = document.getElementById('accountTab');
+  var addBanTab = document.getElementById('addBanTab');
   var loginTab = document.getElementById('loginTab');
+  var quickAddFab = document.getElementById('quickAddFab');
   if (jwt) {
     try {
       var payload = JSON.parse(atob(jwt.split('.')[1]));
       accountTab.style.display = '';
       loginTab.style.display = 'none';
+      if (payload.permissionGroup) {
+        addBanTab.style.display = '';
+        if (quickAddFab) quickAddFab.style.display = 'flex';
+      }
     } catch(e) {}
   }
 })();

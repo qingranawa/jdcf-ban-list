@@ -5,3 +5,5 @@ dist/
 .dev.vars
 .codex/
 .playwright-mcp/
+/test/
+/public/_worker.js

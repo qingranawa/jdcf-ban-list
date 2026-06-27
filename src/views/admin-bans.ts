@@ -2,14 +2,14 @@ import { html } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
 import { icon } from './icons'
 
-type AdminBan = { id: number; nickname: string; steam_id: string; ip_address: string; reason: string; ban_time: string; ban_duration: string; violation_level: string; status: string; notes: string; handled_by_name: string | null }
+type AdminBan = { id: number; nickname: string; steam_id: string; ip_address: string; reason: string; ban_time: string; ban_duration: string; violation_level: string; status: string; notes: string; handled_by_name: string | null; co_handlers: string }
 
 export function AdminBanTable(props: { bans: AdminBan[] }) {
   return html`
 <div class="cyber-table-wrap">
 <table class="cyber-table">
   <thead><tr>
-    <th>ID</th><th>昵称</th><th>Steam ID</th><th>原因</th><th>时长</th><th>等级</th><th>状态</th><th>管理人</th><th>时间</th><th style="text-align:right;padding-right:var(--spacing-md);">操作</th>
+    <th>ID</th><th>昵称</th><th>Steam ID</th><th>原因</th><th>时长</th><th>等级</th><th>状态</th><th>操作员</th><th>时间</th><th style="text-align:right;padding-right:var(--spacing-md);">操作</th>
   </tr></thead>
   <tbody>
     ${props.bans.length === 0 ? html`<tr><td colspan="10" style="text-align:center;padding:3rem;color:var(--label-3);font-size:15px;">暂无封禁记录</td></tr>`
@@ -21,7 +21,7 @@ export function AdminBanTable(props: { bans: AdminBan[] }) {
       <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(b.ban_duration)}</td>
       <td><span class="cyber-badge ${lvBadge(b.violation_level)}">${escHtml(b.violation_level)}</span></td>
       <td><span class="cyber-badge ${stBadge(b.status)}">${escHtml(b.status)}</span></td>
-      <td style="font-size:14px;color:var(--label-2);">${b.handled_by_name ? escHtml(b.handled_by_name) : '—'}</td>
+      <td style="font-size:14px;color:var(--label-2);">${fmtHandlers(b.handled_by_name, b.co_handlers)}</td>
       <td style="font-family:var(--mono);font-size:13px;color:var(--label-3);white-space:nowrap;">${fmt(b.ban_time)}</td>
       <td style="text-align:right;white-space:nowrap;padding-right:var(--spacing-md);">
         <button class="cyber-btn cyber-btn-ghost cyber-btn-small" onclick="editBan(${b.id})">编辑</button>
@@ -42,10 +42,20 @@ function stBadge(s: string): string {
   return m[s] || 'cyber-badge-neutral'
 }
 function fmt(t: string): string { if (!t) return '—'; const d=new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+function fmtHandlers(name: string | null, co: string): string {
+  const parts: string[] = []
+  if (name) parts.push(name)
+  if (co) co.split(',').map(s => s.trim()).filter(Boolean).forEach(s => parts.push(s))
+  return parts.length ? parts.join(', ') : (name === null ? '系统' : '—')
+}
 
 // ── Admin Ban Page ──
-export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean }) {
+export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; page?: number; perPage?: number; total?: number }) {
   const archived = props.showArchived ?? false
+  const page = props.page || 1
+  const perPage = props.perPage || 25
+  const total = props.total || 0
+  const totalPages = Math.ceil(total / perPage)
   return html`
 <div class="cyber-admin-content">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
@@ -53,13 +63,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean }
     <button class="cyber-btn cyber-btn-primary" onclick="openBanSheet()">${icon('bolt',16)} 新增封禁</button>
   </div>
 
-  <!-- tab: 活跃 / 已归档 -->
-  <div style="display:flex;gap:0;margin-bottom:var(--spacing-lg);border:1px solid var(--separator);border-radius:8px;overflow:hidden;width:fit-content;">
-    <a href="/admin/bans" style="padding:8px 18px;font-size:14px;font-family:var(--sans);text-decoration:none;color:var(--label-1);background:${archived ? 'transparent' : 'var(--magenta)'};${archived ? '' : 'color:#000;font-weight:600;'}transition:all .2s;">活跃封禁</a>
-    <a href="/admin/bans?archived=1" style="padding:8px 18px;font-size:14px;font-family:var(--sans);text-decoration:none;color:var(--label-1);background:${archived ? 'var(--magenta)' : 'transparent'};${archived ? 'color:#000;font-weight:600;' : ''}transition:all .2s;">已归档</a>
-  </div>
-
-  <!-- search + filter -->
+  <!-- search + filter + per-page -->
   <div style="display:flex;gap:var(--spacing-sm);margin-bottom:var(--spacing-lg);flex-wrap:wrap;">
     <div class="cyber-search" style="flex:1;min-width:200px;">
       <span class="search-icon">${icon('magnifyingglass',18)}</span>
@@ -71,19 +75,36 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean }
       <option value="unbanned">已解封</option>
       <option value="permanent">永久</option>
     </select>
+    <select id="adminPerPage" class="cyber-input" style="width:auto;min-width:90px;" onchange="window.location.href='/admin/bans${archived ? '?archived=1&' : '?'}per_page='+this.value">
+      <option value="10" ${perPage===10?'selected':''}>10条/页</option>
+      <option value="25" ${perPage===25?'selected':''}>25条/页</option>
+      <option value="50" ${perPage===50?'selected':''}>50条/页</option>
+      <option value="100" ${perPage===100?'selected':''}>100条/页</option>
+    </select>
   </div>
 
   <div id="adminBanTable">
     ${AdminBanTable({ bans: props.bans })}
   </div>
 
-  <!-- Add Ban Bottom Sheet -->
+  ${totalPages > 1 ? html`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--spacing-lg);">
+    <span style="font-size:13px;color:var(--label-3);">共 ${total} 条，第 ${page}/${totalPages} 页</span>
+    <div class="cyber-pagination" style="margin-top:0;">
+      ${page > 1 ? html`<a href="/admin/bans?page=${page-1}&per_page=${perPage}${archived?'&archived=1':''}">←</a>` : ''}
+      ${Array.from({length:Math.min(totalPages,7)},(_,i)=>i+1).map(p => html`
+        ${p === page ? html`<span class="current">${p}</span>` : html`<a href="/admin/bans?page=${p}&per_page=${perPage}${archived?'&archived=1':''}">${p}</a>`}
+      `)}
+      ${page < totalPages ? html`<a href="/admin/bans?page=${page+1}&per_page=${perPage}${archived?'&archived=1':''}">→</a>` : ''}
+    </div>
+  </div>` : ''}
+
+  <!-- Add Ban Modal -->
   <div id="banSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="新增封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeBanSheet()">
     <div class="cyber-sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-header">
+      <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
         <span class="sheet-title">新增封禁</span>
-        <button type="button" class="sheet-close" onclick="closeBanSheet()">取消</button>
+        <button type="button" class="sheet-close" onclick="closeBanSheet()">✕</button>
       </div>
       <div class="sheet-body">
         <form id="banForm">
@@ -100,16 +121,42 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean }
             </select>
           </div>
           <div class="cyber-form-group"><label>备注</label><textarea name="notes" rows="3" class="cyber-input"></textarea></div>
+          <div class="cyber-form-group"><label>联合封禁管理员（选填）</label><input type="text" name="co_handlers" placeholder="用逗号分隔多个管理员" class="cyber-input" /></div>
           <button type="submit" class="cyber-btn cyber-btn-primary" style="width:100%;justify-content:center;">提交封禁</button>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Edit page link -->
-  <p style="margin-top:var(--spacing-md);text-align:center;font-size:13px;color:var(--label-3);">
-    编辑页通过「编辑」按钮在新页面打开。
-  </p>
+  <!-- Edit Ban Modal -->
+  <div id="editBanSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="编辑封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeEditSheet()">
+    <div class="cyber-sheet">
+      <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
+        <span class="sheet-title">编辑封禁</span>
+        <button type="button" class="sheet-close" onclick="closeEditSheet()">✕</button>
+      </div>
+      <div class="sheet-body">
+        <form id="editBanForm">
+          <input type="hidden" name="id" />
+          <div class="cyber-form-group"><label>昵称 *</label><input type="text" name="nickname" required class="cyber-input" /></div>
+          <div class="cyber-form-group"><label>Steam ID *</label><input type="text" name="steam_id" required placeholder="76561199…" class="cyber-input" /></div>
+          <div class="cyber-form-group"><label>IP（选填）</label><input type="text" name="ip_address" class="cyber-input" /></div>
+          <div class="cyber-form-group"><label>原因</label><input type="text" name="reason" class="cyber-input" /></div>
+          <div class="cyber-form-group"><label>封禁时长</label><input type="text" name="ban_duration" placeholder="7d / 30m / 1h / permanent" class="cyber-input" /></div>
+          <div class="cyber-form-group">
+            <label>违规等级</label>
+            <select name="violation_level" class="cyber-input">
+              <option value="level3">3级违规</option><option value="level2">2级违规</option>
+              <option value="level1">1级违规</option><option value="warning">警告</option>
+            </select>
+          </div>
+          <div class="cyber-form-group"><label>备注</label><textarea name="notes" rows="3" class="cyber-input"></textarea></div>
+          <div class="cyber-form-group"><label>联合封禁管理员（选填）</label><input type="text" name="co_handlers" placeholder="用逗号分隔多个管理员" class="cyber-input" /></div>
+          <button type="submit" class="cyber-btn cyber-btn-primary" style="width:100%;justify-content:center;">保存修改</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -121,8 +168,24 @@ function openBanSheet() {
 function closeBanSheet() {
   document.getElementById('banSheet').classList.remove('open');
 }
-function editBan(id) {
-  window.location.href = '/admin/bans/' + id;
+function closeEditSheet() {
+  document.getElementById('editBanSheet').classList.remove('open');
+}
+async function editBan(id) {
+  const resp = await fetch('/api/admin/bans/' + id, { headers: { 'Authorization': 'Bearer ' + jwt } });
+  if (!resp.ok) { showToast('获取记录失败', 'error'); return; }
+  const d = await resp.json();
+  const f = document.getElementById('editBanForm');
+  f.querySelector('[name=id]').value = d.id;
+  f.querySelector('[name=nickname]').value = d.nickname;
+  f.querySelector('[name=steam_id]').value = d.steam_id;
+  f.querySelector('[name=ip_address]').value = d.ip_address || '';
+  f.querySelector('[name=reason]').value = d.reason || '';
+  f.querySelector('[name=ban_duration]').value = d.ban_duration || '';
+  f.querySelector('[name=violation_level]').value = d.violation_level || 'level3';
+  f.querySelector('[name=notes]').value = d.notes || '';
+  f.querySelector('[name=co_handlers]').value = d.co_handlers || '';
+  document.getElementById('editBanSheet').classList.add('open');
 }
 async function deleteBan(id) {
   if (!confirm('确认删除封禁记录 #' + id + '？')) return;
@@ -155,6 +218,18 @@ document.getElementById('banForm')?.addEventListener('submit', async function(e)
   if (resp.ok) { location.reload(); }
   else { const r = await resp.json(); showToast(r.error || '添加失败', 'error'); }
 });
+document.getElementById('editBanForm')?.addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(this));
+  const id = data.id; delete data.id;
+  const resp = await fetch('/api/admin/bans/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
+    body: JSON.stringify(data),
+  });
+  if (resp.ok) { location.reload(); }
+  else { const r = await resp.json(); showToast(r.error || '修改失败', 'error'); }
+});
 function applyFilter() {
   var q = document.getElementById('adminBanSearch')?.value?.toLowerCase() || '';
   var st = document.getElementById('adminBanFilter')?.value || '';
@@ -171,7 +246,3 @@ function applyFilter() {
 </script>`
 }
 export const AdminBanListPage = AdminBanPage
-
-export function AdminBanFormPage(props: { ban: Record<string, any> | null }) {
-  return html`<div><h2 class="page-title">${props.ban ? '编辑封禁' : '新增封禁'}</h2></div>`
-}

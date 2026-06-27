@@ -1,0 +1,1 @@
+ALTER TABLE bans ADD COLUMN co_handlers TEXT NOT NULL DEFAULT '';

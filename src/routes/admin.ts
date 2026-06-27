@@ -6,7 +6,7 @@ import { computeStatus } from './public'
 import { authMiddleware, requirePermission, GROUP_RANK } from '../middleware/auth'
 import { escHtml, escAttr } from '../helpers/escape'
 import { AdminLayout } from '../views/admin-layout'
-import { AdminBanListPage, AdminBanFormPage } from '../views/admin-bans'
+import { AdminBanListPage } from '../views/admin-bans'
 import { AdminProcessPage } from '../views/admin-process'
 import { AdminWatchlistPage } from '../views/admin-watchlist'
 import { AdminTeamPage } from '../views/admin-team'
@@ -21,8 +21,9 @@ adminRoutes.use('/api/admin/*', authMiddleware)
 // Admin ban list
 adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {
   const page = Math.max(1, parseInt(c.req.query('page') || '1'))
+  const perPage = Math.min(100, Math.max(10, parseInt(c.req.query('per_page') || '25')))
   const showArchived = c.req.query('archived') === '1'
-  const limit = 20
+  const limit = perPage
   const offset = (page - 1) * limit
 
   const rows = await c.env.DB.prepare(
@@ -41,28 +42,19 @@ adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {
 
   return c.html(AdminLayout({
     title: '封禁管理', currentPath: '/admin/bans',
-    children: AdminBanListPage({ bans: bansWithStatus, showArchived }),
+    children: AdminBanListPage({ bans: bansWithStatus, showArchived, page, perPage, total }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
-adminRoutes.get('/admin/bans/new', requirePermission('T1'), (c) => {
-  return c.html(AdminLayout({
-    title: '新增封禁', currentPath: '/admin/bans',
-    children: AdminBanFormPage({ ban: null }),
-    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
-  }))
-})
-
-adminRoutes.get('/admin/bans/:id/edit', requirePermission('T1'), async (c) => {
+adminRoutes.get('/api/admin/bans/:id', requirePermission('T1'), async (c) => {
   const id = c.req.param('id')
-  const ban = await c.env.DB.prepare('SELECT * FROM bans WHERE id = ?').bind(id).first<BanRow>()
-  if (!ban) return c.text('未找到该记录', 404)
-  return c.html(AdminLayout({
-    title: '编辑封禁', currentPath: '/admin/bans',
-    children: AdminBanFormPage({ ban }),
-    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
-  }))
+  const ban = await c.env.DB.prepare(
+    `SELECT b.*, a.game_name as handled_by_name FROM bans b
+     LEFT JOIN admins a ON b.handled_by = a.id WHERE b.id = ?`
+  ).bind(id).first<BanRow & { handled_by_name: string | null }>()
+  if (!ban) return c.json({ error: '记录不存在' }, 404)
+  return c.json({ ...ban, status: computeStatus(ban) })
 })
 
 // API: Create ban
@@ -74,10 +66,10 @@ adminRoutes.post('/api/admin/bans', requirePermission('T1'), async (c) => {
   const level = body.violation_level_custom || body.violation_level || 'level3'
 
   const result = await c.env.DB.prepare(
-    `INSERT INTO bans (nickname, steam_id, ip_address, reason, ban_time, ban_duration, violation_level, notes, handled_by)
-     VALUES (?, ?, ?, ?, datetime('now'), ?, ?, ?, ?)`
+    `INSERT INTO bans (nickname, steam_id, ip_address, reason, ban_time, ban_duration, violation_level, notes, handled_by, co_handlers)
+     VALUES (?, ?, ?, ?, datetime('now'), ?, ?, ?, ?, ?)`
   ).bind(body.nickname, body.steam_id, body.ip_address || '', body.reason || '',
-         body.ban_duration || '30m', level, body.notes || '', adminId).run()
+         body.ban_duration || '30m', level, body.notes || '', adminId, body.co_handlers || '').run()
   return c.json({ success: true, id: result.meta.last_row_id })
 })
 
@@ -97,9 +89,9 @@ adminRoutes.put('/api/admin/bans/:id', requirePermission('T1'), async (c) => {
   const level = body.violation_level_custom || body.violation_level || 'level3'
 
   await c.env.DB.prepare(
-    `UPDATE bans SET nickname=?, steam_id=?, ip_address=?, reason=?, ban_duration=?, violation_level=?, notes=?, updated_at=datetime('now') WHERE id=?`
+    `UPDATE bans SET nickname=?, steam_id=?, ip_address=?, reason=?, ban_duration=?, violation_level=?, notes=?, co_handlers=?, updated_at=datetime('now') WHERE id=?`
   ).bind(body.nickname, body.steam_id, body.ip_address || '', body.reason || '',
-         body.ban_duration || '30m', level, body.notes || '', id).run()
+         body.ban_duration || '30m', level, body.notes || '', body.co_handlers || '', id).run()
   return c.json({ success: true })
 })
 

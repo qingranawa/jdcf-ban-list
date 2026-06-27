@@ -41,10 +41,9 @@ export function AdminTeamPage(props: { admins: Admin[] }) {
   <!-- Add/Edit Bottom Sheet -->
   <div id="adminSheet" class="cyber-sheet-overlay" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeSheet()">
     <div class="cyber-sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-header">
+      <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
         <span class="sheet-title" id="sheetTitle">新增管理员</span>
-        <button type="button" class="sheet-close" onclick="closeSheet()">取消</button>
+        <button type="button" class="sheet-close" onclick="closeSheet()">✕</button>
       </div>
       <div class="sheet-body">
         <form id="adminForm">

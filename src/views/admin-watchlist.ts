@@ -38,10 +38,9 @@ export function AdminWatchlistPage(props: { items: Watch[] }) {
   <!-- Bottom Sheet -->
   <div id="watchSheet" class="cyber-sheet-overlay" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeSheet()">
     <div class="cyber-sheet">
-      <div class="sheet-handle"></div>
-      <div class="sheet-header">
+      <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
         <span class="sheet-title" id="sheetTitle">新增观察对象</span>
-        <button type="button" class="sheet-close" onclick="closeSheet()">取消</button>
+        <button type="button" class="sheet-close" onclick="closeSheet()">✕</button>
       </div>
       <div class="sheet-body">
         <form id="watchForm">
