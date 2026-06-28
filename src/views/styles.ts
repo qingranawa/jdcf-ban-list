@@ -56,10 +56,9 @@ body { min-height: 100vh; position: relative; }
 a { color: var(--cyan); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* Background photo layer — smallest image as instant fallback, JS replaces with random */
+/* Background photo layer — image set via inline style, preloaded via <link rel=preload> */
 .bg-image {
   position: fixed; inset: 0; z-index: -3;
-  background-image: url('/images/bg/8.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

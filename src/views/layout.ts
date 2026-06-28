@@ -33,8 +33,7 @@ ${Styles()}
 </head>
 <body>
 <div id="scroll-progress" role="progressbar" aria-label="页面进度"></div>
-<!-- * 8.jpg (62K) as instant fallback; JS swaps in random image from preload cache -->
-<div class="bg-image" id="bgImage"></div>
+<div class="bg-image" style="background-image:url('${bgPath}')"></div>
 <div class="mesh-bg">
   <div class="mesh-sphere"></div>
   <div class="mesh-sphere"></div>
@@ -104,10 +103,6 @@ ${Styles()}
 
 <script>
 (function() {
-  // * Apply preloaded background image (from <link rel=preload> cache)
-  var bgEl = document.getElementById('bgImage');
-  if (bgEl) bgEl.style.backgroundImage = "url('${bgPath}')";
-
   // * Preload remaining background images for instant switching
   var preloadPaths = ${raw(JSON.stringify(allPaths).replace(/<\//g, '<\\/'))};
   window.addEventListener('load', function() {
