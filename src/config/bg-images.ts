@@ -1,6 +1,6 @@
 // > Background image pool — one random image per pageload
 // ! IMG_*.JPG 为相机原图，尺寸较大；生产环境建议压缩为 WebP
-const BG_IMAGES = [
+export const BG_IMAGES = [
   '0.jpg',
   '1.jpg',
   '2.jpg',

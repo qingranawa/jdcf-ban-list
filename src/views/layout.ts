@@ -1,9 +1,9 @@
 // > Public layout — full HTML shell with nav, global modal, scroll effects
 // ! 全局新增封禁 Modal (globalBanSheet) 在此定义，确保所有页面可用
-import { html } from 'hono/html'
+import { html, raw } from 'hono/html'
 import { Styles } from './styles'
 import { icon } from './icons'
-import { getRandomBg } from '../config/bg-images'
+import { getRandomBg, BG_IMAGES } from '../config/bg-images'
 
 type LayoutProps = {
   title: string
@@ -15,6 +15,8 @@ export function Layout(props: LayoutProps) {
   const isActive = (p: string) => props.currentPath === p || props.currentPath.startsWith(p + '/')
   // * 每次刷新随机选一张背景图
   const bgPath = getRandomBg()
+  // * 所有背景路径用于预加载
+  const allPaths = BG_IMAGES.map(f => `/images/bg/${f}`)
   return html`
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -25,12 +27,14 @@ export function Layout(props: LayoutProps) {
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23000' stroke='%2300ffff' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%2300ffff' font-family='monospace' font-weight='bold'%3EJ%3C/text%3E%3C/svg%3E"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preload" as="image" href="${bgPath}" fetchpriority="high">
 <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 ${Styles()}
 </head>
 <body>
 <div id="scroll-progress" role="progressbar" aria-label="页面进度"></div>
-<div class="bg-image" style="background-image:url('${bgPath}')"></div>
+<!-- * 8.jpg (62K) as instant fallback; JS swaps in random image from preload cache -->
+<div class="bg-image" id="bgImage"></div>
 <div class="mesh-bg">
   <div class="mesh-sphere"></div>
   <div class="mesh-sphere"></div>
@@ -100,6 +104,19 @@ ${Styles()}
 
 <script>
 (function() {
+  // * Apply preloaded background image (from <link rel=preload> cache)
+  var bgEl = document.getElementById('bgImage');
+  if (bgEl) bgEl.style.backgroundImage = "url('${bgPath}')";
+
+  // * Preload remaining background images for instant switching
+  var preloadPaths = ${raw(JSON.stringify(allPaths).replace(/<\//g, '<\\/'))};
+  window.addEventListener('load', function() {
+    preloadPaths.forEach(function(url) {
+      var img = new Image();
+      img.src = url;
+    });
+  });
+
   // HTMX global error handler
   document.body.addEventListener('htmx:sendError', function() {
     var t = document.getElementById('toast-global');
