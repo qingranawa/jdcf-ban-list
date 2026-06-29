@@ -42,7 +42,7 @@ export function AdminLayout(props: AdminLayoutProps) {
 ${Styles()}
 </head>
 <body style="display:flex;">
-<div class="bg-image"></div>
+<div class="bg-image" style="background-image:url('${bgPath}'),url('/images/bg/3.jpg')"></div>
 <div class="mesh-bg">
   <div class="mesh-sphere"></div>
   <div class="mesh-sphere"></div>
@@ -85,17 +85,14 @@ ${Styles()}
 
 <script>
 (function() {
-  // * CSS 显示 3.jpg 回退；JS 预加载随机图后替换
-  var bgEl = document.getElementById('bgImage');
+  // * CSS 多背景：随机图在上层，3.jpg 在下层兜底。随机图未加载时 3.jpg 可见
   var allPaths = ${raw(JSON.stringify(bgPaths).replace(/<\//g, '<\\/'))};
-  var pick = allPaths[Math.floor(Math.random() * allPaths.length)];
-  if (bgEl && pick !== '/images/bg/3.jpg') {
-    var img = new Image();
-    img.onload = function() { bgEl.style.backgroundImage = "url('" + pick + "')"; };
-    img.src = pick;
-  }
-  allPaths.forEach(function(url) {
-    if (url !== pick) { var pre = new Image(); pre.src = url; }
+  // * 页面完全加载后静默缓存全部背景图
+  window.addEventListener('load', function() {
+    allPaths.forEach(function(url) {
+      var img = new Image();
+      img.src = url;
+    });
   });
 
   var jwt = localStorage.getItem('jwt');
