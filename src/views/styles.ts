@@ -577,8 +577,8 @@ body::after {
 .cyber-input:focus { border-color: var(--magenta); box-shadow: 0 0 0 3px rgba(255,0,170,.12); }
 .cyber-input::placeholder { color: var(--label-3); }
 textarea.cyber-input { resize: vertical; min-height: 60px; }
-select.cyber-input { appearance: none; cursor: pointer; background: #0d0d1a; }
-select.cyber-input option { background: #0d0d1a; color: var(--label-1); }
+select.cyber-input { appearance: none; cursor: pointer; background: rgba(0,0,0,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); }
 
 /* ─── Admin Content ─── */
 .cyber-admin-content {

@@ -14,6 +14,9 @@ export type StatsData = {
   topMonth: TopItem | null
   topYear: TopItem | null
   durations: DurationItem[]
+  topOperators: { name: string; count: number }[]
+  dailyTrend: { date: string; count: number }[]
+  durationCategories: { label: string; count: number; color: string }[]
 }
 
 export function StatsPage(props: StatsData) {
@@ -73,7 +76,7 @@ export function StatsPage(props: StatsData) {
     initChart('levelPieChart', {
       type: 'doughnut',
       plugins: [pctLabelPlugin()],
-      data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#000', borderWidth: 2 }] },
+      data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1 }] },
       options: { aspectRatio: 1, plugins: {
         legend: { position:'bottom', labels: { color:textColor, padding:12, font:{size:12} } },
         tooltip: { callbacks: { label: function(ctx){var t=data.total||1;return ctx.label+': '+ctx.parsed+' ('+Math.round(ctx.parsed/t*100)+'%)'} } }
@@ -97,12 +100,57 @@ export function StatsPage(props: StatsData) {
     initChart('durationChart', {
       type: 'doughnut',
       plugins: [pctLabelPlugin()],
-      data: { labels: durLabels, datasets: [{ data: durValues, backgroundColor: durColors, borderColor: '#000', borderWidth: 2 }] },
+      data: { labels: durLabels, datasets: [{ data: durValues, backgroundColor: durColors, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 1 }] },
       options: { aspectRatio: 1, plugins: {
         legend: { position:'bottom', labels: { color:textColor, padding:12, font:{size:12} } },
         tooltip: { callbacks: { label: function(ctx){var t=data.total||1;return ctx.label+': '+ctx.parsed+' ('+Math.round(ctx.parsed/t*100)+'%)'} } }
       } }
     });
+
+    // Operator ranking
+    var ops = data.topOperators || [];
+    if (ops.length) {
+      initChart('operatorChart', {
+        type: 'bar',
+        data: {
+          labels: ops.map(function(o){return o.name}),
+          datasets: [{ data: ops.map(function(o){return o.count}), backgroundColor: ['#00f0ff','#ff00aa','#ffb000','#66ffcc','#ff3355'], borderWidth: 0, borderRadius: 4 }]
+        },
+        options: { indexAxis: 'y', aspectRatio: 1.5, plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } },
+                   y: { ticks: { color: textColor } } } }
+      });
+    }
+
+    // 30-day trend
+    var trend = data.dailyTrend || [];
+    if (trend.length) {
+      initChart('trendChart', {
+        type: 'line',
+        data: {
+          labels: trend.map(function(t){return t.date.slice(5)}),
+          datasets: [{ data: trend.map(function(t){return t.count}), borderColor: '#00f0ff', backgroundColor: 'rgba(0,240,255,0.08)', fill: true, tension: 0.3, pointRadius: 2, pointBackgroundColor: '#00f0ff' }]
+        },
+        options: { aspectRatio: 2, plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } },
+                   x: { ticks: { color: textColor, maxTicksLimit: 10 } } } }
+      });
+    }
+
+    // Duration category bar
+    var dc = data.durationCategories || [];
+    if (dc.length) {
+      initChart('durationCatChart', {
+        type: 'bar',
+        data: {
+          labels: dc.map(function(c){return c.label}),
+          datasets: [{ data: dc.map(function(c){return c.count}), backgroundColor: dc.map(function(c){return c.color}), borderWidth: 0, borderRadius: 4 }]
+        },
+        options: { aspectRatio: 2, plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true, ticks: { color: textColor, stepSize: 1 }, grid: { color: gridColor } },
+                   x: { ticks: { color: textColor } } } }
+      });
+    }
   });
   </script>
 
@@ -136,6 +184,24 @@ export function StatsPage(props: StatsData) {
   <div class="chart-section-title" style="margin-top:var(--spacing-lg);">封禁时长偏爱占比</div>
   <div class="chart-container cyber-card" style="padding:var(--spacing-md);max-width:360px;">
     <canvas id="durationChart"></canvas>
+  </div>
+
+  <div class="chart-section-title" style="margin-top:var(--spacing-lg);">操作员封禁排行</div>
+  <div class="chart-container cyber-card" style="padding:var(--spacing-md);">
+    <div id="operatorChartFallback" class="no-data" style="${props.topOperators.length ? 'display:none' : ''}">暂无数据</div>
+    <canvas id="operatorChart"></canvas>
+  </div>
+
+  <div class="chart-section-title" style="margin-top:var(--spacing-lg);">近30天封禁趋势</div>
+  <div class="chart-container cyber-card" style="padding:var(--spacing-md);">
+    <div id="trendChartFallback" class="no-data" style="${props.dailyTrend.length ? 'display:none' : ''}">暂无数据</div>
+    <canvas id="trendChart"></canvas>
+  </div>
+
+  <div class="chart-section-title" style="margin-top:var(--spacing-lg);">封禁时长分类统计</div>
+  <div class="chart-container cyber-card" style="padding:var(--spacing-md);">
+    <div id="durationCatChartFallback" class="no-data" style="${props.durationCategories.length ? 'display:none' : ''}">暂无数据</div>
+    <canvas id="durationCatChart"></canvas>
   </div>
 
 </div>`

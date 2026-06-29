@@ -86,6 +86,8 @@ export function BanTable(props: TableProps) {
             hx-get="/?q=${enc(props.query)}&level=level2" hx-target="#list-wrap" hx-push-url="true" hx-indicator="#list-wrap">2级</button>
     <button class="${props.levelFilter === 'level1' ? 'active' : ''}" data-level="level1" data-status=""
             hx-get="/?q=${enc(props.query)}&level=level1" hx-target="#list-wrap" hx-push-url="true" hx-indicator="#list-wrap">1级</button>
+    <button class="${props.levelFilter === 'warning' ? 'active' : ''}" data-level="warning" data-status=""
+            hx-get="/?q=${enc(props.query)}&level=warning" hx-target="#list-wrap" hx-push-url="true" hx-indicator="#list-wrap">警告</button>
     <button class="${props.statusFilter === 'banned' ? 'active' : ''}" data-level="" data-status="banned"
             hx-get="/?q=${enc(props.query)}&status=banned" hx-target="#list-wrap" hx-push-url="true" hx-indicator="#list-wrap">封禁中</button>
   </div>
@@ -94,7 +96,7 @@ export function BanTable(props: TableProps) {
 <div class="table-wrap" style="padding:0 var(--spacing-md) var(--spacing-md);">
   <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 2px var(--spacing-sm);">
     <span style="font-size:13px;color:var(--label-2);font-family:var(--sans);">共 <strong style="color:var(--cyan);">${props.total}</strong> 条记录</span>
-    <select onchange="window.location.href='/?per_page='+this.value+'&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" style="background:#0d0d1a;border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:4px 8px;font-size:13px;color:var(--label-2);font-family:var(--sans);cursor:pointer;">
+    <select onchange="window.location.href='/?per_page='+this.value+'&q=${enc(props.query)}&level=${props.levelFilter}&status=${props.statusFilter}" style="background:rgba(0,0,0,.45);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--glass-border);border-radius:var(--radius-sm);padding:4px 8px;font-size:13px;color:var(--label-2);font-family:var(--sans);cursor:pointer;">
       <option value="10" ${props.perPage===10?'selected':''}>10条/页</option>
       <option value="25" ${props.perPage===25?'selected':''}>25条/页</option>
       <option value="50" ${props.perPage===50?'selected':''}>50条/页</option>

@@ -158,6 +158,26 @@ function fmtDuration(d: string): string {
   return d
 }
 
+function categorizeDuration(d: string): string {
+  if (/^(permanent|50[Yy])$/.test(d)) return '永久'
+  if (d === 'warning') return '警告'
+  if (d.startsWith('mute-')) return '禁言'
+  if (d === 'cfba') return 'CFBA'
+  const m = d.match(/^(\d+)([dhmy])$/i)
+  if (!m) return '其他'
+  const n = parseInt(m[1]), u = m[2].toLowerCase()
+  if (u === 'm') return '分钟'
+  if (u === 'h') return '小时'
+  if (u === 'd') { if (n <= 7) return '1-7天'; if (n <= 30) return '8-30天'; return '30天以上' }
+  if (u === 'y') return '1年以上'
+  return '其他'
+}
+const durCatColors: Record<string, string> = {
+  '永久': '#ff3355', '警告': '#66ffcc', '禁言': '#ffb000', 'CFBA': '#ff00aa',
+  '1-7天': '#00f0ff', '8-30天': '#00aaff', '30天以上': '#0066ff',
+  '小时': '#8866ff', '分钟': '#cc66ff', '1年以上': '#ff66aa', '其他': '#888888'
+}
+
 publicRoutes.get('/stats', async (c) => {
   const s = await c.env.DB.prepare(
     `SELECT
@@ -187,6 +207,23 @@ publicRoutes.get('/stats', async (c) => {
     `SELECT ban_duration, COUNT(*) as count FROM bans WHERE is_archived = 0 GROUP BY ban_duration ORDER BY count DESC LIMIT 10`
   ).all<{ban_duration:string;count:number}>()
 
+  const topOperators = await c.env.DB.prepare(
+    `SELECT COALESCE(a.game_name, '系统') as name, COUNT(*) as count
+     FROM bans b LEFT JOIN admins a ON b.handled_by = a.id
+     WHERE b.is_archived = 0
+     GROUP BY b.handled_by ORDER BY count DESC LIMIT 5`
+  ).all<{name:string;count:number}>()
+
+  const dailyTrend = await c.env.DB.prepare(
+    `SELECT DATE(ban_time) as date, COUNT(*) as count
+     FROM bans WHERE is_archived = 0 AND ban_time >= datetime('now', '-30 days')
+     GROUP BY DATE(ban_time) ORDER BY date ASC`
+  ).all<{date:string;count:number}>()
+
+  const allDurationRows = await c.env.DB.prepare(
+    `SELECT ban_duration FROM bans WHERE is_archived = 0`
+  ).all<{ban_duration:string}>()
+
   const total = s?.total || 0
   const levels: StatsData['levels'] = [
     { label: '3级违规', value: s?.l3||0, color: '#00f0ff' },
@@ -196,6 +233,15 @@ publicRoutes.get('/stats', async (c) => {
     { label: '警告', value: s?.warning||0, color: '#66ffcc' },
     { label: '其他', value: s?.other||0, color: '#888888' },
   ].filter(l => l.value > 0)
+
+  const catMap = new Map<string, number>()
+  for (const r of allDurationRows.results || []) {
+    const cat = categorizeDuration(r.ban_duration)
+    catMap.set(cat, (catMap.get(cat) || 0) + 1)
+  }
+  const durationCategories: StatsData['durationCategories'] = Array.from(catMap.entries())
+    .map(([label, count]) => ({ label, count, color: durCatColors[label] || '#888888' }))
+    .sort((a, b) => b.count - a.count)
 
   return c.html(Layout({
     title: '统计信息',
@@ -207,6 +253,9 @@ publicRoutes.get('/stats', async (c) => {
       topMonth: topMonth || null,
       topYear: topYear || null,
       durations: (durations?.results||[]).map(d => ({ label: fmtDuration(d.ban_duration), count: d.count })),
+      topOperators: topOperators?.results || [],
+      dailyTrend: dailyTrend?.results || [],
+      durationCategories,
     }),
   }))
 })
