@@ -103,9 +103,14 @@ ${Styles()}
     var u = location.pathname + location.hash;
     history.replaceState(null, '', u);
   }
-  // * 确保 cookie 与 localStorage 同步（绕过 CF Pages Set-Cookie bug）
-  if (jwt && !document.cookie.split(';').some(function(c){return c.trim().startsWith('jwt=')})) {
-    document.cookie = 'jwt=' + jwt + '; Path=/; SameSite=Lax; Max-Age=604800';
+  // * 将 ?token= 追加到所有管理页面链接，确保点击后 middleware 能读到
+  if (jwt) {
+    var links = document.querySelectorAll('a[href^="/admin/"],a[href^="/account"]');
+    for (var i = 0; i < links.length; i++) {
+      var h = links[i].getAttribute('href');
+      if (h.indexOf('?') > -1) { links[i].setAttribute('href', h + '&token=' + encodeURIComponent(jwt)); }
+      else { links[i].setAttribute('href', h + '?token=' + encodeURIComponent(jwt)); }
+    }
   }
   if (!jwt) { window.location.href = '/login'; return; }
 

@@ -64,6 +64,6 @@ authRoutes.post('/login', async (c) => {
 
   const safeToken = token.replace(/</g, '\\u003c')
   return c.html(
-    `<script>localStorage.setItem('jwt','${safeToken}');document.cookie='jwt=${safeToken}; Path=/; SameSite=Lax; Max-Age=604800';window.location.href='/admin/bans'</script>`
+    `<script>localStorage.setItem('jwt','${safeToken}');window.location.href='/admin/bans?token=${safeToken}'</script>`
   )
 })

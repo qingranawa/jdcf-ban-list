@@ -32,7 +32,12 @@ export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings:
     token = authHeader.slice(7)
   }
 
-  // * header 没有就翻 cookie（页面导航场景，如 /admin/bans）
+  // * query param 次优先（页面导航场景，如 /admin/bans?token=xxx）
+  if (!token) {
+    token = c.req.query('token') || null
+  }
+
+  // * cookie 兜底（向下兼容，已不依赖）
   if (!token) {
     const cookie = c.req.header('Cookie')
     if (cookie) {

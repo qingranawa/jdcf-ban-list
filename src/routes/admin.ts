@@ -417,12 +417,9 @@ adminRoutes.delete('/api/admin/profiles/:id', requirePermission('T5'), async (c)
 
 // ── 退出 ──
 adminRoutes.get('/admin/logout', (c) => {
-  c.header('Set-Cookie', 'jwt=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0')
-  return c.html(AdminLayout({
-    title: '已退出', currentPath: '/logout',
-    children: html`<div class="card" style="text-align:center;padding:3rem;"><p>已退出登录</p><a href="/" class="btn btn-primary" style="margin-top:1rem;">返回首页</a></div><script>localStorage.removeItem('jwt');</script>`,
-    admin: { game_name: '', permission_group: '' },
-  }))
+  return c.html(
+    `<script>localStorage.removeItem('jwt');window.location.href='/login'</script>`
+  )
 })
 
 // /logout 也能退，顺带清 cookie

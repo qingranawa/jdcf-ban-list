@@ -84,7 +84,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
       <option value="unbanned">已解封</option>
       <option value="permanent">永久</option>
     </select>
-    <select id="adminPerPage" class="cyber-input" style="width:auto;min-width:90px;" onchange="window.location.href='/admin/bans${archived ? '?archived=1&' : '?'}per_page='+this.value">
+    <select id="adminPerPage" class="cyber-input" style="width:auto;min-width:90px;" onchange="window.location.href=adminUrl('/admin/bans?per_page='+this.value${archived ? "+'&archived=1'" : ""})">
       <option value="10" ${perPage===10?'selected':''}>10条/页</option>
       <option value="25" ${perPage===25?'selected':''}>25条/页</option>
       <option value="50" ${perPage===50?'selected':''}>50条/页</option>
@@ -99,7 +99,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--spacing-lg);">
     <span style="font-size:13px;color:var(--label-3);">共 ${total} 条，第 ${page}/${totalPages} 页</span>
     <div style="display:flex;align-items:center;gap:var(--spacing-sm);">
-      <select class="cyber-input" style="width:auto;min-width:90px;" onchange="window.location.href='/admin/bans${archived ? '?archived=1&' : '?'}per_page='+this.value">
+      <select class="cyber-input" style="width:auto;min-width:90px;" onchange="window.location.href=adminUrl('/admin/bans?per_page='+this.value${archived ? "+'&archived=1'" : ""})">
         <option value="10" ${perPage===10?'selected':''}>10条/页</option>
         <option value="25" ${perPage===25?'selected':''}>25条/页</option>
         <option value="50" ${perPage===50?'selected':''}>50条/页</option>
@@ -178,6 +178,11 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
 
 <script>
 const jwt = localStorage.getItem('jwt');
+function adminUrl(path) {
+  if (!jwt) return path;
+  if (path.indexOf('?') > -1) return path + '&token=' + encodeURIComponent(jwt);
+  return path + '?token=' + encodeURIComponent(jwt);
+}
 function openBanSheet() {
   document.getElementById('banForm').reset();
   document.getElementById('banSheet').classList.add('open');
