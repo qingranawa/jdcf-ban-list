@@ -56,9 +56,10 @@ body { min-height: 100vh; position: relative; }
 a { color: var(--cyan); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* Background photo layer — image set via inline style, preloaded via <link rel=preload> */
+/* Background photo layer — 3.jpg is the default; preload fills cache silently */
 .bg-image {
   position: fixed; inset: 0; z-index: -3;
+  background-image: url('/images/bg/3.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

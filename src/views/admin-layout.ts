@@ -1,7 +1,7 @@
 import { html } from 'hono/html'
 import { Styles } from './styles'
 import { icon } from './icons'
-import { getRandomBg } from '../config/bg-images'
+
 
 type AdminLayoutProps = {
   title: string
@@ -23,7 +23,6 @@ export function AdminLayout(props: AdminLayoutProps) {
     { path: '/admin/archive', label: '归档日志', icon: 'info' },
   ]
 
-  const bgPath = getRandomBg()
   return html`
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -38,7 +37,7 @@ export function AdminLayout(props: AdminLayoutProps) {
 ${Styles()}
 </head>
 <body style="display:flex;">
-<div class="bg-image" style="background-image:url('${bgPath}')"></div>
+<div class="bg-image"></div>
 <div class="mesh-bg">
   <div class="mesh-sphere"></div>
   <div class="mesh-sphere"></div>
