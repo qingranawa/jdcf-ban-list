@@ -34,8 +34,6 @@
 | [glossary.md](docs/project-knowledge/glossary.md) | 术语定义：封禁记录、违规等级、duration 格式、权限组、JWT 双通道等 |
 | [index.md](docs/project-knowledge/index.md) | 索引：每个文件的摘要，帮助快速定位 |
 
-这些文件由 `superpowers-memory:update` 自动维护，每次大改后要跑一次保持同步。
-
 ---
 
 ## 代码结构
@@ -44,20 +42,26 @@
 functions/[[path]].ts          ← Cloudflare Pages Functions 单一入口，挂载所有路由
 src/
 ├── routes/                     ← 路由层——处理请求、调 DB、返回 HTML 或 JSON
-│   ├── public.ts               ← 公开首页、搜索分页、管理组公示、状态计算
+│   ├── public.ts               ← 公开首页、搜索分页、统计信息、管理组公示、状态计算
 │   ├── auth.ts                 ← 登录表单 + POST /api/login 签发 JWT
-│   ├── admin.ts                ← 封禁 CRUD、批量处理过期违规、观察名单、归档日志
-│   ├── admin-team.ts           ← 管理组 CRUD（T5+ 权限）
+│   ├── admin.ts                ← 封禁 CRUD、批量处理过期违规、观察名单、归档日志、管理组管理
 │   └── account.ts              ← 自助账户查询和修改
-├── views/                      ← Hono JSX 服务端模板（返回完整 HTML 页面或 htmx 片段）
-│   ├── layout.tsx              ← 公开页布局（顶部固定导航栏 + 页脚）
-│   ├── admin-layout.tsx        ← 后台侧边栏布局（独立于公开布局）
-│   ├── home.tsx                ← 首页：统计卡片 + 搜索筛选 + 封禁表格 + 分页 + 快捷添加弹窗
-│   ├── team.tsx                ← 管理组公示页
-│   ├── account.tsx             ← 账户设置页（客户端 JS 调用 API）
-│   ├── admin-bans.tsx          ← 封禁管理列表 + 新增/编辑表单
-│   ├── admin-process.tsx       ← 批量处理过期违规页
-│   └── admin-watchlist.tsx     ← 重点观察名单页
+├── views/                      ← Hono html 服务端模板（返回完整 HTML 页面或 htmx 片段）
+│   ├── layout.ts               ← 公开页布局（导航栏 + 全局添加封禁弹窗 + 页脚）
+│   ├── admin-layout.ts         ← 后台侧边栏布局（独立于公开布局）
+│   ├── home.ts                 ← 首页：统计卡片 + 搜索筛选 + 封禁表格 + 分页
+│   ├── stats.ts                ← 统计信息页：Chart.js 图表（饼图/柱状图/折线图）
+│   ├── styles.ts               ← 共享 CSS Token 系统（cyberpunk 玻璃态）
+│   ├── icons.ts                ← 内联 SVG 图标库
+│   ├── team.ts                 ← 管理组公示页
+│   ├── account.ts              ← 账户设置页（客户端 JS 调用 API）
+│   ├── login.ts                ← 管理员登录页
+│   ├── admin-bans.ts           ← 封禁管理列表 + 新增/编辑表单
+│   ├── admin-process.ts        ← 批量处理过期违规页
+│   ├── admin-watchlist.ts      ← 重点观察名单页
+│   └── admin-team.ts           ← 管理组管理页
+├── config/
+│   └── bg-images.ts            ← 背景图配置与随机选取
 ├── middleware/auth.ts          ← JWT 认证中间件（header + cookie 双通道）+ 权限分级校验
 ├── helpers/escape.ts           ← HTML/属性转义工具（XSS 防护）
 └── db.ts                       ← D1 绑定类型定义、行类型
@@ -67,17 +71,22 @@ scripts/
 └── import-bans.js              ← Excel 封禁数据导入脚本（一次性）
 
 worker-cron/                    ← Cron Worker（当前未启用，改为手动处理）
-schema.sql                      ← 完整 DDL（6 张表 + 索引）
+schema.sql                      ← 完整 DDL（7 张表 + 索引）
 seed.sql                        ← 初始管理员账号
+migrations/
+└── 001_add_co_handlers.sql     ← 联合封禁管理员字段迁移
 ```
 
 ### 关键设计决策
 
-- **Hono JSX 不是 React** — 视图文件用 `.tsx` 扩展名但走 Hono 的 `html` 模板字面量，不支持 React 的 style 对象语法，所有 CSS 必须写字符串
+- **Hono html 模板不是 React** — 视图文件用 `.ts` 扩展名但走 Hono 的 `html` 模板字面量，不支持 React 的 style 对象语法，所有 CSS 必须写字符串
 - **htmx 局部更新** — 服务端检测 `HX-Request` 请求头，有则只返回片段（如 `BanTable`），没有则返回完整页面
 - **状态不存库** — `computeStatus()` 在每次读取时根据 `ban_duration` + `ban_time` + `archive_action` 实时计算
 - **JWT 双通道** — API 调用走 `Authorization: Bearer` header，页面导航走 httpOnly `jwt` cookie（避免浏览器页面请求 401）
 - **GROUP_RANK 数值** — OWNER=0 权限最高，T1=6 最低，`requirePermission('T5')` 要求当前用户 rank ≤ 2
+- **Cyberpunk 玻璃态 UI** — 暗色主题，`backdrop-filter: blur(8px)` 毛玻璃效果，霓虹色调（青/品红/琥珀），CSS Token 统一管理于 `styles.ts`
+- **多背景图系统** — CSS `background-image` 多图层叠加（随机图 + `3.jpg` 兜底），`<link rel="preload">` 提前加载，无 JS 切换
+- **Chart.js 统计图表** — v4 CDN，饼图/环形图使用 `aspectRatio: 1` 自定义 `afterDraw` 插件显示百分比标签
 
 ---
 
@@ -118,6 +127,9 @@ npx wrangler pages dev functions/ --binding DB=jdcf-db
 ```bash
 # 建表
 npx wrangler d1 execute jdcf-db --file=schema.sql
+
+# 执行迁移
+npx wrangler d1 execute jdcf-db --file=migrations/001_add_co_handlers.sql
 
 # 导入种子数据
 npx wrangler d1 execute jdcf-db --file=seed.sql
@@ -167,7 +179,7 @@ git checkout -b feat/要做的功能
 
 - 路由逻辑写 `src/routes/`，页面模板写 `src/views/`
 - 新增路由后在 `functions/[[path]].ts` 挂载
-- 修改数据库结构后同步更新 `schema.sql` 和 `src/db.ts` 类型
+- 修改数据库结构后同步更新 `schema.sql`、`migrations/` 和 `src/db.ts` 类型
 - 改完代码跑一下知识库更新：让 Claude Code 执行"跑kb"
 
 ### 3. 自测
@@ -175,6 +187,9 @@ git checkout -b feat/要做的功能
 ```bash
 # 本地跑一遍确认不崩
 npx wrangler pages dev functions/ --binding DB=jdcf-db
+
+# TypeScript 编译检查
+npx tsc --noEmit
 
 # 走一遍关键路径：
 # - 首页加载、搜索、翻页
@@ -219,7 +234,7 @@ Commit 格式：`type(scope): 概要`
 - 点击 Squash merge 合并到 master
 - 删除功能分支（PR 页面有按钮）
 - **推送 master 后 Cloudflare Pages 自动部署**，等一两分钟刷新线上确认
-- 如有数据库变更（schema.sql 改了），手动同步到 D1
+- 如有数据库变更（schema.sql 或 migrations/ 改了），手动同步到 D1
 - 跑一次"跑kb"更新项目知识库
 
 ---
@@ -232,3 +247,5 @@ Commit 格式：`type(scope): 概要`
 - `console.log` / `debugger` 别留在生产代码里
 - 不引入新依赖除非确有必要，先和 清然 确认
 - 不要改无关代码、不要顺手重构、不要清理别人的"死代码"
+- 新视图 CSS 类名使用 `cyber-` 前缀（`cyber-table`, `cyber-btn`, `cyber-card`, `cyber-input`, `cyber-badge` 等）
+- 遵循 `styles.ts` 中定义的 CSS Token 系统（玻璃态背景、霓虹色板、间距体系）

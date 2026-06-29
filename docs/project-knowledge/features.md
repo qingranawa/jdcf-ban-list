@@ -1,7 +1,7 @@
 ---
-last_updated: 2026-06-26
+last_updated: 2026-06-29
 updated_by: opencode
-covers_branch: master@iOS-ui-redesign
+covers_branch: master
 ---
 
 # 功能特性
@@ -12,33 +12,43 @@ covers_branch: master@iOS-ui-redesign
 
 #### 封禁查询（公开首页）
 
-**Enables** — 玩家搜索/筛选所有封禁记录，按昵称/SteamID/IP 搜索，按违规等级/封禁状态过滤，分页浏览，查看统计卡片。
+**Enables** — 玩家搜索/筛选所有封禁记录，按昵称/SteamID/IP 搜索，按违规等级/封禁状态过滤，分页浏览，查看统计卡片，支持"警告/禁言/封禁"快速过滤标签。
 
 **Actors / Entry Points** — 所有访客 → `/`（htmx 局部更新通过 HX-Request header 返回片段）
 
-**Capability Boundary** — 状态实时计算（computeStatus），不存库。分页 20 条/页。已归档+deleted 的记录不显示。
+**Capability Boundary** — 状态实时计算（computeStatus），不存库。分页支持每页 10/25/50/100 条。已归档+deleted 的记录不显示。
 
-**References** — architecture.md §封禁状态机，src/routes/public.ts
+**References** — architecture.md §封禁状态机，src/routes/public.ts，src/views/home.ts
+
+#### 统计信息页
+
+**Enables** — 查看封禁数据的可视化统计：违规等级占比（饼图/环形图）、操作员处理排行（水平柱状图 top 5）、30 天封禁趋势（折线图）、封禁时长分类统计（柱状图）。
+
+**Actors / Entry Points** — 所有访客 → `/stats`
+
+**Capability Boundary** — Chart.js v4 CDN 渲染，含自定义 `afterDraw` 百分比标签插件。数据来源于 `/stats` 路由的三个独立 SQL 查询。
+
+**References** — src/routes/public.ts，src/views/stats.ts
 
 #### 管理组公示
 
-**Enables** — 公开查看管理团队信息（游戏名、QQ、任职、主管）。
+**Enables** — 公开查看管理团队信息（游戏名、QQ、任职、主管），卡片网格 2 列 4:3 比例展示。
 
 **Actors / Entry Points** — 所有访客 → `/team`
 
 **Capability Boundary** — 仅显示 is_active=1 的管理员。
 
-**References** — src/routes/public.ts，src/views/team.tsx
+**References** — src/routes/public.ts，src/views/team.ts
 
 #### 管理后台 — 封禁 CRUD
 
-**Enables** — 管理员增删改封禁记录，含自定义违规等级、自定义时长、备注。仅 T1+ 可访问，仅 OWNER/T6/T5 可改他人记录。
+**Enables** — 管理员增删改封禁记录，含自定义违规等级、自定义时长、备注、联合封禁管理员。仅 T1+ 可访问，仅 OWNER/T6/T5 可改他人记录。导航栏支持快捷添加弹窗。
 
 **Actors / Entry Points** — T1~OWNER → `/admin/bans`，POST/PUT/DELETE `/api/admin/bans`
 
-**Capability Boundary** — 修改他人记录需 `GROUP_RANK ≤ 2`（即 T5+）。删除直接物理删，不走归档。
+**Capability Boundary** — 修改他人记录需 `GROUP_RANK ≤ 2`（即 T5+）。删除直接物理删，不走归档。ban_duration 格式经过 regex 校验。
 
-**References** — src/routes/admin.ts，src/views/admin-bans.tsx
+**References** — src/routes/admin.ts，src/views/admin-bans.ts，src/views/layout.ts（全局弹窗）
 
 #### 管理后台 — 批量处理过期违规
 
@@ -58,7 +68,7 @@ covers_branch: master@iOS-ui-redesign
 
 **Capability Boundary** — Steam ID 唯一约束。手动维护，非自动聚合。
 
-**References** — src/routes/admin.ts，src/views/admin-watchlist.tsx
+**References** — src/routes/admin.ts，src/views/admin-watchlist.ts
 
 #### 管理后台 — 管理组管理
 
@@ -66,9 +76,9 @@ covers_branch: master@iOS-ui-redesign
 
 **Actors / Entry Points** — T5+ → `/admin/team`，CRUD `/api/admin/profiles`
 
-**Capability Boundary** — 不能删除自己。OWNER 权限最高。新增管理员默认密码 `change_me_123`。
+**Capability Boundary** — 不能删除自己。OWNER 权限最高。新增管理员必须提供密码（不再有默认密码）。
 
-**References** — src/routes/admin-team.ts
+**References** — src/routes/admin.ts，src/views/admin-team.ts
 
 #### 管理后台 — 归档日志
 
@@ -90,17 +100,17 @@ covers_branch: master@iOS-ui-redesign
 
 **Capability Boundary** — 不能修改权限组（需 T5+ 通过管理组管理操作）。JWT 存在 localStorage。
 
-**References** — src/routes/account.ts，src/views/account.tsx
+**References** — src/routes/account.ts，src/views/account.ts
 
 ### Platform Capabilities
 
 #### JWT 认证系统
 
-**Enables** — Steam ID + 用户名 + 密码登录，颁发 7 天 JWT token，支持双通道传输（Authorization header + httpOnly cookie）。
+**Enables** — Steam ID + 用户名 + 密码登录，颁发 7 天 JWT token，支持双通道传输（Authorization header + httpOnly cookie，无 Secure 标志）。
 
 **Actors / Entry Points** — 管理员 → `/login`，POST `/api/login`
 
-**Capability Boundary** — bcryptjs 哈希。Cookie 自动携带，避免页面导航 401。
+**Capability Boundary** — bcryptjs 哈希。Cookie 自动携带，避免页面导航 401。Set-Cookie 无 `Secure` 标志以支持本地 HTTP 开发。
 
 **References** — architecture.md §登录流程，src/middleware/auth.ts，src/routes/auth.ts
 
