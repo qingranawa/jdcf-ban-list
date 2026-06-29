@@ -8,6 +8,7 @@ type AdminLayoutProps = {
   title: string
   currentPath: string
   admin: { game_name: string; permission_group: string }
+  jwtToken?: string
   children: string | ReturnType<typeof html>
 }
 
@@ -16,12 +17,18 @@ export function AdminLayout(props: AdminLayoutProps) {
   const adminName = props.admin.game_name || '管理员'
   const adminGroup = props.admin.permission_group || ''
 
+  const tk = (path: string) => {
+    if (!props.jwtToken) return path
+    const sep = path.includes('?') ? '&' : '?'
+    return `${path}${sep}token=${encodeURIComponent(props.jwtToken)}`
+  }
+
   const navItems = [
-    { path: '/admin/bans', label: '封禁管理', icon: 'list' },
-    { path: '/admin/process', label: '批量处理', icon: 'bolt' },
-    { path: '/admin/watchlist', label: '观察名单', icon: 'bell' },
-    { path: '/admin/team', label: '管理组', icon: 'users' },
-    { path: '/admin/archive', label: '归档日志', icon: 'info' },
+    { path: tk('/admin/bans'), label: '封禁管理', icon: 'list' },
+    { path: tk('/admin/process'), label: '批量处理', icon: 'bolt' },
+    { path: tk('/admin/watchlist'), label: '观察名单', icon: 'bell' },
+    { path: tk('/admin/team'), label: '管理组', icon: 'users' },
+    { path: tk('/admin/archive'), label: '归档日志', icon: 'info' },
   ]
 
   const bgPath = getRandomBg()
@@ -62,12 +69,12 @@ ${Styles()}
   </a>
   <nav class="sidebar-nav" aria-label="后台导航">
     ${navItems.map(n => html`
-    <a href="${n.path}" class="sidebar-link ${isActive(n.path) ? 'active' : ''}" ${isActive(n.path) ? 'aria-current="page"' : ''}>
+    <a href="${n.path}" class="sidebar-link ${isActive(n.path.split('?')[0]) ? 'active' : ''}" ${isActive(n.path.split('?')[0]) ? 'aria-current="page"' : ''}>
       ${icon(n.icon)} ${n.label}
     </a>`)}
   </nav>
   <div class="sidebar-footer">
-    <a href="/account" class="sidebar-link">
+    <a href="${tk('/account')}" class="sidebar-link">
       <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--magenta));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;flex-shrink:0;font-family:var(--sans);">
         ${adminName.charAt(0)}
       </div>
@@ -85,9 +92,7 @@ ${Styles()}
 
 <script>
 (function() {
-  // * CSS 多背景：随机图在上层，3.jpg 在下层兜底。随机图未加载时 3.jpg 可见
   var allPaths = ${raw(JSON.stringify(bgPaths).replace(/<\//g, '<\\/'))};
-  // * 页面完全加载后静默缓存全部背景图
   window.addEventListener('load', function() {
     allPaths.forEach(function(url) {
       var img = new Image();
@@ -100,19 +105,6 @@ ${Styles()}
   if (m) {
     jwt = decodeURIComponent(m[1]);
     localStorage.setItem('jwt', jwt);
-  }
-  // * 将 localStorage JWT 同步到 cookie，确保页面刷新时 middleware 能通过 cookie 恢复认证
-  if (jwt) {
-    document.cookie = 'jwt=' + encodeURIComponent(jwt) + ';path=/;max-age=604800;SameSite=Lax';
-  }
-  // * 将 ?token= 追加到所有管理页面链接，确保点击后 middleware 能读到
-  if (jwt) {
-    var links = document.querySelectorAll('a[href^="/admin/"],a[href^="/account"]');
-    for (var i = 0; i < links.length; i++) {
-      var h = links[i].getAttribute('href');
-      if (h.indexOf('?') > -1) { links[i].setAttribute('href', h + '&token=' + encodeURIComponent(jwt)); }
-      else { links[i].setAttribute('href', h + '?token=' + encodeURIComponent(jwt)); }
-    }
   }
   if (!jwt) { window.location.href = '/login'; return; }
 

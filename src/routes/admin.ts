@@ -43,8 +43,9 @@ adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {
 
   return c.html(AdminLayout({
     title: '封禁管理', currentPath: '/admin/bans',
-    children: AdminBanListPage({ bans: bansWithStatus, showArchived, page, perPage, total }),
+    children: AdminBanListPage({ bans: bansWithStatus, showArchived, page, perPage, total, jwtToken: c.get('jwtToken') }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
+    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -165,6 +166,7 @@ adminRoutes.get('/admin/process', requirePermission('T5'), async (c) => {
     title: '处理', currentPath: '/admin/process',
     children: AdminProcessPage({ level2Bans, level3Bans }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
+    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -257,6 +259,7 @@ adminRoutes.get('/admin/watchlist', requirePermission('T3'), async (c) => {
     title: '重点观察', currentPath: '/admin/watchlist',
     children: AdminWatchlistPage({ items: rows.results }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
+    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -347,6 +350,7 @@ adminRoutes.get('/admin/archive', requirePermission('T4'), async (c) => {
   return c.html(AdminLayout({
     title: '归档日志', currentPath: '/admin/archive', children: tableHtml,
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
+    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -360,8 +364,9 @@ adminRoutes.get('/admin/team', requirePermission('T5'), async (c) => {
   return c.html(AdminLayout({
     title: '管理组管理',
     currentPath: '/admin/team',
-    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
     children: AdminTeamPage({ admins: rows.results as any[] }),
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
+    jwtToken: c.get('jwtToken'),
   }))
 })
 

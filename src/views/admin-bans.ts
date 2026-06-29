@@ -59,12 +59,27 @@ function fmtHandlers(name: string | null, co: string): string {
 }
 
 // ── Admin Ban Page ──
-export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; page?: number; perPage?: number; total?: number }) {
+export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; page?: number; perPage?: number; total?: number; jwtToken?: string }) {
   const archived = props.showArchived ?? false
   const page = props.page || 1
   const perPage = props.perPage || 25
   const total = props.total || 0
   const totalPages = Math.ceil(total / perPage)
+  const tk = (path: string) => {
+    if (!props.jwtToken) return path
+    return `${path}&token=${encodeURIComponent(props.jwtToken)}`
+  }
+  const perPageForm = (showArchived: boolean) => html`
+<form method="GET" action="/admin/bans" style="display:inline;">
+  <input type="hidden" name="token" value="${props.jwtToken || ''}">
+  ${showArchived ? html`<input type="hidden" name="archived" value="1">` : ''}
+  <select name="per_page" class="cyber-input" style="width:auto;min-width:90px;" onchange="this.form.submit()">
+    <option value="10" ${perPage===10?'selected':''}>10条/页</option>
+    <option value="25" ${perPage===25?'selected':''}>25条/页</option>
+    <option value="50" ${perPage===50?'selected':''}>50条/页</option>
+    <option value="100" ${perPage===100?'selected':''}>100条/页</option>
+  </select>
+</form>`
   return html`
 <div class="cyber-admin-content">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
@@ -84,12 +99,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
       <option value="unbanned">已解封</option>
       <option value="permanent">永久</option>
     </select>
-    <select id="adminPerPage" class="cyber-input" style="width:auto;min-width:90px;" onchange="window.location.href=adminUrl('/admin/bans?per_page='+this.value${archived ? "+'&archived=1'" : ""})">
-      <option value="10" ${perPage===10?'selected':''}>10条/页</option>
-      <option value="25" ${perPage===25?'selected':''}>25条/页</option>
-      <option value="50" ${perPage===50?'selected':''}>50条/页</option>
-      <option value="100" ${perPage===100?'selected':''}>100条/页</option>
-    </select>
+    ${perPageForm(archived)}
   </div>
 
   <div id="adminBanTable">
@@ -99,19 +109,14 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--spacing-lg);">
     <span style="font-size:13px;color:var(--label-3);">共 ${total} 条，第 ${page}/${totalPages} 页</span>
     <div style="display:flex;align-items:center;gap:var(--spacing-sm);">
-      <select class="cyber-input" style="width:auto;min-width:90px;" onchange="window.location.href=adminUrl('/admin/bans?per_page='+this.value${archived ? "+'&archived=1'" : ""})">
-        <option value="10" ${perPage===10?'selected':''}>10条/页</option>
-        <option value="25" ${perPage===25?'selected':''}>25条/页</option>
-        <option value="50" ${perPage===50?'selected':''}>50条/页</option>
-        <option value="100" ${perPage===100?'selected':''}>100条/页</option>
-      </select>
+      ${perPageForm(archived)}
       ${totalPages > 1 ? html`
       <div class="cyber-pagination" style="margin-top:0;">
-        ${page > 1 ? html`<a href="/admin/bans?page=${page-1}&per_page=${perPage}${archived?'&archived=1':''}">←</a>` : ''}
+        ${page > 1 ? html`<a href="${tk(`/admin/bans?page=${page-1}&per_page=${perPage}${archived ? '&archived=1' : ''}`)}">←</a>` : ''}
         ${genPages(page, totalPages).map(p => typeof p === 'number' ? html`
-          ${p === page ? html`<span class="current" aria-current="page">${p}</span>` : html`<a href="/admin/bans?page=${p}&per_page=${perPage}${archived?'&archived=1':''}">${p}</a>`}`
+          ${p === page ? html`<span class="current" aria-current="page">${p}</span>` : html`<a href="${tk(`/admin/bans?page=${p}&per_page=${perPage}${archived ? '&archived=1' : ''}`)}">${p}</a>`}`
         : html`<span>…</span>`)}
-        ${page < totalPages ? html`<a href="/admin/bans?page=${page+1}&per_page=${perPage}${archived?'&archived=1':''}">→</a>` : ''}
+        ${page < totalPages ? html`<a href="${tk(`/admin/bans?page=${page+1}&per_page=${perPage}${archived ? '&archived=1' : ''}`)}">→</a>` : ''}
       </div>` : ''}
     </div>
   </div>
@@ -178,12 +183,6 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
 
 <script>
 const jwt = localStorage.getItem('jwt');
-function adminUrl(path) {
-  var t = localStorage.getItem('jwt');
-  if (!t) return path;
-  if (path.indexOf('?') > -1) return path + '&token=' + encodeURIComponent(t);
-  return path + '?token=' + encodeURIComponent(t);
-}
 function openBanSheet() {
   document.getElementById('banForm').reset();
   document.getElementById('banSheet').classList.add('open');

@@ -19,6 +19,7 @@ export type Variables = JwtVariables & {
   adminId: number;
   permissionGroup: string;
   gameName: string;
+  jwtToken: string;
 }
 
 // * JWT 校验 — 同时支持 Authorization header 和 HttpOnly cookie
@@ -64,6 +65,7 @@ export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings:
     c.set('adminId', payload.adminId as number)
     c.set('permissionGroup', payload.permissionGroup as string)
     c.set('gameName', (payload.gameName as string) || '')
+    c.set('jwtToken', token)
     await next()
   } catch {
     // * JWT 过期或签名不匹配

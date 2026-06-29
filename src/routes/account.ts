@@ -8,13 +8,14 @@ import { AccountPage } from '../views/account'
 
 export const accountRoutes = new Hono<{ Bindings: Env; Variables: Variables }>()
 
-// * 账户页 — 客户端自己验 JWT，服务端不拦（页面本身无敏感信息）
-accountRoutes.get('/account', (c) => {
+// * 账户页 — 服务端验证 JWT，确保导航链接带 token
+accountRoutes.get('/account', authMiddleware, (c) => {
   return c.html(AdminLayout({
     title: '账户',
     currentPath: '/account',
     children: AccountPage(),
-    admin: { game_name: '', permission_group: '' },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
+    jwtToken: c.get('jwtToken'),
   }))
 })
 
