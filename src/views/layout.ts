@@ -3,7 +3,7 @@
 import { html, raw } from 'hono/html'
 import { Styles } from './styles'
 import { icon } from './icons'
-import { BG_IMAGES } from '../config/bg-images'
+import { getRandomBg, BG_IMAGES } from '../config/bg-images'
 
 type LayoutProps = {
   title: string
@@ -13,8 +13,9 @@ type LayoutProps = {
 
 export function Layout(props: LayoutProps) {
   const isActive = (p: string) => props.currentPath === p || props.currentPath.startsWith(p + '/')
-  // * 所有背景路径（用于首次访问后的静默预加载）
-  const allPaths = BG_IMAGES.map(f => `/images/bg/${f}`)
+  // * 随机背景图（预加载头 + JS 替换回退的 3.jpg）
+  const bgPath = getRandomBg()
+  const bgPaths = BG_IMAGES.map(f => `/images/bg/${f}`)
   return html`
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -25,6 +26,7 @@ export function Layout(props: LayoutProps) {
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23000' stroke='%2300ffff' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%2300ffff' font-family='monospace' font-weight='bold'%3EJ%3C/text%3E%3C/svg%3E"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preload" as="image" href="${bgPath}" fetchpriority="high">
 <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
 ${Styles()}
 </head>
@@ -100,13 +102,18 @@ ${Styles()}
 
 <script>
 (function() {
-  // * Preload remaining background images for instant switching
-  var preloadPaths = ${raw(JSON.stringify(allPaths).replace(/<\//g, '<\\/'))};
-  window.addEventListener('load', function() {
-    preloadPaths.forEach(function(url) {
-      var img = new Image();
-      img.src = url;
-    });
+  // * CSS 显示 3.jpg 回退；JS 预加载随机图后替换
+  var bgEl = document.getElementById('bgImage');
+  var allPaths = ${raw(JSON.stringify(bgPaths).replace(/<\//g, '<\\/'))};
+  var pick = allPaths[Math.floor(Math.random() * allPaths.length)];
+  if (bgEl && pick !== '/images/bg/3.jpg') {
+    var img = new Image();
+    img.onload = function() { bgEl.style.backgroundImage = "url('" + pick + "')"; };
+    img.src = pick;
+  }
+  // * 预加载剩余图片到缓存
+  allPaths.forEach(function(url) {
+    if (url !== pick) { var pre = new Image(); pre.src = url; }
   });
 
   // HTMX global error handler
