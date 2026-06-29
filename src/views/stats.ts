@@ -58,14 +58,18 @@ export function StatsPage(props: StatsData) {
           var ctx=chart.ctx, t=(data&&data.total)||1;
           chart.data.datasets.forEach(function(ds,i){
             var meta=chart.getDatasetMeta(i);
+            if (meta.data.length <= 1) return;
             meta.data.forEach(function(el,j){
               var v=ds.data[j], p=v/t*100;
               if(p<4) return;
-              ctx.fillStyle='#000';
               ctx.font='bold 13px sans-serif';
+              var txt=Math.round(p)+'%', tw=ctx.measureText(txt).width;
+              ctx.fillStyle='rgba(0,0,0,.55)';
+              ctx.fillRect(el.x-tw/2-3,el.y-9,tw+6,18);
+              ctx.fillStyle='#fff';
               ctx.textAlign='center';
               ctx.textBaseline='middle';
-              ctx.fillText(Math.round(p)+'%',el.x,el.y);
+              ctx.fillText(txt,el.x,el.y);
             });
           });
         }
