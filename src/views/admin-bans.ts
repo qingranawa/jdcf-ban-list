@@ -179,9 +179,10 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
 <script>
 const jwt = localStorage.getItem('jwt');
 function adminUrl(path) {
-  if (!jwt) return path;
-  if (path.indexOf('?') > -1) return path + '&token=' + encodeURIComponent(jwt);
-  return path + '?token=' + encodeURIComponent(jwt);
+  var t = localStorage.getItem('jwt');
+  if (!t) return path;
+  if (path.indexOf('?') > -1) return path + '&token=' + encodeURIComponent(t);
+  return path + '?token=' + encodeURIComponent(t);
 }
 function openBanSheet() {
   document.getElementById('banForm').reset();

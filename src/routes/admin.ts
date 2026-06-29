@@ -418,7 +418,7 @@ adminRoutes.delete('/api/admin/profiles/:id', requirePermission('T5'), async (c)
 // ── 退出 ──
 adminRoutes.get('/admin/logout', (c) => {
   return c.html(
-    `<script>localStorage.removeItem('jwt');window.location.href='/login'</script>`
+    `<script>localStorage.removeItem('jwt');document.cookie='jwt=;path=/;max-age=0;SameSite=Lax';window.location.href='/login'</script>`
   )
 })
 

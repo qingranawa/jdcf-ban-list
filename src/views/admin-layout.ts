@@ -100,8 +100,10 @@ ${Styles()}
   if (m) {
     jwt = decodeURIComponent(m[1]);
     localStorage.setItem('jwt', jwt);
-    var u = location.pathname + location.hash;
-    history.replaceState(null, '', u);
+  }
+  // * 将 localStorage JWT 同步到 cookie，确保页面刷新时 middleware 能通过 cookie 恢复认证
+  if (jwt) {
+    document.cookie = 'jwt=' + encodeURIComponent(jwt) + ';path=/;max-age=604800;SameSite=Lax';
   }
   // * 将 ?token= 追加到所有管理页面链接，确保点击后 middleware 能读到
   if (jwt) {
