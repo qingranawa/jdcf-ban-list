@@ -14,7 +14,6 @@ import { AdminWatchlistPage } from '../views/admin-watchlist'
 import { AdminTeamPage } from '../views/admin-team'
 
 export const adminRoutes = new Hono<{ Bindings: Env }>()
-adminRoutes.use('/admin/*', authMiddleware)
 adminRoutes.use('/api/admin/*', authMiddleware)
 
 // ── 封禁管理 ──
@@ -43,9 +42,8 @@ adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {
 
   return c.html(AdminLayout({
     title: '封禁管理', currentPath: '/admin/bans',
-    children: AdminBanListPage({ bans: bansWithStatus, showArchived, page, perPage, total, jwtToken: c.get('jwtToken') }),
+    children: AdminBanListPage({ bans: bansWithStatus, showArchived, page, perPage, total }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
-    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -166,7 +164,6 @@ adminRoutes.get('/admin/process', requirePermission('T5'), async (c) => {
     title: '处理', currentPath: '/admin/process',
     children: AdminProcessPage({ level2Bans, level3Bans }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
-    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -259,7 +256,6 @@ adminRoutes.get('/admin/watchlist', requirePermission('T3'), async (c) => {
     title: '重点观察', currentPath: '/admin/watchlist',
     children: AdminWatchlistPage({ items: rows.results }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
-    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -350,7 +346,6 @@ adminRoutes.get('/admin/archive', requirePermission('T4'), async (c) => {
   return c.html(AdminLayout({
     title: '归档日志', currentPath: '/admin/archive', children: tableHtml,
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
-    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -366,7 +361,6 @@ adminRoutes.get('/admin/team', requirePermission('T5'), async (c) => {
     currentPath: '/admin/team',
     children: AdminTeamPage({ admins: rows.results as any[] }),
     admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
-    jwtToken: c.get('jwtToken'),
   }))
 })
 
@@ -422,9 +416,7 @@ adminRoutes.delete('/api/admin/profiles/:id', requirePermission('T5'), async (c)
 
 // ── 退出 ──
 adminRoutes.get('/admin/logout', (c) => {
-  return c.html(
-    `<script>localStorage.removeItem('jwt');document.cookie='jwt=;path=/;max-age=0;SameSite=Lax';window.location.href='/login'</script>`
-  )
+  return c.html(`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><script>localStorage.removeItem('jwt');window.location.href='/login'</script></body></html>`)
 })
 
 // /logout 也能退，顺带清 cookie

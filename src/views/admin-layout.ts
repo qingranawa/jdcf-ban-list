@@ -8,7 +8,6 @@ type AdminLayoutProps = {
   title: string
   currentPath: string
   admin: { game_name: string; permission_group: string }
-  jwtToken?: string
   children: string | ReturnType<typeof html>
 }
 
@@ -17,18 +16,12 @@ export function AdminLayout(props: AdminLayoutProps) {
   const adminName = props.admin.game_name || '管理员'
   const adminGroup = props.admin.permission_group || ''
 
-  const tk = (path: string) => {
-    if (!props.jwtToken) return path
-    const sep = path.includes('?') ? '&' : '?'
-    return `${path}${sep}token=${encodeURIComponent(props.jwtToken)}`
-  }
-
   const navItems = [
-    { path: tk('/admin/bans'), label: '封禁管理', icon: 'list' },
-    { path: tk('/admin/process'), label: '批量处理', icon: 'bolt' },
-    { path: tk('/admin/watchlist'), label: '观察名单', icon: 'bell' },
-    { path: tk('/admin/team'), label: '管理组', icon: 'users' },
-    { path: tk('/admin/archive'), label: '归档日志', icon: 'info' },
+    { path: '/admin/bans', label: '封禁管理', icon: 'list' },
+    { path: '/admin/process', label: '批量处理', icon: 'bolt' },
+    { path: '/admin/watchlist', label: '观察名单', icon: 'bell' },
+    { path: '/admin/team', label: '管理组', icon: 'users' },
+    { path: '/admin/archive', label: '归档日志', icon: 'info' },
   ]
 
   const bgPath = getRandomBg()
@@ -69,12 +62,12 @@ ${Styles()}
   </a>
   <nav class="sidebar-nav" aria-label="后台导航">
     ${navItems.map(n => html`
-    <a href="${n.path}" class="sidebar-link ${isActive(n.path.split('?')[0]) ? 'active' : ''}" ${isActive(n.path.split('?')[0]) ? 'aria-current="page"' : ''}>
+    <a href="${n.path}" class="sidebar-link ${isActive(n.path) ? 'active' : ''}" ${isActive(n.path) ? 'aria-current="page"' : ''}>
       ${icon(n.icon)} ${n.label}
     </a>`)}
   </nav>
   <div class="sidebar-footer">
-    <a href="${tk('/account')}" class="sidebar-link">
+    <a href="/account" class="sidebar-link">
       <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--magenta));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#000;flex-shrink:0;font-family:var(--sans);">
         ${adminName.charAt(0)}
       </div>
@@ -100,13 +93,7 @@ ${Styles()}
     });
   });
 
-  var jwt = localStorage.getItem('jwt');
-  var m = location.search.match(/[?&]token=([^&]+)/);
-  if (m) {
-    jwt = decodeURIComponent(m[1]);
-    localStorage.setItem('jwt', jwt);
-  }
-  if (!jwt) { window.location.href = '/login'; return; }
+  if (!localStorage.getItem('jwt')) { window.location.href = '/login'; return; }
 
   var menuToggle = document.getElementById('menuToggle');
   if (window.innerWidth <= 768) {
