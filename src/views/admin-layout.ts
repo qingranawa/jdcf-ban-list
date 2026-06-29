@@ -96,6 +96,14 @@ ${Styles()}
   });
 
   var jwt = localStorage.getItem('jwt');
+  // * 从 URL query 取 token（服务端重定向登录后带过来）
+  var m = location.search.match(/[?&]token=([^&]+)/);
+  if (m) {
+    jwt = decodeURIComponent(m[1]);
+    localStorage.setItem('jwt', jwt);
+    var u = location.pathname + location.hash;
+    history.replaceState(null, '', u);
+  }
   if (!jwt) { window.location.href = '/login'; return; }
 
   var menuToggle = document.getElementById('menuToggle');
