@@ -55,6 +55,6 @@ authRoutes.post('/api/login', async (c) => {
 
   return c.json({ token, admin: { id: admin.id, game_name: admin.game_name, permission_group: admin.permission_group } },
     200,
-    { 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800` }
+    { 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800` }
   )
 })
