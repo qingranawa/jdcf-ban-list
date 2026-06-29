@@ -158,6 +158,10 @@ ${Styles()}
   }
 
   var jwt = localStorage.getItem('jwt');
+  // * cookie 与 localStorage 同步（绕过 CF Pages Set-Cookie bug）
+  if (jwt && !document.cookie.split(';').some(function(c){return c.trim().startsWith('jwt=')})) {
+    document.cookie = 'jwt=' + jwt + '; Path=/; SameSite=Lax; Max-Age=604800';
+  }
   var accountTab = document.getElementById('accountTab');
   var addBanTab = document.getElementById('addBanTab');
   var loginTab = document.getElementById('loginTab');

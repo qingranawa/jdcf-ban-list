@@ -96,13 +96,16 @@ ${Styles()}
   });
 
   var jwt = localStorage.getItem('jwt');
-  // * 从 URL query 取 token（服务端重定向登录后带过来）
   var m = location.search.match(/[?&]token=([^&]+)/);
   if (m) {
     jwt = decodeURIComponent(m[1]);
     localStorage.setItem('jwt', jwt);
     var u = location.pathname + location.hash;
     history.replaceState(null, '', u);
+  }
+  // * 确保 cookie 与 localStorage 同步（绕过 CF Pages Set-Cookie bug）
+  if (jwt && !document.cookie.split(';').some(function(c){return c.trim().startsWith('jwt=')})) {
+    document.cookie = 'jwt=' + jwt + '; Path=/; SameSite=Lax; Max-Age=604800';
   }
   if (!jwt) { window.location.href = '/login'; return; }
 
