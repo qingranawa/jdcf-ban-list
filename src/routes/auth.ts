@@ -17,7 +17,7 @@ authRoutes.get('/login', (c) => {
 
 authRoutes.get('/logout', (c) => {
   return c.html(`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><script>localStorage.removeItem('jwt');window.location.href='/login'</script></body></html>`, 200, {
-    'Set-Cookie': 'jwt=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+    'Set-Cookie': 'jwt=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
   })
 })
 
@@ -57,7 +57,7 @@ authRoutes.post('/api/login', async (c) => {
   return c.json(
     { token, admin: { id: admin.id, game_name: admin.game_name, permission_group: admin.permission_group } },
     200,
-    { 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800` }
+    { 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800` }
   )
 })
 
@@ -113,6 +113,6 @@ authRoutes.post('/login', async (c) => {
   return c.html(
     `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><script>localStorage.setItem('jwt','${safeToken}');window.location.href='/admin/bans'</script></body></html>`,
     200,
-    { 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=604800` }
+    { 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800` }
   )
 })

@@ -34,6 +34,18 @@ export function LoginPage(props: { error: string }) {
   </div>
 </div>
 <script>
+(function(){
+  var t = localStorage.getItem('jwt');
+  if (t) {
+    try {
+      var p = JSON.parse(atob(t.split('.')[1]));
+      if (p.adminId && p.exp * 1000 > Date.now()) {
+        window.location.href = '/admin/bans';
+        return;
+      }
+    } catch(e) {}
+  }
+})();
 document.addEventListener('DOMContentLoaded', function() {
   var f = document.getElementById('loginForm');
   f.addEventListener('submit', function(e) {

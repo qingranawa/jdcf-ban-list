@@ -417,7 +417,9 @@ adminRoutes.delete('/api/admin/profiles/:id', requirePermission('T5'), async (c)
 
 // ── 退出 ──
 adminRoutes.get('/admin/logout', (c) => {
-  return c.html(`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><script>localStorage.removeItem('jwt');window.location.href='/login'</script></body></html>`)
+  return c.html(`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><script>localStorage.removeItem('jwt');window.location.href='/login'</script></body></html>`, 200, {
+    'Set-Cookie': 'jwt=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+  })
 })
 
 // /logout 也能退，顺带清 cookie
