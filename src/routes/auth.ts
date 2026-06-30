@@ -62,7 +62,16 @@ authRoutes.post('/login', async (c) => {
     c.env.JWT_SECRET
   )
 
-  c.header('Set-Cookie', `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`)
   const safeToken = token.replace(/</g, '\\u003c')
-  return c.html(`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><script>localStorage.setItem('jwt','${safeToken}');window.location.href='/admin/bans'</script></body></html>`)
+  const cookie = `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=604800; Expires=${new Date(Date.now() + 604800000).toUTCString()}`
+  return new Response(
+    `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><script>localStorage.setItem('jwt','${safeToken}');window.location.href='/admin/bans'</script></body></html>`,
+    {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/html; charset=UTF-8',
+        'Set-Cookie': cookie,
+      },
+    }
+  )
 })
