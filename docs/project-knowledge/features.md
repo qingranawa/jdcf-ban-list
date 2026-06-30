@@ -1,7 +1,8 @@
 ---
-last_updated: 2026-06-29
-updated_by: opencode
+last_updated: 2026-06-30
+updated_by: superpowers-memory:rebuild
 covers_branch: master
+triggered_by_plan: null
 ---
 
 # 功能特性
@@ -96,9 +97,9 @@ covers_branch: master
 
 **Enables** — 登录用户查看自己信息、修改游戏名/QQ名/密码。
 
-**Actors / Entry Points** — 已登录用户 → `/account`（客户端 JS 验证 JWT），API `/api/account`
+**Actors / Entry Points** — 已登录用户 → `/account`（服务端 JWT 校验），API `/api/account`
 
-**Capability Boundary** — 不能修改权限组（需 T5+ 通过管理组管理操作）。JWT 存在 localStorage。
+**Capability Boundary** — 不能修改权限组（需 T5+ 通过管理组管理操作）。JWT 存储于 localStorage（API 调用）和 HttpOnly cookie（页面导航）。
 
 **References** — src/routes/account.ts，src/views/account.ts
 
@@ -106,13 +107,13 @@ covers_branch: master
 
 #### JWT 认证系统
 
-**Enables** — Steam ID + 用户名 + 密码登录，颁发 7 天 JWT token，支持双通道传输（Authorization header + httpOnly cookie，无 Secure 标志）。
+**Enables** — Steam ID + 用户名 + 密码登录，颁发 7 天 JWT token，双通道传输（Authorization header + httpOnly cookie，无 Secure 标志）。登录页自动检测 localStorage 中有效 JWT 并跳转后台。
 
-**Actors / Entry Points** — 管理员 → `/login`，POST `/api/login`
+**Actors / Entry Points** — 管理员 → `/login`，POST `/api/login`，GET `/logout`，GET `/admin/logout`
 
-**Capability Boundary** — bcryptjs 哈希。Cookie 自动携带，避免页面导航 401。Set-Cookie 无 `Secure` 标志以支持本地 HTTP 开发。
+**Capability Boundary** — bcryptjs 哈希。Cookie 自动携带避免页面导航 401。Set-Cookie 无 `Secure` 标志以支持本地 HTTP 开发。退出时同时清除 localStorage 和 HttpOnly cookie。
 
-**References** — architecture.md §登录流程，src/middleware/auth.ts，src/routes/auth.ts
+**References** — architecture.md §登录流程，src/middleware/auth.ts，src/routes/auth.ts，src/views/login.ts
 
 #### 权限分级中间件
 

@@ -1,7 +1,8 @@
 ---
-last_updated: 2026-06-29
-updated_by: opencode
+last_updated: 2026-06-30
+updated_by: superpowers-memory:rebuild
 covers_branch: master
+triggered_by_plan: null
 ---
 
 # 项目架构
@@ -19,10 +20,10 @@ Hono SSR 单体应用，运行于 Cloudflare Pages Functions。服务端 `html` 
 
 ## 分层
 
-- **入口**: `functions/[[path]].ts` — 单一路由挂载点，全局错误处理器
+- **入口**: `functions/[[path]].ts` — 单一路由挂载点，全局 CORS 配置、全局错误处理器
 - **路由**: `src/routes/` — 4 组路由（public, auth, admin, account），Hono Router + RESTful JSON API
-- **视图**: `src/views/` — 14 个服务端模板，两套布局（公开 `Layout` + 后台 `AdminLayout`），共享 CSS Token 系统 `styles.ts`，内联 SVG 图标库 `icons.ts`，背景图配置 `config/bg-images.ts`
-- **中间件**: `src/middleware/auth.ts` — JWT 认证（双传输：header + cookie）+ 权限等级校验
+- **视图**: `src/views/` — 14 个服务端模板，两套布局（公开 `Layout` + 后台 `AdminLayout`），共享 CSS Token 系统 `styles.ts`，内联 SVG 图标库 `icons.ts`，背景图配置 `src/config/bg-images.ts`
+- **中间件**: `src/middleware/auth.ts` — JWT 认证（双传输：header + cookie，无 Secure 标志）+ 权限等级校验
 - **工具**: `src/helpers/escape.ts` — HTML/属性转义，跨路由和视图共用
 - **类型**: `src/db.ts` — D1 绑定类型、行类型定义
 
@@ -39,7 +40,7 @@ src/views/
 ├── home.ts                # 公开首页 — 统计卡片 + 搜索 + Segmented Control + 封禁表格 + 分页
 ├── stats.ts               # 统计信息页 — Chart.js 饼图/柱状图/折线图 + 数据表格
 ├── team.ts                # 管理组公示 — 2 列卡片网格 4:3 比例
-├── login.ts               # 管理员登录页 — 独立居中布局
+├── login.ts               # 管理员登录页 — 独立居中布局，含 JWT 自动跳转检测
 ├── account.ts             # 账户自助管理 — Settings 风格表格
 ├── admin-bans.ts          # 封禁管理 — 搜索 + 表格 + 新增/编辑表单 + 分页
 ├── admin-process.ts       # 批量处理 — 过期违规批量删除/降级
@@ -57,6 +58,8 @@ sequenceDiagram
     participant Server as functions/[[path]].ts
     participant Auth as authRoutes
     participant DB as D1
+    Browser->>Browser: 检查 localStorage 有无有效 JWT
+    Note over Browser: 有则直接跳 /admin/bans
     Browser->>Server: GET /login
     Server->>Auth: 渲染登录表单
     Auth-->>Browser: HTML 登录页
@@ -64,7 +67,7 @@ sequenceDiagram
     Server->>DB: 查询 admins 表
     DB-->>Server: 用户记录
     Server->>Server: bcrypt 校验密码
-    Server->>Browser: JWT token (body + httpOnly cookie，无 Secure)
+    Server->>Browser: JWT token (JSON body + httpOnly cookie，无 Secure)
     Browser->>Browser: localStorage 存 JWT，跳转 /admin/bans
 ```
 
@@ -136,7 +139,8 @@ stateDiagram-v2
 - **[Hono + htmx 选型]** — 轻量 SSR，无需前端框架；htmx 局部搜索翻页无需整页刷新
 - **[权限分级 T1~T6 + OWNER]** — GROUP_RANK 数值越小权限越高（OWNER=0, T1=6）
 - **[封禁状态实时计算]** — computeStatus() 读时计算，不持久化
-- **[JWT 双通道传输]** — Authorization header（API 调用）+ httpOnly cookie（页面导航，无 Secure 标志支持 HTTP）
+- **[JWT 双通道传输]** — Authorization header（API 调用）+ httpOnly cookie（页面导航，无 Secure 标志支持 HTTP 开发）
+- **[登录页 JWT 自动跳转]** — 页面加载时检查 localStorage 有效 JWT，存在则直接跳后台，避免 cookie 丢失时卡登录页
 - **[Turnstile 移除]** — CDN 国内被屏蔽，改为纯 fetch 表单提交
 - **[Cyberpunk 玻璃态 UI]** — 暗色主题，`backdrop-filter: blur(8px)` 毛玻璃效果，霓虹青/品红/琥珀色板，CSS Token 统一管理
 - **[多背景图系统]** — CSS `background-image` 多图层（随机图 + 3.jpg 兜底），`<link rel="preload" fetchpriority="high">` 提前加载，`window.onload` 预填缓存

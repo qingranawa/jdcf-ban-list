@@ -1,7 +1,8 @@
 ---
-last_updated: 2026-06-29
-updated_by: opencode
+last_updated: 2026-06-30
+updated_by: superpowers-memory:rebuild
 covers_branch: master
+triggered_by_plan: null
 ---
 
 # 约定
@@ -59,7 +60,9 @@ covers_branch: master
 
 ## Cross-cutting concerns
 
-- **认证**: 所有 `/admin/*` 路由通过 `authMiddleware`，双通道 JWT（header+cookie）→ `src/middleware/auth.ts`
+- **认证**: 所有 `/admin/*` 路由通过 `authMiddleware`，双通道 JWT（header+cookie，无 Secure）→ `src/middleware/auth.ts`
+- **登录页 JWT 自检**: 页面加载时检查 localStorage 有效 JWT，存在则自动跳转 `/admin/bans` → `src/views/login.ts`
+- **退出**: 同时清除 localStorage JWT 和 HttpOnly cookie → `src/routes/auth.ts`，`src/routes/admin.ts`
 - **权限**: `requirePermission(minGroup)` 中间件做 GROUP_RANK 对比 → `src/middleware/auth.ts`
 - **转义**: 输出到 HTML 一律通过 `escHtml()`/`escAttr()`，防 XSS → `src/helpers/escape.ts`
 - **错误处理**: `app.onError` 全局捕获 + 各路由 `try/catch`，返回 JSON error → `functions/[[path]].ts`

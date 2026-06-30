@@ -1,7 +1,8 @@
 ---
-last_updated: 2026-06-29
-updated_by: opencode
+last_updated: 2026-06-30
+updated_by: superpowers-memory:rebuild
 covers_branch: master
+triggered_by_plan: null
 ---
 
 # 术语表
@@ -21,6 +22,8 @@ covers_branch: master
 **归档** — 过期违规的处理记录，写入 `archives`(摘要) + `archive_items`(明细) → schema.sql
 
 **JWT 双通道** — Authorization header（fetch/API 调用）+ httpOnly jwt cookie（页面导航，无 Secure 标志支持 HTTP）→ src/middleware/auth.ts
+
+**登录页 JWT 自检** — 登录页加载时检查 localStorage 是否存在未过期 JWT，存在则跳过登录直接跳转后台 → src/views/login.ts
 
 **联合封禁管理员 (co_handlers)** — 逗号分隔的字符串，存储在 `bans.co_handlers` 列，展示为 `[主操作员], [联合1], [联合2]` → migrations/001_add_co_handlers.sql
 

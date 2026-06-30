@@ -1,7 +1,8 @@
 ---
-last_updated: 2026-06-29
-updated_by: opencode
+last_updated: 2026-06-30
+updated_by: superpowers-memory:rebuild
 covers_branch: master
+triggered_by_plan: null
 ---
 
 # 技术栈
@@ -36,6 +37,15 @@ covers_branch: master
 |------|------|------|
 | wrangler | ^3.60.0 | Pages 部署 + D1 管理 |
 | TypeScript | ^5.5.0 | 类型检查 |
+| esbuild | ^0.28.1 | 构建（Cron Worker） |
+
+## 环境变量
+
+| 变量 | 用途 |
+|------|------|
+| `JWT_SECRET` | JWT 签名密钥，至少 32 字符 |
+| `CRON_ARCHIVE_SECRET` | Cron Worker 鉴权密钥（当前手动处理，可留空） |
+| `DB` | D1 数据库绑定 |
 
 ## 已放弃
 
