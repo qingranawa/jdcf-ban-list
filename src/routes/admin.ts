@@ -14,12 +14,13 @@ import { AdminWatchlistPage } from '../views/admin-watchlist'
 import { AdminTeamPage } from '../views/admin-team'
 
 export const adminRoutes = new Hono<{ Bindings: Env }>()
+adminRoutes.use('/admin/*', authMiddleware)
 adminRoutes.use('/api/admin/*', authMiddleware)
 
 // ── 封禁管理 ──
 
 // Admin ban list
-adminRoutes.get('/admin/bans', async (c) => {
+adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {
   const page = Math.max(1, parseInt(c.req.query('page') || '1'))
   const perPage = Math.min(100, Math.max(10, parseInt(c.req.query('per_page') || '25')))
   const showArchived = c.req.query('archived') === '1'
@@ -43,7 +44,7 @@ adminRoutes.get('/admin/bans', async (c) => {
   return c.html(AdminLayout({
     title: '封禁管理', currentPath: '/admin/bans',
     children: AdminBanListPage({ bans: bansWithStatus, showArchived, page, perPage, total }),
-    admin: { game_name: '', permission_group: '' },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
@@ -146,7 +147,7 @@ async function writeArchiveItemsChunked(
 }
 
 // 处理页，T1就能看
-adminRoutes.get('/admin/process', async (c) => {
+adminRoutes.get('/admin/process', requirePermission('T5'), async (c) => {
   const rows = await c.env.DB.prepare(
     `SELECT b.*, a.game_name as handled_by_name FROM bans b
      LEFT JOIN admins a ON b.handled_by = a.id
@@ -163,7 +164,7 @@ adminRoutes.get('/admin/process', async (c) => {
   return c.html(AdminLayout({
     title: '处理', currentPath: '/admin/process',
     children: AdminProcessPage({ level2Bans, level3Bans }),
-    admin: { game_name: '', permission_group: '' },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
@@ -245,7 +246,7 @@ adminRoutes.post('/api/admin/process/downgrade', requirePermission('T5'), async 
 // ── 重点观察名单 ──
 
 // 观察页，T3以上能看
-adminRoutes.get('/admin/watchlist', async (c) => {
+adminRoutes.get('/admin/watchlist', requirePermission('T3'), async (c) => {
   const rows = await c.env.DB.prepare(
     `SELECT w.*, a.game_name as added_by_name FROM watchlist w
      LEFT JOIN admins a ON w.added_by = a.id
@@ -255,7 +256,7 @@ adminRoutes.get('/admin/watchlist', async (c) => {
   return c.html(AdminLayout({
     title: '重点观察', currentPath: '/admin/watchlist',
     children: AdminWatchlistPage({ items: rows.results }),
-    admin: { game_name: '', permission_group: '' },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
@@ -316,7 +317,7 @@ adminRoutes.delete('/api/admin/watchlist/:id', requirePermission('T3'), async (c
 })
 
 // ── 归档日志（T4以上看） ──
-adminRoutes.get('/admin/archive', async (c) => {
+adminRoutes.get('/admin/archive', requirePermission('T4'), async (c) => {
   const items = await c.env.DB.prepare(`
     SELECT ai.*, ar.archive_date
     FROM archive_items ai
@@ -345,13 +346,13 @@ adminRoutes.get('/admin/archive', async (c) => {
 </div>`
   return c.html(AdminLayout({
     title: '归档日志', currentPath: '/admin/archive', children: tableHtml,
-    admin: { game_name: '', permission_group: '' },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 
 // ── 管理组管理（原 admin-team.ts，合并至此避免路由冲突） ──
 
-adminRoutes.get('/admin/team', async (c) => {
+adminRoutes.get('/admin/team', requirePermission('T5'), async (c) => {
   const rows = await c.env.DB.prepare(
     'SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active, created_at FROM admins ORDER BY id'
   ).all()
@@ -360,7 +361,7 @@ adminRoutes.get('/admin/team', async (c) => {
     title: '管理组管理',
     currentPath: '/admin/team',
     children: AdminTeamPage({ admins: rows.results as any[] }),
-    admin: { game_name: '', permission_group: '' },
+    admin: { game_name: c.get('gameName') || '', permission_group: c.get('permissionGroup') },
   }))
 })
 

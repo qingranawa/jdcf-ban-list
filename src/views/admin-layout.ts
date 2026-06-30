@@ -93,7 +93,7 @@ ${Styles()}
     });
   });
 
-  if (!localStorage.getItem('jwt')) { window.location.href = '/login'; return; }
+  // * 服务端 authMiddleware 已通过 cookie 验证，此处只做 UI 适配
 
   var menuToggle = document.getElementById('menuToggle');
   if (window.innerWidth <= 768) {

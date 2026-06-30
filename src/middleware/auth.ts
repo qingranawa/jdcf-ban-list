@@ -21,15 +21,31 @@ export type Variables = JwtVariables & {
   gameName: string;
 }
 
-// * JWT 校验 — 仅用于 API 路由（/api/admin/*）
-// * 页面路由的认证由客户端 JS 检查 localStorage 处理
+// * JWT 校验 — 同时支持 Authorization header 和 HttpOnly cookie
+// * header 用于 API 请求，cookie 用于页面导航（由 Set-Cookie 设置）
 export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings: Env }>(async (c, next) => {
+  let token: string | null = null
+
+  // * header 优先（API 调用场景）
   const authHeader = c.req.header('Authorization')
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return c.json({ error: '缺少认证凭据' }, 401)
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7)
   }
 
-  const token = authHeader.slice(7)
+  // * cookie 兜底（页面导航场景，由登录 Set-Cookie 设置）
+  if (!token) {
+    const cookie = c.req.header('Cookie')
+    if (cookie) {
+      const match = cookie.match(/(?:^|;\s*)jwt=([^;]+)/)
+      if (match) token = decodeURIComponent(match[1])
+    }
+  }
+
+  if (!token) {
+    const accept = c.req.header('Accept') || ''
+    if (accept.includes('text/html')) return c.redirect('/login')
+    return c.json({ error: '缺少认证凭据' }, 401)
+  }
 
   try {
     const payload = await verify(token, c.env.JWT_SECRET, 'HS256')

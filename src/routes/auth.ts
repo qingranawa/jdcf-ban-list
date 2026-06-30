@@ -62,6 +62,7 @@ authRoutes.post('/login', async (c) => {
     c.env.JWT_SECRET
   )
 
+  c.header('Set-Cookie', `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`)
   const safeToken = token.replace(/</g, '\\u003c')
   return c.html(`<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body><script>localStorage.setItem('jwt','${safeToken}');window.location.href='/admin/bans'</script></body></html>`)
 })
