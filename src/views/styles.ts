@@ -271,7 +271,9 @@ body::after {
   position: fixed; inset: 0; z-index: 10000;
   background: rgba(0,0,0,.6);
   opacity: 0; pointer-events: none; transition: opacity .3s;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 64px 0;
+  overflow-y: auto;
 }
 .cyber-sheet-overlay.open { opacity: 1; pointer-events: auto; }
 .cyber-sheet {
@@ -281,7 +283,7 @@ body::after {
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg) var(--spacing-lg);
   transform: scale(.95); transition: transform .3s cubic-bezier(.32,.72,0,1);
-  max-height: 90vh; overflow-y: auto;
+  margin: auto;
 }
 .cyber-sheet-overlay.open .cyber-sheet { transform: scale(1); }
 .sheet-header { display: flex; justify-content: space-between; align-items: center; }
