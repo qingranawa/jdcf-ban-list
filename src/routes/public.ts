@@ -153,43 +153,49 @@ publicRoutes.get('/team', async (c) => {
   }))
 })
 
-// ── 玩家档案页 ──
-publicRoutes.get('/player/:steam_id', async (c) => {
-  const steam_id = c.req.param('steam_id')
+// ── 玩家档案页（按 ban id 查询）──
+publicRoutes.get('/player/:id', async (c) => {
+  const id = c.req.param('id')
 
-  // 如果 steam_id 是占位符，尝试用 nickname 查询
+  const banRecord = await c.env.DB.prepare(
+    'SELECT nickname, steam_id FROM bans WHERE id = ?'
+  ).bind(id).first<{ nickname: string; steam_id: string }>()
+
+  if (!banRecord) {
+    return c.html(Layout({
+      title: '玩家档案', currentPath: '/',
+      children: PlayerProfilePage({
+        nickname: '—', steam_id: id,
+        totalBans: 0, currentStatus: '', currentStatusLabel: '无记录',
+        currentStatusColor: 'cyber-badge-neutral', highestLevel: '—', highestLevelColor: '',
+        onWatchlist: false, watchlistReason: null,
+        firstBanDate: '—', lastBanDate: '—', maskedIp: null, bans: [],
+      }),
+    }))
+  }
+
+  // 如果 steam_id 是占位符，用 nickname 查询
+  const steam_id = banRecord.steam_id
   const isPlaceholder = !steam_id || steam_id.length < 6 || steam_id === 'N/A' || steam_id === 'unknown' || steam_id === '0'
-  const bans = isPlaceholder ? await c.env.DB.prepare(
+  const queryField = isPlaceholder ? 'b.nickname' : 'b.steam_id'
+  const queryValue = isPlaceholder ? banRecord.nickname : steam_id
+
+  const bans = await c.env.DB.prepare(
     `SELECT b.*, a.game_name as handled_by_name FROM bans b
      LEFT JOIN admins a ON b.handled_by = a.id
-     WHERE b.nickname = ? AND b.is_archived = 0
+     WHERE ${queryField} = ? AND b.is_archived = 0
      ORDER BY b.created_at DESC`
-  ).bind(steam_id).all<BanRow & { handled_by_name: string | null }>() : await c.env.DB.prepare(
-    `SELECT b.*, a.game_name as handled_by_name FROM bans b
-     LEFT JOIN admins a ON b.handled_by = a.id
-     WHERE b.steam_id = ? AND b.is_archived = 0
-     ORDER BY b.created_at DESC`
-  ).bind(steam_id).all<BanRow & { handled_by_name: string | null }>()
+  ).bind(queryValue).all<BanRow & { handled_by_name: string | null }>()
 
   if (bans.results.length === 0) {
     return c.html(Layout({
-      title: '玩家档案',
-      currentPath: '/',
+      title: '玩家档案', currentPath: '/',
       children: PlayerProfilePage({
-        nickname: '—',
-        steam_id,
-        totalBans: 0,
-        currentStatus: '',
-        currentStatusLabel: '无记录',
-        currentStatusColor: 'cyber-badge-neutral',
-        highestLevel: '—',
-        highestLevelColor: '',
-        onWatchlist: false,
-        watchlistReason: null,
-        firstBanDate: '—',
-        lastBanDate: '—',
-        maskedIp: null,
-        bans: [],
+        nickname: banRecord.nickname, steam_id,
+        totalBans: 0, currentStatus: '', currentStatusLabel: '无记录',
+        currentStatusColor: 'cyber-badge-neutral', highestLevel: '—', highestLevelColor: '',
+        onWatchlist: false, watchlistReason: null,
+        firstBanDate: '—', lastBanDate: '—', maskedIp: null, bans: [],
       }),
     }))
   }

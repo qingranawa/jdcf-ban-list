@@ -67,16 +67,16 @@ describe('Public routes', () => {
     expect(await res.text()).toContain('测试管理员')
   })
 
-  it('GET /player/:steam_id returns 200 for existing player', async () => {
-    const res = await app.request('/player/STEAM_1:0:12345', {}, env)
+  it('GET /player/:id returns 200 for existing ban id', async () => {
+    const res = await app.request('/player/1', {}, env)
     expect(res.status).toBe(200)
     const text = await res.text()
     expect(text).toContain('test_player')
     expect(text).toContain('STEAM_1:0:12345')
   })
 
-  it('GET /player/:steam_id returns empty state for unknown player', async () => {
-    const res = await app.request('/player/UNKNOWN_ID', {}, env)
+  it('GET /player/:id returns empty state for unknown id', async () => {
+    const res = await app.request('/player/999', {}, env)
     expect(res.status).toBe(200)
     const text = await res.text()
     expect(text).toContain('没有找到该玩家的封禁记录')
