@@ -105,23 +105,29 @@ adminRoutes.get('/api/admin/bans/:id', requirePermission('T1'), async (c) => {
 
 // API: Create ban
 adminRoutes.post('/api/admin/bans', requirePermission('T1'), async (c) => {
-  const body = await c.req.json()
-  const adminId = c.get('adminId')
-  if (!body.nickname || !body.steam_id) return c.json({ error: '昵称和 Steam ID 为必填' }, 400)
-  if (body.ban_duration && !/^(\d+[dhmy]|mute-\d+[dhmy]|permanent|warning|cfba|50[Yy])$/.test(body.ban_duration)) {
-    return c.json({ error: '封禁时长格式无效，支持: 数字+d/h/m/y, permanent, warning, cfba' }, 400)
+  try {
+    const body = await c.req.json()
+    const adminId = c.get('adminId')
+    if (!body.nickname || !body.steam_id) return c.json({ error: '昵称和 Steam ID 为必填' }, 400)
+    if (body.ban_duration && !/^(\d+[dhmy]|mute-\d+[dhmy]|permanent|warning|cfba|50[Yy])$/.test(body.ban_duration)) {
+      return c.json({ error: '封禁时长格式无效，支持: 数字+d/h/m/y, permanent, warning, cfba' }, 400)
+    }
+
+    const level = body.violation_level_custom || body.violation_level || 'level3'
+
+    const result = await c.env.DB.prepare(
+      `INSERT INTO bans (nickname, steam_id, ip_address, reason, ban_time, ban_duration, violation_level, notes, handled_by, co_handlers)
+       VALUES (?, ?, ?, ?, datetime('now'), ?, ?, ?, ?, ?)`
+    ).bind(body.nickname, body.steam_id, body.ip_address || '', body.reason || '',
+           body.ban_duration || '30m', level, body.notes || '', adminId, body.co_handlers || '').run()
+
+    const newId = result?.meta?.last_row_id ?? null
+    writeAuditLog(c.env.DB, adminId, 'create_ban', 'ban', newId, `昵称: ${body.nickname}, Steam: ${body.steam_id}`)
+    return c.json({ success: true, id: newId })
+  } catch (e: any) {
+    console.error('Create ban error:', e)
+    return c.json({ error: e?.message || '服务器内部错误' }, 500)
   }
-
-  const level = body.violation_level_custom || body.violation_level || 'level3'
-
-  const result = await c.env.DB.prepare(
-    `INSERT INTO bans (nickname, steam_id, ip_address, reason, ban_time, ban_duration, violation_level, notes, handled_by, co_handlers)
-     VALUES (?, ?, ?, ?, datetime('now'), ?, ?, ?, ?, ?)`
-  ).bind(body.nickname, body.steam_id, body.ip_address || '', body.reason || '',
-         body.ban_duration || '30m', level, body.notes || '', adminId, body.co_handlers || '').run()
-
-  await writeAuditLog(c.env.DB, adminId, 'create_ban', 'ban', result.meta.last_row_id as number, `昵称: ${body.nickname}, Steam: ${body.steam_id}`)
-  return c.json({ success: true, id: result.meta.last_row_id })
 })
 
 // API: Update ban
