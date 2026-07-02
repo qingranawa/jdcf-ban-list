@@ -176,6 +176,7 @@ export function NewAnnouncementModal() {
     </div>
     <div class="sheet-body">
       <form id="announceForm">
+        <input type="hidden" name="id" value="" />
         <div class="cyber-form-group"><label>标题 *</label><input type="text" name="title" required class="cyber-input" /></div>
         <div class="cyber-form-group"><label>副标题</label><input type="text" name="subtitle" class="cyber-input" /></div>
         <div class="cyber-form-group">

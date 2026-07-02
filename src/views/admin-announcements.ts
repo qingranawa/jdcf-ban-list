@@ -95,7 +95,8 @@ var jwt = localStorage.getItem('jwt');
 
 function openAnnounceModal() {
   var f = document.getElementById('announceForm');
-  if (f) f.reset();
+  if (f) { f.reset(); f.querySelector('[name=id]').value = ''; }
+  document.querySelector('#announceModal .sheet-title').textContent = '新建公告';
   document.getElementById('announceModal').classList.add('open');
 }
 function closeAnnounceModal() {
@@ -114,9 +115,13 @@ function showToast(t, type) {
 function saveDraft() {
   var f = document.getElementById('announceForm');
   var data = Object.fromEntries(new FormData(f));
+  var id = data.id;
+  var isEdit = !!id;
+  delete data.id;
   data.is_published = '0';
-  fetch('/api/admin/announcements', {
-    method: 'POST',
+  var url = isEdit ? '/api/admin/announcements/' + id : '/api/admin/announcements';
+  fetch(url, {
+    method: isEdit ? 'PUT' : 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
     body: JSON.stringify(data),
   }).then(function(r) {
@@ -127,19 +132,37 @@ function saveDraft() {
 document.getElementById('announceForm')?.addEventListener('submit', async function(e) {
   e.preventDefault();
   var data = Object.fromEntries(new FormData(this));
+  var id = data.id;
+  var isEdit = !!id;
+  delete data.id;
   data.is_published = '1';
   try {
-    var resp = await fetch('/api/admin/announcements', {
-      method: 'POST',
+    var url = isEdit ? '/api/admin/announcements/' + id : '/api/admin/announcements';
+    var resp = await fetch(url, {
+      method: isEdit ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
       body: JSON.stringify(data),
     });
-    if (resp.ok) { showToast('公告已发布', 'success'); closeAnnounceModal(); setTimeout(function(){ location.reload(); }, 800); }
-    else { var r = await resp.json(); showToast(r.error || '发布失败', 'error'); }
+    if (resp.ok) { showToast(isEdit ? '公告已更新' : '公告已发布', 'success'); closeAnnounceModal(); setTimeout(function(){ location.reload(); }, 800); }
+    else { var r = await resp.json(); showToast(r.error || '操作失败', 'error'); }
   } catch(e) { showToast('请求失败', 'error'); }
 });
 function editAnnounce(id) {
-  showToast('编辑功能开发中 #' + id, 'info');
+  fetch('/api/admin/announcements/' + id, {
+    headers: { 'Authorization': 'Bearer ' + jwt },
+  }).then(function(r) { return r.json(); }).then(function(d) {
+    var f = document.getElementById('announceForm');
+    f.querySelector('[name=id]').value = d.id;
+    f.querySelector('[name=title]').value = d.title;
+    f.querySelector('[name=subtitle]').value = d.subtitle || '';
+    f.querySelector('[name=type]').value = d.type;
+    f.querySelector('[name=citation]').value = d.citation || '';
+    f.querySelector('[name=body]').value = d.body;
+    f.querySelector('[name=publish_at]').value = d.publish_at ? d.publish_at.slice(0,16) : '';
+    f.querySelector('[name=is_pinned]').checked = d.is_pinned === 1;
+    document.querySelector('#announceModal .sheet-title').textContent = '编辑公告';
+    document.getElementById('announceModal').classList.add('open');
+  }).catch(function() { showToast('获取公告失败', 'error'); });
 }
 async function deleteAnnounce(id) {
   if (!confirm('确认删除公告 #' + id + '？')) return;
