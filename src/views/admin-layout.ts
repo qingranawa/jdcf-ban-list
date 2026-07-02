@@ -80,7 +80,7 @@ ${Styles()}
   </div>
 </aside>
 
-<main class="cyber-page" style="flex:1;min-width:0;padding:var(--spacing-lg);">
+<main class="cyber-page" style="flex:1;min-width:0;padding:var(--spacing-lg);position:relative;">
   ${props.children}
 </main>
 

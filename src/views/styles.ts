@@ -268,7 +268,7 @@ body::after {
 
 /* ─── Centered Modal ─── */
 .cyber-sheet-overlay {
-  position: fixed; inset: 0; z-index: 1000;
+  position: fixed; inset: 0; z-index: 10000;
   background: rgba(0,0,0,.6);
   opacity: 0; pointer-events: none; transition: opacity .3s;
   display: flex; align-items: center; justify-content: center;

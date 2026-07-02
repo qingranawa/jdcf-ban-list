@@ -157,7 +157,14 @@ publicRoutes.get('/team', async (c) => {
 publicRoutes.get('/player/:steam_id', async (c) => {
   const steam_id = c.req.param('steam_id')
 
-  const bans = await c.env.DB.prepare(
+  // 如果 steam_id 是占位符，尝试用 nickname 查询
+  const isPlaceholder = !steam_id || steam_id.length < 6 || steam_id === 'N/A' || steam_id === 'unknown' || steam_id === '0'
+  const bans = isPlaceholder ? await c.env.DB.prepare(
+    `SELECT b.*, a.game_name as handled_by_name FROM bans b
+     LEFT JOIN admins a ON b.handled_by = a.id
+     WHERE b.nickname = ? AND b.is_archived = 0
+     ORDER BY b.created_at DESC`
+  ).bind(steam_id).all<BanRow & { handled_by_name: string | null }>() : await c.env.DB.prepare(
     `SELECT b.*, a.game_name as handled_by_name FROM bans b
      LEFT JOIN admins a ON b.handled_by = a.id
      WHERE b.steam_id = ? AND b.is_archived = 0
