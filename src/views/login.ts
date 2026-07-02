@@ -35,16 +35,23 @@ export function LoginPage(props: { error: string }) {
 </div>
 <script>
 (function(){
-  var t = localStorage.getItem('jwt');
-  if (t) {
-    try {
-      var p = JSON.parse(atob(t.split('.')[1]));
-      if (p.adminId && p.exp * 1000 > Date.now()) {
-        window.location.href = '/admin/bans';
-        return;
-      }
-    } catch(e) {}
+  function checkToken() {
+    var t = localStorage.getItem('jwt');
+    if (t) {
+      try {
+        var p = JSON.parse(atob(t.split('.')[1]));
+        if (p.adminId && p.exp * 1000 > Date.now()) {
+          window.location.href = '/admin/bans';
+          return;
+        }
+      } catch(e) {}
+    }
+    // 服务端检查 HttpOnly cookie
+    fetch('/api/auth/check').then(function(r){ return r.json(); }).then(function(j){
+      if (j.valid) window.location.href = '/admin/bans';
+    }).catch(function(){});
   }
+  checkToken();
 })();
 document.addEventListener('DOMContentLoaded', function() {
   var f = document.getElementById('loginForm');

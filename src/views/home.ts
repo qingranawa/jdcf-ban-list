@@ -112,7 +112,7 @@ export function BanTable(props: TableProps) {
       <tr><td colspan="8" style="text-align:center;padding:3rem 1rem;color:var(--label-3);font-size:15px;">没有找到匹配的封禁记录</td></tr>`
       : props.bans.map(ban => html`
       <tr>
-        <td><strong style="font-weight:600;font-family:var(--sans);">${escHtml(ban.nickname)}</strong></td>
+        <td><a href="/player/${encodeURIComponent(ban.steam_id)}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(ban.nickname)}</a></td>
         <td><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);letter-spacing:-.3px;">${escHtml(ban.steam_id)}</code></td>
         <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--label-2);" title="${escAttr(ban.reason)}">${escHtml(ban.reason)}</td>
         <td><span class="cyber-badge ${levelBadge(ban.violation_level)}">${levelLabel(ban.violation_level)}</span></td>

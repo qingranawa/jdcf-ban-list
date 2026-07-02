@@ -102,3 +102,16 @@ export function getJwtPayload(c: { get: (key: string) => unknown }) {
   const payload = c.get('jwtPayload') as Record<string, unknown> | undefined
   return payload ?? null
 }
+
+export function checkOwnership(
+  ownerId: number | null,
+  currentAdminId: number,
+  currentGroup: string,
+  minOverrideRank: string = 'T5'
+): { allowed: boolean; error?: string } {
+  if (ownerId === null || ownerId === currentAdminId) return { allowed: true }
+  const userRank = GROUP_RANK[currentGroup] ?? 99
+  const overrideRank = GROUP_RANK[minOverrideRank] ?? 99
+  if (userRank <= overrideRank) return { allowed: true }
+  return { allowed: false, error: '权限不足，无法操作他人记录' }
+}

@@ -19,6 +19,7 @@ export function AdminLayout(props: AdminLayoutProps) {
   const navItems = [
     { path: '/admin/bans', label: '封禁管理', icon: 'list' },
     { path: '/admin/process', label: '批量处理', icon: 'bolt' },
+    { path: '/admin/announcements', label: '公告管理', icon: 'file-text' },
     { path: '/admin/watchlist', label: '观察名单', icon: 'bell' },
     { path: '/admin/team', label: '管理组', icon: 'users' },
     { path: '/admin/archive', label: '归档日志', icon: 'info' },

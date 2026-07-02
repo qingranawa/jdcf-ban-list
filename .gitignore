@@ -1,3 +1,4 @@
+.DS_Store
 node_modules/
 dist/
 .wrangler/
@@ -7,3 +8,8 @@ dist/
 .playwright-mcp/
 /test/
 /public/_worker.js
+/.superpowers/brainstorm/1721-1782957452/
+/docs/
+/plan/plan/
+/.claude/
+/CLAUDE.md

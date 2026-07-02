@@ -1,5 +1,6 @@
 import { html } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
+import { fmtDate as fmt, lvBadge, stBadge, fmtHandlers } from '../helpers/format'
 import { icon } from './icons'
 
 type AdminBan = { id: number; nickname: string; steam_id: string; ip_address: string; reason: string; ban_time: string; ban_duration: string; violation_level: string; status: string; notes: string; handled_by_name: string | null; co_handlers: string }
@@ -15,7 +16,7 @@ export function AdminBanTable(props: { bans: AdminBan[] }) {
     ${props.bans.length === 0 ? html`<tr><td colspan="10" style="text-align:center;padding:3rem;color:var(--label-3);font-size:15px;">暂无封禁记录</td></tr>`
     : props.bans.map(b => html`<tr id="banRow${b.id}">
       <td style="color:var(--label-3);font-family:var(--mono);font-size:13px;">${b.id}</td>
-      <td><strong style="font-family:var(--sans);">${escHtml(b.nickname)}</strong></td>
+      <td><a href="/player/${encodeURIComponent(b.steam_id)}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(b.nickname)}</a></td>
       <td><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);letter-spacing:-.3px;">${escHtml(b.steam_id)}</code></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--label-2);" title="${escAttr(b.reason)}">${escHtml(b.reason)}</td>
       <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(b.ban_duration)}</td>
@@ -33,15 +34,6 @@ export function AdminBanTable(props: { bans: AdminBan[] }) {
 </div>`
 }
 
-function lvBadge(lv: string): string {
-  const m: Record<string,string> = { warning:'cyber-badge-amber', level3:'cyber-badge-cyan', level2:'cyber-badge-magenta', level1:'cyber-badge-red' }
-  return m[lv] || 'cyber-badge-neutral'
-}
-function stBadge(s: string): string {
-  const m: Record<string,string> = { banned:'cyber-badge-magenta', unbanned:'cyber-badge-green', permanent:'cyber-badge-red' }
-  return m[s] || 'cyber-badge-neutral'
-}
-function fmt(t: string): string { if (!t) return '—'; const d=new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
 function genPages(current: number, total: number): (number|string)[] {
   if (total <= 7) return Array.from({length:total},(_,i)=>i+1)
   const pages: (number|string)[] = [1]
@@ -51,23 +43,19 @@ function genPages(current: number, total: number): (number|string)[] {
   if (total > 1) pages.push(total)
   return pages
 }
-function fmtHandlers(name: string | null, co: string): string {
-  const parts: string[] = []
-  if (name) parts.push(name)
-  if (co) co.split(',').map(s => s.trim()).filter(Boolean).forEach(s => parts.push(s))
-  return parts.length ? parts.join(', ') : (name === null ? '系统' : '—')
-}
 
 // ── Admin Ban Page ──
-export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; page?: number; perPage?: number; total?: number }) {
+export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; page?: number; perPage?: number; total?: number; query?: string }) {
   const archived = props.showArchived ?? false
   const page = props.page || 1
   const perPage = props.perPage || 25
   const total = props.total || 0
+  const query = props.query || ''
   const totalPages = Math.ceil(total / perPage)
-  const pageUrl = (p: number) => `/admin/bans?page=${p}&per_page=${perPage}${archived ? '&archived=1' : ''}`
+  const qs = (p: number) => `page=${p}&per_page=${perPage}${archived ? '&archived=1' : ''}${query ? '&q=' + encodeURIComponent(query) : ''}`
+  const pageUrl = (p: number) => `/admin/bans?${qs(p)}`
   const perPageHtml = html`
-<select class="cyber-input" style="width:auto;min-width:90px;" onchange="location.href='/admin/bans?page=1&per_page='+this.value+'${archived ? '&archived=1' : ''}'">
+<select class="cyber-input" style="width:auto;min-width:90px;" onchange="location.href='/admin/bans?${query ? 'q='+encodeURIComponent(query)+'&' : ''}page=1&per_page='+this.value+'${archived ? '&archived=1' : ''}'">
   <option value="10" ${perPage===10?'selected':''}>10条/页</option>
   <option value="25" ${perPage===25?'selected':''}>25条/页</option>
   <option value="50" ${perPage===50?'selected':''}>50条/页</option>
@@ -77,22 +65,27 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
 <div class="cyber-admin-content">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
     <h2 class="page-title">封禁管理</h2>
-    <button class="cyber-btn cyber-btn-primary" onclick="openBanSheet()">${icon('bolt',16)} 新增封禁</button>
+    <div style="display:flex;gap:var(--spacing-sm);">
+      <a href="/api/admin/bans/export" class="cyber-btn cyber-btn-ghost" download>${icon('download',16)} 导出 CSV</a>
+      <button class="cyber-btn cyber-btn-primary" onclick="openBanSheet()">${icon('bolt',16)} 新增封禁</button>
+    </div>
   </div>
 
   <!-- search + filter + per-page -->
   <div style="display:flex;gap:var(--spacing-sm);margin-bottom:var(--spacing-lg);flex-wrap:wrap;">
     <div class="cyber-search" style="flex:1;min-width:200px;">
       <span class="search-icon">${icon('magnifyingglass',18)}</span>
-      <input type="text" id="adminBanSearch" placeholder="搜索封禁记录…" onkeyup="applyFilter()" />
+      <input type="text" id="adminBanSearch" placeholder="搜索昵称/Steam ID/IP/原因/备注…" value="${escAttr(query)}" onkeyup="applyFilter()" />
     </div>
     <select id="adminBanFilter" class="cyber-input" style="width:auto;min-width:120px;" onchange="applyFilter()">
-      <option value="">全部</option>
+      <option value="">全部状态</option>
       <option value="banned">封禁中</option>
+      <option value="permanent">永久封禁</option>
       <option value="unbanned">已解封</option>
-      <option value="permanent">永久</option>
+      <option value="warning">警告</option>
+      <option value="muted">禁言中</option>
+      <option value="cfba">CF封禁</option>
     </select>
-      ${perPageHtml}
   </div>
 
   <div id="adminBanTable">
@@ -246,17 +239,13 @@ document.getElementById('editBanForm')?.addEventListener('submit', async functio
   else { const r = await resp.json(); showToast(r.error || '修改失败', 'error'); }
 });
 function applyFilter() {
-  var q = document.getElementById('adminBanSearch')?.value?.toLowerCase() || '';
+  var q = document.getElementById('adminBanSearch')?.value?.trim() || '';
   var st = document.getElementById('adminBanFilter')?.value || '';
-  var rows = document.querySelectorAll('#adminBanTable tbody tr');
-  rows.forEach(function(r){
-    var show = (!q || r.textContent.toLowerCase().includes(q));
-    if (st) {
-      var sc = r.querySelector('td:nth-child(7)');
-      if (sc) show = show && sc.textContent.toLowerCase().includes(st);
-    }
-    r.style.display = show ? '' : 'none';
-  });
+  var params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (st) params.set('status', st);
+  params.set('page', '1');
+  location.href = '/admin/bans?' + params.toString();
 }
 </script>`
 }

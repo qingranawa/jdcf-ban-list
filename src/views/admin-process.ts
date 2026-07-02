@@ -2,6 +2,7 @@
 // ! 所有操作不可撤销（删除的封禁进归档，不会恢复为活跃）
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
+import { fmtDate as fmt } from '../helpers/format'
 
 type ProcBan = { id: number; nickname: string; steam_id: string; reason: string; ban_time: string; ban_duration: string; violation_level: string }
 
@@ -161,4 +162,4 @@ function renderTable(bans: ProcBan[], accent: string): ReturnType<typeof html> {
 </table>`
 }
 
-function fmt(t: string): string { if (!t) return '—'; const d=new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+
