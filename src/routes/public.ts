@@ -1,10 +1,15 @@
-// > Public routes — ban list, team info, stats (no auth required)
+// > Public routes — ban list, team info, stats, announcements (no auth required)
 import { Hono } from 'hono'
-import type { Env, BanRow, AdminRow } from '../db'
+import { html } from 'hono/html'
+import { verify } from 'hono/jwt'
+import type { Env, BanRow, AdminRow, AnnouncementRow } from '../db'
 import { Layout } from '../views/layout'
 import { HomePage, BanTable } from '../views/home'
 import { TeamPage } from '../views/team'
 import { StatsPage, type StatsData } from '../views/stats'
+import { fmtDuration, categorizeDuration, durCatColors, fmtDate } from '../helpers/format'
+import { PlayerProfilePage, type PlayerProfileData } from '../views/player'
+import { AnnouncementsPage, AnnouncementDetailPage } from '../views/announcements'
 
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
@@ -59,10 +64,10 @@ publicRoutes.get('/', async (c) => {
   const params: unknown[] = []
 
   if (q) {
-    where += ' AND (b.nickname LIKE ? ESCAPE \'\\\' OR b.steam_id LIKE ? ESCAPE \'\\\' OR b.ip_address LIKE ? ESCAPE \'\\\')'
+    where += ' AND (b.nickname LIKE ? ESCAPE \'\\\' OR b.steam_id LIKE ? ESCAPE \'\\\' OR b.ip_address LIKE ? ESCAPE \'\\\' OR b.reason LIKE ? ESCAPE \'\\\' OR b.notes LIKE ? ESCAPE \'\\\')'
     const escaped = q.replace(/[%_\\]/g, '\\$&')
     const pattern = `%${escaped}%`
-    params.push(pattern, pattern, pattern)
+    params.push(pattern, pattern, pattern, pattern, pattern)
   }
   if (levelFilter) {
     where += ' AND b.violation_level = ?'
@@ -148,34 +153,122 @@ publicRoutes.get('/team', async (c) => {
   }))
 })
 
-function fmtDuration(d: string): string {
-  if (!d) return '—'
-  const m: Record<string,string> = { m:'分钟', h:'小时', d:'天', y:'年', permanent:'永久', warning:'警告', cfba:'CFBA', mute:'禁言' }
-  if (d.startsWith('mute-')) return '禁言' + d.replace('mute-', '')
-  if (m[d]) return m[d]
-  const parts = d.match(/^(\d+)([dhmy])$/i)
-  if (parts) return parts[1] + m[parts[2].toLowerCase()] || ''
-  return d
+// ── 玩家档案页 ──
+publicRoutes.get('/player/:steam_id', async (c) => {
+  const steam_id = c.req.param('steam_id')
+
+  const bans = await c.env.DB.prepare(
+    `SELECT b.*, a.game_name as handled_by_name FROM bans b
+     LEFT JOIN admins a ON b.handled_by = a.id
+     WHERE b.steam_id = ? AND b.is_archived = 0
+     ORDER BY b.created_at DESC`
+  ).bind(steam_id).all<BanRow & { handled_by_name: string | null }>()
+
+  if (bans.results.length === 0) {
+    return c.html(Layout({
+      title: '玩家档案',
+      currentPath: '/',
+      children: PlayerProfilePage({
+        nickname: '—',
+        steam_id,
+        totalBans: 0,
+        currentStatus: '',
+        currentStatusLabel: '无记录',
+        currentStatusColor: 'cyber-badge-neutral',
+        highestLevel: '—',
+        highestLevelColor: '',
+        onWatchlist: false,
+        watchlistReason: null,
+        firstBanDate: '—',
+        lastBanDate: '—',
+        maskedIp: null,
+        bans: [],
+      }),
+    }))
+  }
+
+  const watchEntry = await c.env.DB.prepare(
+    'SELECT reason, notes FROM watchlist WHERE steam_id = ?'
+  ).bind(steam_id).first<{ reason: string; notes: string }>()
+
+  const processed = bans.results.map(b => ({ ...b, status: computeStatus(b) }))
+  const totalBans = processed.length
+  const currentStatus = processed[0].status
+  const currentStatusLabel = statusLabel(currentStatus)
+  const currentStatusColor = statusBadgeColor(currentStatus)
+
+  const levelOrder: Record<string, number> = { level1: 0, level2: 1, level3: 2, warning: 3 }
+  const sortedByLevel = [...processed].sort((a, b) =>
+    (levelOrder[a.violation_level] ?? 99) - (levelOrder[b.violation_level] ?? 99)
+  )
+  const highestLevel = sortedByLevel[0].violation_level
+  const highestLevelColor = lvStatColor(highestLevel)
+
+  const dates = processed.map(b => b.ban_time).filter(Boolean).sort()
+  const firstBanDate = fmtDate(dates[0])
+  const lastBanDate = fmtDate(dates[dates.length - 1])
+
+  const ip = processed.find(b => b.ip_address)?.ip_address || null
+  const maskedIp = ip ? ip.replace(/\.\d+$/, '.***') : null
+
+  const nickname = processed[0].nickname || '—'
+
+  const onWatchlist = !!watchEntry
+  const watchlistReason = watchEntry?.reason || null
+
+  const profileData: PlayerProfileData = {
+    nickname,
+    steam_id,
+    totalBans,
+    currentStatus,
+    currentStatusLabel,
+    currentStatusColor,
+    highestLevel,
+    highestLevelColor,
+    onWatchlist,
+    watchlistReason,
+    firstBanDate,
+    lastBanDate,
+    maskedIp,
+    bans: processed.map(b => ({
+      ban_time: b.ban_time,
+      reason: b.reason,
+      ban_duration: b.ban_duration,
+      violation_level: b.violation_level,
+      status: b.status,
+      handled_by_name: b.handled_by_name,
+    })),
+  }
+
+  return c.html(Layout({
+    title: `${nickname} - 玩家档案`,
+    currentPath: '/',
+    children: PlayerProfilePage(profileData),
+  }))
+})
+
+function statusLabel(s: string): string {
+  const m: Record<string, string> = {
+    banned: '封禁中', unbanned: '已解封', permanent: '永久封禁',
+    muted: '禁言中', warning: '警告', cfba: 'CF封禁',
+  }
+  return m[s] || s
 }
 
-function categorizeDuration(d: string): string {
-  if (/^(permanent|50[Yy])$/.test(d)) return '永久'
-  if (d === 'warning') return '警告'
-  if (d.startsWith('mute-')) return '禁言'
-  if (d === 'cfba') return 'CFBA'
-  const m = d.match(/^(\d+)([dhmy])$/i)
-  if (!m) return '其他'
-  const n = parseInt(m[1]), u = m[2].toLowerCase()
-  if (u === 'm') return '分钟'
-  if (u === 'h') return '小时'
-  if (u === 'd') { if (n <= 7) return '1-7天'; if (n <= 30) return '8-30天'; return '30天以上' }
-  if (u === 'y') return '1年以上'
-  return '其他'
+function statusBadgeColor(s: string): string {
+  const m: Record<string, string> = {
+    banned: 'cyber-badge-red', permanent: 'cyber-badge-red',
+    unbanned: 'cyber-badge-green', muted: 'cyber-badge-amber',
+    warning: 'cyber-badge-neutral', cfba: 'cyber-badge-neutral',
+  }
+  return m[s] || 'cyber-badge-neutral'
 }
-const durCatColors: Record<string, string> = {
-  '永久': '#ff3355', '警告': '#66ffcc', '禁言': '#ffb000', 'CFBA': '#ff00aa',
-  '1-7天': '#00f0ff', '8-30天': '#00aaff', '30天以上': '#0066ff',
-  '小时': '#8866ff', '分钟': '#cc66ff', '1年以上': '#ff66aa', '其他': '#888888'
+
+function lvStatColor(lv: string): string {
+  const m: Record<string, string> = {
+    level1: 'sr', level2: 'sm', level3: '', warning: 'sa',
+  }
+  return m[lv] || ''
 }
 
 publicRoutes.get('/stats', async (c) => {
@@ -278,4 +371,128 @@ publicRoutes.get('/api/profiles', async (c) => {
   ).all()
 
   return c.json({ data: rows.results })
+})
+
+// ── 公告列表 ──
+publicRoutes.get('/announcements', async (c) => {
+  const page = Math.max(1, parseInt(c.req.query('page') || '1'))
+  const type = c.req.query('type') || ''
+  const limit = 10
+  const offset = (page - 1) * limit
+
+  let adminGroup: string | null = null
+  const authHeader = c.req.header('Authorization')
+  const cookie = c.req.header('Cookie')
+  let token: string | null = null
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7)
+  }
+  if (!token && cookie) {
+    const match = cookie.match(/(?:^|;\s*)jwt=([^;]+)/)
+    if (match) token = decodeURIComponent(match[1])
+  }
+  if (token) {
+    try {
+      const payload = await verify(token, c.env.JWT_SECRET, 'HS256')
+      adminGroup = (payload.permissionGroup as string) || null
+    } catch { /* ignore */ }
+  }
+
+  let where = 'a.is_published = 1'
+  const params: unknown[] = []
+
+  const isAdmin = adminGroup && ['OWNER', 'T6', 'T5', 'T4', 'T3', 'T2', 'T1'].includes(adminGroup)
+  where += ' AND (a.type != ? OR ? IS NOT NULL)'
+  params.push('internal', isAdmin ? 'yes' : null)
+
+  if (type) {
+    where += ' AND a.type = ?'
+    params.push(type)
+  }
+
+  const countResult = await c.env.DB.prepare(
+    `SELECT COUNT(*) as total FROM announcements a WHERE ${where}`
+  ).bind(...params).first<{ total: number }>()
+  const total = countResult?.total || 0
+  const totalPages = Math.ceil(total / limit)
+
+  const rows = await c.env.DB.prepare(
+    `SELECT a.*, adm.game_name as created_by_name
+     FROM announcements a
+     LEFT JOIN admins adm ON a.created_by = adm.id
+     WHERE ${where}
+     ORDER BY a.is_pinned DESC, a.publish_at DESC, a.created_at DESC
+     LIMIT ? OFFSET ?`
+  ).bind(...params, limit, offset).all<AnnouncementRow & { created_by_name: string | null }>()
+  const announcements = rows.results.map(a => ({ ...a, created_by_name: a.created_by_name || '' }))
+
+  return c.html(Layout({
+    title: '公告',
+    currentPath: '/announcements',
+    children: AnnouncementsPage({
+      announcements,
+      currentType: type || '',
+      page,
+      totalPages,
+      adminGroup,
+    }),
+  }))
+})
+
+// ── 公告详情 ──
+publicRoutes.get('/announcements/:id', async (c) => {
+  const id = c.req.param('id')
+  const row = await c.env.DB.prepare(
+    `SELECT a.*, adm.game_name as created_by_name
+     FROM announcements a
+     LEFT JOIN admins adm ON a.created_by = adm.id
+     WHERE a.id = ? AND a.is_published = 1`
+  ).bind(id).first<AnnouncementRow & { created_by_name: string | null }>()
+
+  if (!row) {
+    return c.html(Layout({
+      title: '公告不存在',
+      currentPath: '/announcements',
+      children: html`<div class="cyber-admin-content"><p style="color:var(--label-3);font-size:15px;text-align:center;padding:4rem 0;">公告不存在</p></div>`,
+    }))
+  }
+
+  const announcement = { ...row, created_by_name: row.created_by_name || '' }
+
+  let detailAdminGroup: string | null = null
+  const authHeader = c.req.header('Authorization')
+  const cookie = c.req.header('Cookie')
+  let token: string | null = null
+  if (authHeader && authHeader.startsWith('Bearer ')) token = authHeader.slice(7)
+  if (!token && cookie) {
+    const match = cookie.match(/(?:^|;\s*)jwt=([^;]+)/)
+    if (match) token = decodeURIComponent(match[1])
+  }
+  if (token) {
+    try {
+      const payload = await verify(token, c.env.JWT_SECRET, 'HS256')
+      detailAdminGroup = (payload.permissionGroup as string) || null
+    } catch { /* ignore */ }
+  }
+
+  return c.html(Layout({
+    title: announcement.title,
+    currentPath: '/announcements',
+    children: AnnouncementDetailPage({ announcement, adminGroup: detailAdminGroup }),
+  }))
+})
+
+// ── Cron: 发布定时公告 ──
+publicRoutes.get('/api/cron/publish-announcements', async (c) => {
+  const secret = c.req.header('X-Cron-Secret')
+  if (!secret || secret !== c.env.CRON_PUBLISH_SECRET) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
+  const result = await c.env.DB.prepare(
+    `UPDATE announcements SET is_published = 1
+     WHERE is_published = 0 AND publish_at IS NOT NULL AND publish_at <= datetime('now')`
+  ).run()
+
+  return c.json({ published: result.meta.changes })
 })

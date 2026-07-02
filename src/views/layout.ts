@@ -53,6 +53,9 @@ ${Styles()}
     <a href="/" class="${isActive('/') && !isActive('/team') ? 'active' : ''}" ${isActive('/') && !isActive('/team') ? 'aria-current="page"' : ''}>
       ${icon('house-fill', 20)}<span>首页</span>
     </a>
+    <a href="/announcements" class="${isActive('/announcements') ? 'active' : ''}" ${isActive('/announcements') ? 'aria-current="page"' : ''}>
+      ${icon('bell', 20)}<span>公告</span>
+    </a>
     <a href="/team" class="${isActive('/team') ? 'active' : ''}" ${isActive('/team') ? 'aria-current="page"' : ''}>
       ${icon('users', 20)}<span>管理组</span>
     </a>

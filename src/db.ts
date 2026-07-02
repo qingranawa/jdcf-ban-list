@@ -9,6 +9,7 @@ export type Env = {
   TURNSTILE_SECRET_KEY: string;
   JWT_SECRET: string;
   CRON_ARCHIVE_SECRET: string;
+  CRON_PUBLISH_SECRET: string;
 };
 
 export type BanRow = {
@@ -40,6 +41,27 @@ export type WatchlistRow = {
   notes: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type AnnouncementRow = {
+  id: number;
+  title: string;
+  subtitle: string | null;
+  body: string;
+  citation: string | null;
+  type: string;
+  is_pinned: number;
+  is_published: number;
+  publish_at: string | null;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AnnouncementReadRow = {
+  announcement_id: number;
+  admin_id: number;
+  read_at: string;
 };
 
 export type AdminRow = {

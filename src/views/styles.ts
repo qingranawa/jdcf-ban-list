@@ -424,7 +424,9 @@ body::after {
 .cyber-nav {
   display: flex; align-items: center; justify-content: center;
   position: fixed; left: 0; right: 0; z-index: 100;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   bottom: 0; top: auto;
   height: 60px; padding: 0 var(--spacing-md);
 }
@@ -507,7 +509,6 @@ body::after {
     top: 0; bottom: auto;
     height: 56px;
     padding: 0 var(--spacing-xl);
-    background: transparent;
   }
   .cyber-nav::before {
     top: auto; bottom: 0;
