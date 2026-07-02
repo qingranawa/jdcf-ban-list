@@ -18,7 +18,7 @@ export const adminRoutes = new Hono<{ Bindings: Env }>()
 adminRoutes.use('/admin/*', authMiddleware)
 adminRoutes.use('/api/admin/*', authMiddleware)
 
-// ── 审计日志助手 ──
+// ── 审计日志助手（fire-and-forget，不阻塞主操作）──
 async function writeAuditLog(
   db: D1Database,
   adminId: number,
@@ -27,9 +27,13 @@ async function writeAuditLog(
   targetId: number | null,
   detail: string | null
 ): Promise<void> {
-  await db.prepare(
-    'INSERT INTO audit_log (admin_id, action, target_type, target_id, detail) VALUES (?, ?, ?, ?, ?)'
-  ).bind(adminId, action, targetType, targetId, detail).run()
+  try {
+    await db.prepare(
+      'INSERT INTO audit_log (admin_id, action, target_type, target_id, detail) VALUES (?, ?, ?, ?, ?)'
+    ).bind(adminId, action, targetType, targetId, detail).run()
+  } catch (e) {
+    console.error('Audit log failed:', e)
+  }
 }
 
 // ── 封禁管理 ──
