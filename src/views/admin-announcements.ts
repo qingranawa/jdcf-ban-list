@@ -66,9 +66,8 @@ export function AdminAnnouncementsPage(props: {
         <td style="font-size:13px;color:var(--label-2);">${a.read_count} 次</td>
         <td style="text-align:right;white-space:nowrap;padding-right:var(--spacing-md);">
           <button class="cyber-btn cyber-btn-ghost cyber-btn-small" onclick="editAnnounce(${a.id})">编辑</button>
-          <button class="cyber-btn cyber-btn-danger cyber-btn-small" onclick="deleteAnnounce(${a.id})">删除</button>
           <button class="cyber-btn cyber-btn-ghost cyber-btn-small" onclick="togglePin(${a.id})">${a.is_pinned ? '取消置顶' : '置顶'}</button>
-          <button class="cyber-btn cyber-btn-ghost cyber-btn-small" onclick="publishAnnounce(${a.id})">${a.is_published ? '撤回' : '发布'}</button>
+          <button class="cyber-btn cyber-btn-danger cyber-btn-small" onclick="deleteAnnounce(${a.id})">删除</button>
         </td>
       </tr>`)}
     </tbody>
@@ -187,25 +186,6 @@ async function togglePin(id) {
     else { var r = await resp.json(); showToast(r.error || '操作失败', 'error'); }
   } catch(e) { showToast('请求失败', 'error'); }
 }
-async function publishAnnounce(id) {
-  try {
-    var resp = await fetch('/api/admin/announcements/' + id + '/publish', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + jwt },
-    });
-    if (resp.ok) { showToast('状态已更新', 'success'); setTimeout(function(){ location.reload(); }, 500); }
-    else { var r = await resp.json(); showToast(r.error || '操作失败', 'error'); }
-  } catch(e) { showToast('请求失败', 'error'); }
-}
-async function markRead(id) {
-  try {
-    var resp = await fetch('/api/admin/announcements/' + id + '/read', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + jwt },
-    });
-    if (resp.ok) { showToast('已标记已读', 'success'); }
-    else { var r = await resp.json(); showToast(r.error || '操作失败', 'error'); }
-  } catch(e) { showToast('请求失败', 'error'); }
-}
+
 </script>`
 }

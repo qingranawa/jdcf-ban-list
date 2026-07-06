@@ -1,6 +1,6 @@
 import { html } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
-import { fmtDate as fmt, lvBadge, stBadge, fmtHandlers } from '../helpers/format'
+import { fmtDate as fmt, lvBadge, lvLabel, stBadge, fmtHandlers } from '../helpers/format'
 import { icon } from './icons'
 
 type AdminBan = { id: number; nickname: string; steam_id: string; ip_address: string; reason: string; ban_time: string; ban_duration: string; violation_level: string; status: string; notes: string; handled_by_name: string | null; co_handlers: string }
@@ -20,7 +20,7 @@ export function AdminBanTable(props: { bans: AdminBan[] }) {
       <td><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);letter-spacing:-.3px;">${escHtml(b.steam_id)}</code></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--label-2);" title="${escAttr(b.reason)}">${escHtml(b.reason)}</td>
       <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(b.ban_duration)}</td>
-      <td><span class="cyber-badge ${lvBadge(b.violation_level)}">${escHtml(b.violation_level)}</span></td>
+      <td><span class="cyber-badge ${lvBadge(b.violation_level)}">${lvLabel(b.violation_level)}</span></td>
       <td><span class="cyber-badge ${stBadge(b.status)}">${escHtml(b.status)}</span></td>
       <td style="font-size:14px;color:var(--label-2);">${fmtHandlers(b.handled_by_name, b.co_handlers)}</td>
       <td style="font-family:var(--mono);font-size:13px;color:var(--label-3);white-space:nowrap;">${fmt(b.ban_time)}</td>

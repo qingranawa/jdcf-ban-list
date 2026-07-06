@@ -87,7 +87,7 @@ describe('Auth', () => {
   it('GET /api/auth/check without token returns valid:false (200)', async () => {
     const res = await app.request('/api/auth/check', {}, freshEnv())
     expect(res.status).toBe(200)
-    const data = await res.json()
+    const data = await res.json() as { valid: boolean }
     expect(data.valid).toBe(false)
   })
 
@@ -146,7 +146,7 @@ describe('Admin API', () => {
     it('returns ban details for valid id', async () => {
       const res = await app.request('/api/admin/bans/1', { headers: auth(t5Token) }, env)
       expect(res.status).toBe(200)
-      const data = await res.json()
+      const data = await res.json() as { nickname: string; steam_id: string; status: string }
       expect(data.nickname).toBe('test_player')
       expect(data.steam_id).toBe('STEAM_1:0:12345')
       expect(data.status).toBeDefined()
@@ -155,7 +155,7 @@ describe('Admin API', () => {
     it('returns 404 for non-existent id', async () => {
       const res = await app.request('/api/admin/bans/999', { headers: auth(t5Token) }, env)
       expect(res.status).toBe(404)
-      const data = await res.json()
+      const data = await res.json() as { error: string }
       expect(data.error).toContain('不存在')
     })
   })
@@ -167,7 +167,7 @@ describe('Admin API', () => {
         body: JSON.stringify({ nickname: 'new_guy', steam_id: 'STEAM_1:1:55555', reason: '测试', ban_duration: '7d' }),
       }, env)
       expect(res.status).toBe(200)
-      const data = await res.json()
+      const data = await res.json() as { success: boolean; id: number }
       expect(data.success).toBe(true)
       expect(data.id).toBeGreaterThan(0)
     })
@@ -204,7 +204,7 @@ describe('Admin API', () => {
         body: JSON.stringify({ nickname: 'updated', steam_id: 'STEAM_1:0:12345', ban_duration: '15d' }),
       }, env)
       expect(res.status).toBe(200)
-      expect((await res.json()).success).toBe(true)
+      expect((await res.json() as { success: boolean }).success).toBe(true)
     })
 
     it('returns 403 for low-rank updating others ban (T3 trying T5 record)', async () => {
@@ -230,7 +230,7 @@ describe('Admin API', () => {
         method: 'DELETE', headers: auth(t5Token),
       }, env)
       expect(res.status).toBe(200)
-      expect((await res.json()).success).toBe(true)
+      expect((await res.json() as { success: boolean }).success).toBe(true)
     })
 
     it('soft deleted ban no longer appears in active list', async () => {

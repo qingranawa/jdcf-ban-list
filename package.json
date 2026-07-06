@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler pages dev functions/ --binding",
+    "dev": "wrangler pages dev functions/ --d1 DB=jdcf-db",
     "deploy": "wrangler pages deploy",
     "db:init": "node scripts/init-db.js",
     "db:seed": "node scripts/init-db.js",

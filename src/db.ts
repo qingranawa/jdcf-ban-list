@@ -10,6 +10,7 @@ export type Env = {
   JWT_SECRET: string;
   CRON_ARCHIVE_SECRET: string;
   CRON_PUBLISH_SECRET: string;
+  DEV_MODE?: string;
 };
 
 export type BanRow = {

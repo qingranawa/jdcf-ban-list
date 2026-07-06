@@ -9,6 +9,14 @@ export function lvBadge(lv: string): string {
   return m[lv] || 'cyber-badge-neutral'
 }
 
+export function lvLabel(lv: string): string {
+  const m: Record<string, string> = {
+    level1: '1级违规', level2: '2级违规', level3: '3级违规',
+    level4: '4级违规', warning: '警告',
+  }
+  return m[lv] || lv
+}
+
 export function stBadge(s: string): string {
   const m: Record<string, string> = { banned: 'cyber-badge-magenta', unbanned: 'cyber-badge-green', permanent: 'cyber-badge-red', muted: 'cyber-badge-amber', warning: 'cyber-badge-neutral', cfba: 'cyber-badge-neutral' }
   return m[s] || 'cyber-badge-neutral'

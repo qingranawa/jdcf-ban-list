@@ -2,6 +2,7 @@ import { html, raw } from 'hono/html'
 import { Styles } from './styles'
 import { icon } from './icons'
 import { getRandomBg, BG_IMAGES } from '../config/bg-images'
+import { GROUP_RANK } from '../middleware/auth'
 
 
 type AdminLayoutProps = {
@@ -16,14 +17,16 @@ export function AdminLayout(props: AdminLayoutProps) {
   const adminName = props.admin.game_name || '管理员'
   const adminGroup = props.admin.permission_group || ''
 
-  const navItems = [
-    { path: '/admin/bans', label: '封禁管理', icon: 'list' },
-    { path: '/admin/process', label: '批量处理', icon: 'bolt' },
-    { path: '/admin/announcements', label: '公告管理', icon: 'file-text' },
-    { path: '/admin/watchlist', label: '观察名单', icon: 'bell' },
-    { path: '/admin/team', label: '管理组', icon: 'users' },
-    { path: '/admin/archive', label: '归档日志', icon: 'info' },
+  const allNavItems = [
+    { path: '/admin/bans', label: '封禁管理', icon: 'list', minRank: 6 },
+    { path: '/admin/process', label: '批量处理', icon: 'bolt', minRank: 2 },
+    { path: '/admin/announcements', label: '公告管理', icon: 'file-text', minRank: 6 },
+    { path: '/admin/watchlist', label: '观察名单', icon: 'bell', minRank: 4 },
+    { path: '/admin/team', label: '管理组', icon: 'users', minRank: 2 },
+    { path: '/admin/archive', label: '归档日志', icon: 'info', minRank: 3 },
   ]
+  const userRank = GROUP_RANK[adminGroup] ?? 99
+  const navItems = allNavItems.filter(n => userRank <= n.minRank)
 
   const bgPath = getRandomBg()
   const bgPaths = BG_IMAGES.map(f => `/images/bg/${f}`)

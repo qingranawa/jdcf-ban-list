@@ -8,7 +8,8 @@ function strip(alias: string): string {
 }
 
 function tableFrom(sql: string): string {
-  const m = sql.match(/FROM\s+(?:(\w+)\s+\w+|(\w+))/i)
+  const matches = [...sql.matchAll(/FROM\s+(?:(\w+)\s+\w+|(\w+))/ig)]
+  const m = matches[matches.length - 1]
   return strip(m?.[1] || m?.[2] || '')
 }
 
@@ -23,6 +24,10 @@ export class MockD1 {
   seed(table: string, rows: Row[]) {
     this.tables.set(table, [...rows])
     this.autoInc.set(table, rows.length + 1)
+  }
+
+  batch(statements: MockStatement[]): { success: boolean; meta: Record<string, unknown> }[] {
+    return statements.map(s => s.run())
   }
 
   prepare(sql: string) {
@@ -82,7 +87,7 @@ class MockStatement {
 
   private executeSelect(): Row[] {
     const s = this.sql.trim().toUpperCase()
-    if (s.includes('COUNT') || s.includes('TOTAL(') || s.includes('COALESCE') || s.includes('SUM(')) {
+    if (/^SELECT\s+COUNT|^SELECT\s+TOTAL/i.test(s) || s.startsWith('SELECT COALESCE') || s.startsWith('SELECT SUM')) {
       return [{ total: 1, c: 1, count: 1 }]
     }
     const table = tableFrom(this.sql)
@@ -93,24 +98,48 @@ class MockStatement {
       const wherePart = this.sql.split(/WHERE/i)[1]?.trim() ?? ''
       const qmBefore = (this.sql.split('WHERE')[0].match(/\?/g) || []).length
 
-      const hasId = /\bid\s*=\s*\?/.test(wherePart)
+      const col = (ref: string) => ref.replace(/^\w+\./, '')
+
+      const hasId = /(?:\w+\.)?id\s*=\s*\?/.test(wherePart)
       if (hasId) {
-        const idx = qmBefore + (wherePart.split('id')[0].match(/\?/g) || []).length
+        const idx = qmBefore + (wherePart.split(/\b(?:\w+\.)?id\b/)[0].match(/\?/g) || []).length
         const idVal = this.params[idx]
         rows = rows.filter(r => r.id == idVal)
       }
-      if (/steam_id\s*=\s*\?/.test(wherePart)) {
-        const idx = qmBefore + (wherePart.split('steam_id')[0].match(/\?/g) || []).length
+      if (/(?:\w+\.)?steam_id\s*=\s*\?/.test(wherePart)) {
+        const idx = qmBefore + (wherePart.split(/\b(?:\w+\.)?steam_id\b/)[0].match(/\?/g) || []).length
         const val = this.params[idx]
         rows = rows.filter(r => r.steam_id == val)
       }
-      if (/is_archived\s*=\s*\?/i.test(wherePart)) {
-        const idx = qmBefore + (wherePart.split('is_archived')[0].match(/\?/g) || []).length
+      const typeEq = wherePart.match(/(?:\w+\.)?type\s*=\s*\?/i)
+      if (typeEq) {
+        const idx = qmBefore + (wherePart.substring(0, typeEq.index).match(/\?/g) || []).length
+        const val = this.params[idx]
+        rows = rows.filter(r => r.type === val)
+      }
+      if (/(?:\w+\.)?is_archived\s*=\s*\?/i.test(wherePart)) {
+        const idx = qmBefore + (wherePart.split(/\b(?:\w+\.)?is_archived\b/)[0].match(/\?/g) || []).length
         const val = this.params[idx]
         rows = rows.filter(r => (r.is_archived ?? 0) == val)
       } else if (/is_archived\s*=\s*(\d+)/i.test(wherePart)) {
         const val = parseInt(wherePart.match(/is_archived\s*=\s*(\d+)/i)![1])
         rows = rows.filter(r => (r.is_archived ?? 0) == val)
+      }
+      if (/(?:\w+\.)?is_published\s*=\s*(\d+)/i.test(wherePart)) {
+        const m = wherePart.match(/(?:\w+\.)?is_published\s*=\s*(\d+)/i)
+        if (m) {
+          const val = parseInt(m[1])
+          rows = rows.filter(r => (r.is_published ?? 0) == val)
+        }
+      }
+      if (/\((?:\w+\.)?type\s*!=\s*\?\s+OR\s+\?\s+IS\s+NOT\s+NULL\)/i.test(wherePart)) {
+        const i1 = wherePart.indexOf('?')
+        const idx = qmBefore + (wherePart.substring(0, i1).match(/\?/g) || []).length
+        const typeVal = this.params[idx]
+        const isAdminVal = this.params[idx + 1]
+        if (isAdminVal == null || isAdminVal === false) {
+          rows = rows.filter(r => r.type !== typeVal)
+        }
       }
       if (s.includes('LIKE')) {
         const idx = qmBefore + (wherePart.split('LIKE')[0].match(/\?/g) || []).length
@@ -198,10 +227,17 @@ class MockStatement {
           else if (val === '0') updates[col] = 0
           else if (/^'(.+)'$/.test(val)) updates[col] = val.replace(/^'(.*)'$/, '$1')
         })
-        const idIdx = this.params.length - 1
-        const idVal = this.params[idIdx]
-        const numericId = typeof idVal === 'string' ? parseInt(idVal) : idVal as number
-        this.db.update(table, numericId, updates)
+        if (/WHERE\s+(?:\w+\.)?id\s*=\s*\?/i.test(this.sql)) {
+          const idIdx = this.params.length - 1
+          const idVal = this.params[idIdx]
+          const numericId = typeof idVal === 'string' ? parseInt(idVal) : idVal as number
+          this.db.update(table, numericId, updates)
+        } else {
+          const rows = this.db.getAll(table)
+          for (let i = 0; i < rows.length; i++) {
+            rows[i] = { ...rows[i], ...updates }
+          }
+        }
       }
       return null
     } else if (s.startsWith('DELETE')) {

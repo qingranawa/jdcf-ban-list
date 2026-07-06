@@ -7,6 +7,7 @@ import type { Env, BanRow, WatchlistRow, AnnouncementRow } from '../db'
 import { computeStatus } from './public'
 import { authMiddleware, requirePermission, GROUP_RANK, checkOwnership } from '../middleware/auth'
 import { escHtml, escAttr } from '../helpers/escape'
+import { lvBadge, lvLabel } from '../helpers/format'
 import { AdminLayout } from '../views/admin-layout'
 import { AdminBanListPage } from '../views/admin-bans'
 import { AdminProcessPage } from '../views/admin-process'
@@ -170,6 +171,28 @@ adminRoutes.delete('/api/admin/bans/:id', requirePermission('T1'), async (c) => 
   ).bind(id).run()
 
   await writeAuditLog(c.env.DB, adminId, 'delete_ban', 'ban', Number(id), `昵称: ${existing.nickname} (软删除)`)
+  return c.json({ success: true })
+})
+
+// API: Unarchive ban (restore from archive)
+adminRoutes.post('/api/admin/bans/:id/unarchive', requirePermission('T4'), async (c) => {
+  const id = c.req.param('id')
+  const adminId = c.get('adminId')
+  const existing = await c.env.DB.prepare('SELECT handled_by, nickname FROM bans WHERE id = ?').bind(id).first<{ handled_by: number; nickname: string }>()
+  if (!existing) return c.json({ error: '记录不存在' }, 404)
+
+  const ownership = checkOwnership(existing.handled_by, adminId, c.get('permissionGroup'))
+  if (!ownership.allowed) return c.json({ error: ownership.error }, 403)
+
+  await c.env.DB.prepare(
+    "UPDATE bans SET is_archived = 0, archive_action = NULL, archived_at = NULL WHERE id = ?"
+  ).bind(id).run()
+
+  await c.env.DB.prepare(
+    "UPDATE archive_items SET action = 'restored' WHERE ban_id = ? AND action = 'deleted'"
+  ).bind(id).run()
+
+  await writeAuditLog(c.env.DB, adminId, 'unarchive_ban', 'ban', Number(id), `昵称: ${existing.nickname} (恢复)`)
   return c.json({ success: true })
 })
 
@@ -420,22 +443,36 @@ adminRoutes.get('/admin/archive', requirePermission('T4'), async (c) => {
     ORDER BY ar.archive_date DESC, ai.id DESC
   `).all()
   const tableHtml = html`
+<script>
+var jwt = localStorage.getItem('jwt');
+function unarchiveBan(id) {
+  if (!confirm('确认恢复此封禁记录？恢复后将在封禁列表中可见。')) return;
+  fetch('/api/admin/bans/' + id + '/unarchive', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + jwt },
+  }).then(function(r) {
+    if (r.ok) { location.reload(); }
+    else { r.json().then(function(d) { alert(d.error || '操作失败'); }); }
+  }).catch(function() { alert('请求失败'); });
+}
+</script>
 <div class="cyber-admin-content" style="padding-bottom:6rem;">
   <h2 style="font-family:var(--sans);font-size:22px;font-weight:600;margin-bottom:var(--spacing-lg);">已归档记录</h2>
   ${items.results.length === 0
     ? html`<p style="color:var(--label-3);font-size:15px;">暂无归档记录</p>`
     : html`<div class="cyber-table-wrap"><table class="cyber-table">
       <thead><tr>
-        <th>归档日期</th><th>昵称</th><th>Steam ID</th><th>原等级</th><th>操作</th><th>新等级</th><th>原时长</th>
+        <th>归档日期</th><th>昵称</th><th>Steam ID</th><th>原等级</th><th>状态</th><th>新等级</th><th>原时长</th><th>操作</th>
       </tr></thead><tbody>
       ${items.results.map((r: Record<string, unknown>) => html`<tr>
         <td style="font-family:var(--mono);font-size:13px;color:var(--label-3);white-space:nowrap;">${escAttr(r.archive_date)}</td>
         <td><strong style="font-family:var(--sans);">${escHtml(r.nickname)}</strong></td>
         <td><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(r.steam_id)}</code></td>
-        <td><span class="cyber-badge ${r.original_level === 'level3' ? 'cyber-badge-cyan' : r.original_level === 'level2' ? 'cyber-badge-magenta' : r.original_level === 'level1' ? 'cyber-badge-red' : 'cyber-badge-amber'}">${escHtml(r.original_level)}</span></td>
-        <td><span class="cyber-badge ${r.action === 'deleted' ? 'cyber-badge-red' : 'cyber-badge-amber'}">${r.action === 'deleted' ? '删除' : '降级'}</span></td>
-        <td>${r.new_level ? html`<span class="cyber-badge cyber-badge-neutral">${escHtml(r.new_level)}</span>` : html`<span style="color:var(--label-3);">—</span>`}</td>
+        <td><span class="cyber-badge ${lvBadge(String(r.original_level))}">${lvLabel(String(r.original_level))}</span></td>
+        <td><span class="cyber-badge ${r.action === 'deleted' ? 'cyber-badge-red' : r.action === 'restored' ? 'cyber-badge-green' : 'cyber-badge-amber'}">${r.action === 'deleted' ? '删除' : r.action === 'restored' ? '恢复' : '降级'}</span></td>
+        <td>${r.new_level ? html`<span class="cyber-badge ${lvBadge(String(r.new_level))}">${lvLabel(String(r.new_level))}</span>` : html`<span style="color:var(--label-3);">—</span>`}</td>
         <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(r.original_duration)}</td>
+        <td>${r.action === 'deleted' ? html`<button class="cyber-btn cyber-btn-danger cyber-btn-small" onclick="unarchiveBan(${escAttr(r.ban_id)})">恢复</button>` : html`<span style="color:var(--label-3);">—</span>`}</td>
       </tr>`)}
     </tbody></table></div>`}
 </div>`
@@ -581,6 +618,13 @@ adminRoutes.get('/api/admin/announcements', requirePermission('T1'), async (c) =
   ).bind(limit, offset).all()
 
   return c.json({ data: rows.results, total, page })
+})
+
+adminRoutes.get('/api/admin/announcements/:id', requirePermission('T1'), async (c) => {
+  const id = c.req.param('id')
+  const a = await c.env.DB.prepare('SELECT * FROM announcements WHERE id = ?').bind(id).first()
+  if (!a) return c.json({ error: '公告不存在' }, 404)
+  return c.json(a)
 })
 
 adminRoutes.post('/api/admin/announcements', requirePermission('T4'), async (c) => {
