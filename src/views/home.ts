@@ -1,6 +1,7 @@
 import { html } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
 import { icon } from './icons'
+import { disciplineLabel } from '../helpers/format'
 
 type Ban = {
   id: number; nickname: string; steam_id: string; ip_address: string;
@@ -28,6 +29,7 @@ function statusBadge(s: string): string {
 }
 function fmtDuration(d: string): string {
   if (!d) return '—'
+  if (d.startsWith('discipline_')) return disciplineLabel(d)
   const m: Record<string,string> = { m:'分钟', h:'小时', d:'天', y:'年', permanent:'永久', warning:'警告', cfba:'CFBA', mute:'禁言' }
   const parts = d.match(/^([a-z]+)-(\d+)([mhdy])$/)
   if (d.startsWith('mute-')) return '禁言' + d.replace('mute-', '')
@@ -162,7 +164,7 @@ export function HomePage(props: HomePageProps) {
       <span class="dot"></span>
       封禁管理系统
     </div>
-    <h1 class="reveal-blur" data-delay="200">JDCF<br>封禁管理</h1>
+    <h1 class="reveal-blur" data-delay="200">鸡蛋肠粉<br>封禁管理</h1>
     <p class="reveal" data-delay="400">查询、管理、追踪服务器封禁记录，维护公平的游戏环境</p>
     <form action="/search" method="get" class="hero-search reveal" data-delay="600">
       <input type="search" name="q" placeholder="搜索玩家昵称或 Steam ID…" autocomplete="off" value="${escAttr(props.query)}">

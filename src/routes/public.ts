@@ -1165,7 +1165,7 @@ publicRoutes.get('/admin-profile/:id', async (c) => {
 
   const auditLogs = await c.env.DB.prepare(
 
-    'SELECT id, action, target_type, target_id, details, created_at FROM audit_log WHERE admin_id = ? ORDER BY created_at DESC LIMIT 50'
+    'SELECT id, action, target_type, target_id, detail AS details, created_at FROM audit_log WHERE admin_id = ? ORDER BY created_at DESC LIMIT 50'
 
   ).bind(id).all<{ id: number; action: string; target_type: string; target_id: number | null; details: string | null; created_at: string }>()
 

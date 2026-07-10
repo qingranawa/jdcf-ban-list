@@ -22,7 +22,7 @@ export function Layout(props: LayoutProps) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>${props.title} — JDCF 封禁查询</title>
+<title>${props.title} — 鸡蛋肠粉 封禁查询</title>
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23000' stroke='%2300ffff' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%2300ffff' font-family='monospace' font-weight='bold'%3EJ%3C/text%3E%3C/svg%3E"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,7 +32,7 @@ ${Styles()}
 </head>
 <body>
 <div id="scroll-progress" role="progressbar" aria-label="页面进度"></div>
-<div class="bg-image" style="background-image:url('${bgPath}'),url('/images/bg/3.jpg')"></div>
+<div class="bg-image" style="background-image:url('${bgPath}'),url('/images/bg/1.jpg')"></div>
 <div class="mesh-bg">
   <div class="mesh-sphere"></div>
   <div class="mesh-sphere"></div>
@@ -42,7 +42,7 @@ ${Styles()}
 
 <!-- Floating Island Navigation -->
 <nav class="nav-island" id="navIsland" aria-label="主导航">
-  <span class="nav-logo">✦ JDCF</span>
+  <span class="nav-logo">✦ 鸡蛋肠粉</span>
   <ul class="nav-links">
     <li><a href="/" class="${isActive('/') && !isActive('/team') ? 'active' : ''}" ${isActive('/') && !isActive('/team') ? 'aria-current="page"' : ''}>首页</a></li>
     <li><a href="/announcements" class="${isActive('/announcements') ? 'active' : ''}" ${isActive('/announcements') ? 'aria-current="page"' : ''}>公告</a></li>
@@ -74,7 +74,7 @@ ${Styles()}
   ${props.children}
 </main>
 
-<footer class="footer">鸡蛋肠粉服务器 · JDCF 封禁管理系统</footer>
+<footer class="footer">鸡蛋肠粉服务器 · 鸡蛋肠粉封禁管理系统</footer>
 
 <!-- Global Add Ban Modal -->
 <div id="globalBanSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="新增封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeGlobalBanSheet()">

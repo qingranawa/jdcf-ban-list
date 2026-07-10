@@ -48,7 +48,7 @@ export function AdminLayout(props: AdminLayoutProps) {
 ${Styles()}
 </head>
 <body style="display:flex;">
-<div class="bg-image" style="background-image:url('${bgPath}'),url('/images/bg/3.jpg')"></div>
+<div class="bg-image" style="background-image:url('${bgPath}'),url('/images/bg/1.jpg')"></div>
 <div class="mesh-bg">
   <div class="mesh-sphere"></div>
   <div class="mesh-sphere"></div>
