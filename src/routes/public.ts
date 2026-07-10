@@ -11,6 +11,7 @@ import { StatsPage, type StatsData } from '../views/stats'
 import { fmtDuration, categorizeDuration, durCatColors, fmtDate } from '../helpers/format'
 import { PlayerProfilePage, type PlayerProfileData } from '../views/player'
 import { AnnouncementsPage, AnnouncementDetailPage } from '../views/announcements'
+import { AdminProfilePage, type AdminProfileData } from '../views/admin-profile'
 
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
@@ -530,6 +531,77 @@ publicRoutes.get('/announcements/:id', async (c) => {
     title: announcement.title,
     currentPath: '/announcements',
     children: AnnouncementDetailPage({ announcement, adminGroup: detailAdminGroup }),
+  }))
+})
+
+
+
+// ── 管理员详情页 ──
+publicRoutes.get('/admin-profile/:id', async (c) => {
+  const id = c.req.param('id')
+
+  const admin = await c.env.DB.prepare(
+    'SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor, is_active FROM admins WHERE id = ?'
+  ).bind(id).first<AdminRow>()
+
+  if (!admin) {
+    return c.html(Layout({
+      title: '管理员不存在', currentPath: '/',
+      children: html`<div style="max-width:800px;margin:0 auto;padding:4rem;text-align:center;color:var(--label-3);font-size:15px;">管理员不存在</div>`,
+    }))
+  }
+
+  const bans = await c.env.DB.prepare(
+    `SELECT b.*, a.game_name as handled_by_name FROM bans b
+     LEFT JOIN admins a ON b.handled_by = a.id
+     WHERE b.handled_by = ? AND b.violation_level != 'admin_discipline' AND b.is_archived = 0
+     ORDER BY b.created_at DESC LIMIT 20`
+  ).bind(id).all<BanRow & { handled_by_name: string | null }>()
+  const bansWithStatus = bans.results.map(b => ({ ...b, status: computeStatus(b) }))
+
+  const disciplines = await c.env.DB.prepare(
+    `SELECT b.*, a.game_name as handled_by_name FROM bans b
+     LEFT JOIN admins a ON b.handled_by = a.id
+     WHERE b.steam_id = ? AND b.violation_level = 'admin_discipline'
+     ORDER BY b.created_at DESC LIMIT 20`
+  ).bind(admin.steam_id).all<BanRow & { handled_by_name: string | null }>()
+
+  const auditLogs = await c.env.DB.prepare(
+    'SELECT id, action, target_type, target_id, detail, created_at FROM audit_log WHERE admin_id = ? ORDER BY created_at DESC LIMIT 50'
+  ).bind(id).all<{ id: number; action: string; target_type: string; target_id: number | null; detail: string | null; created_at: string }>()
+
+  const banCount = bansWithStatus.length
+  const disciplineCount = disciplines.results.length
+  const levelOrder: Record<string, number> = { level1: 0, level2: 1, level3: 2, warning: 3, admin_discipline: 4 }
+  const sortedByLevel = [...bansWithStatus].sort((a, b) =>
+    (levelOrder[a.violation_level] ?? 99) - (levelOrder[b.violation_level] ?? 99)
+  )
+  const highestLevel = sortedByLevel[0]?.violation_level || ''
+  const auditLogCount = auditLogs.results.length
+
+  const profileData: AdminProfileData = {
+    id: admin.id, steam_id: admin.steam_id, username: admin.username,
+    game_name: admin.game_name, permission_group: admin.permission_group,
+    qq_name: admin.qq_name, position: admin.position, supervisor: admin.supervisor,
+    is_active: admin.is_active,
+    banCount, disciplineCount, highestLevel, auditLogCount,
+    bans: bansWithStatus.map(b => ({
+      id: b.id, nickname: b.nickname, reason: b.reason,
+      ban_time: b.ban_time, ban_duration: b.ban_duration,
+      violation_level: b.violation_level, status: b.status,
+    })),
+    disciplines: disciplines.results.map(d => ({
+      id: d.id, ban_duration: d.ban_duration, reason: d.reason,
+      ban_time: d.ban_time, handled_by_name: d.handled_by_name,
+      co_handlers: d.co_handlers, notes: d.notes,
+    })),
+    auditLogs: auditLogs.results,
+  }
+
+  return c.html(Layout({
+    title: `${admin.game_name || admin.username} - 管理员档案`,
+    currentPath: '/',
+    children: AdminProfilePage(profileData),
   }))
 })
 
