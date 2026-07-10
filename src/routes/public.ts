@@ -334,7 +334,7 @@ publicRoutes.get('/search', async (c) => {
 
     const countResult = await c.env.DB.prepare(
 
-      `SELECT COUNT(*) as total FROM bans b WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\' OR b.steam_id LIKE ? ESCAPE '\' OR b.ip_address LIKE ? ESCAPE '\' OR b.reason LIKE ? ESCAPE '\' OR b.notes LIKE ? ESCAPE '\')`
+      `SELECT COUNT(*) as total FROM bans b WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\\' OR b.steam_id LIKE ? ESCAPE '\\' OR b.ip_address LIKE ? ESCAPE '\\' OR b.reason LIKE ? ESCAPE '\\' OR b.notes LIKE ? ESCAPE '\\')`
 
     ).bind(pattern, pattern, pattern, pattern, pattern).first<{ total: number }>()
 
@@ -350,7 +350,7 @@ publicRoutes.get('/search', async (c) => {
 
         ' LEFT JOIN admins a ON b.handled_by = a.id' +
 
-        ` WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\' OR b.steam_id LIKE ? ESCAPE '\' OR b.ip_address LIKE ? ESCAPE '\' OR b.reason LIKE ? ESCAPE '\' OR b.notes LIKE ? ESCAPE '\')` +
+        ` WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\\' OR b.steam_id LIKE ? ESCAPE '\\' OR b.ip_address LIKE ? ESCAPE '\\' OR b.reason LIKE ? ESCAPE '\\' OR b.notes LIKE ? ESCAPE '\\')` +
 
         ' ORDER BY b.created_at DESC LIMIT ? OFFSET ?'
 
@@ -388,7 +388,7 @@ publicRoutes.get('/search', async (c) => {
 
        FROM bans b
 
-       WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\' OR b.steam_id LIKE ? ESCAPE '\')
+       WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\\' OR b.steam_id LIKE ? ESCAPE '\\')
 
        GROUP BY b.steam_id
 
