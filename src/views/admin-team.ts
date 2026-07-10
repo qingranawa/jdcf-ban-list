@@ -14,8 +14,8 @@ export function AdminTeamPage(props: { admins: Admin[] }) {
     <button class="cyber-btn cyber-btn-primary" onclick="openAddSheet()">${icon('bolt',16)} 新增</button>
   </div>
 
-  <div class="cyber-table-wrap">
-  <table class="cyber-table">
+  <div class="glass-table-wrap"><div class="glass-table-inner">
+  <table class="glass-table">
     <thead><tr>
       <th>ID</th><th>Steam ID</th><th>用户名</th><th>权限组</th><th>游戏名</th><th>QQ</th><th>任职</th><th>状态</th><th style="text-align:right;padding-right:var(--spacing-md);">操作</th>
     </tr></thead>
@@ -38,7 +38,7 @@ export function AdminTeamPage(props: { admins: Admin[] }) {
       </tr>`)}
     </tbody>
   </table>
-  </div>
+  </div></div>
 
   <!-- Add/Edit Bottom Sheet -->
   <div id="adminSheet" class="cyber-sheet-overlay" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeSheet()">

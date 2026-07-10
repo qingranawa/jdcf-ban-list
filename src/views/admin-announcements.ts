@@ -45,8 +45,8 @@ export function AdminAnnouncementsPage(props: {
     <button class="cyber-btn cyber-btn-primary" onclick="openAnnounceModal()">${icon('bolt', 16)} 新建公告</button>
   </div>
 
-  <div class="cyber-table-wrap">
-  <table class="cyber-table">
+  <div class="glass-table-wrap"><div class="glass-table-inner">
+  <table class="glass-table">
     <thead><tr>
       <th>ID</th><th>标题</th><th>类型</th><th>状态</th><th>定时发布</th><th>阅读</th><th style="text-align:right;padding-right:var(--spacing-md);">操作</th>
     </tr></thead>
@@ -72,12 +72,12 @@ export function AdminAnnouncementsPage(props: {
       </tr>`)}
     </tbody>
   </table>
-  </div>
+  </div></div>
 
   ${totalPages > 1 ? html`
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--spacing-lg);">
     <span style="font-size:13px;color:var(--label-3);">共 ${props.total} 条，第 ${page}/${totalPages} 页</span>
-    <div class="cyber-pagination" style="margin-top:0;">
+    <div class="glass-pagination" style="margin-top:0;">
       ${page > 1 ? html`<a href="${pageUrl(page - 1)}">←</a>` : ''}
       ${genPages(page, totalPages).map(p => typeof p === 'number' ? html`
         ${p === page ? html`<span class="current" aria-current="page">${p}</span>` : html`<a href="${pageUrl(p)}">${p}</a>`}

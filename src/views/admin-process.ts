@@ -12,16 +12,16 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
   <h2 class="page-title" style="margin-bottom:var(--spacing-lg);">批量处理</h2>
 
   <div style="display:flex;gap:var(--spacing-lg);flex-wrap:wrap;margin-bottom:var(--spacing-lg);">
-    <div class="cyber-card" style="flex:1;min-width:200px;padding:var(--spacing-lg);display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;">
+    <div class="glass-card" style="flex:1;min-width:200px;padding:var(--spacing-lg);display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;">
       <div>
         <div style="font-family:var(--sans);font-size:14px;color:var(--label-2);text-transform:uppercase;letter-spacing:.05em;">待处理 2级</div>
-        <div id="l2Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--magenta);">${props.level2Bans.length}</div>
+        <div id="l2Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--blue);">${props.level2Bans.length}</div>
       </div>
       <button class="cyber-btn cyber-btn-primary" onclick="downgradeAllL2()" id="downgradeBtn" ${props.level2Bans.length === 0 ? 'disabled' : ''}>
         一键降级2级
       </button>
     </div>
-    <div class="cyber-card" style="flex:1;min-width:200px;padding:var(--spacing-lg);display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;">
+    <div class="glass-card" style="flex:1;min-width:200px;padding:var(--spacing-lg);display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;">
       <div>
         <div style="font-family:var(--sans);font-size:14px;color:var(--label-2);text-transform:uppercase;letter-spacing:.05em;">待处理 3级</div>
         <div id="l3Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--cyan);">${props.level3Bans.length}</div>
@@ -34,12 +34,12 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
 
   <div style="display:grid;gap:var(--spacing-lg);grid-template-columns:1fr 1fr;">
     <div id="level2Table">
-      <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--magenta);margin-bottom:var(--spacing-sm);">2级违规（降级为 3 级）</div>
-      <div class="cyber-table-wrap">${renderTable(props.level2Bans, 'magenta')}</div>
+      <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--blue);margin-bottom:var(--spacing-sm);">2级违规（降级为 3 级）</div>
+      <div class="glass-table-wrap"><div class="glass-table-inner">${renderTable(props.level2Bans, 'magenta')}</div></div>
     </div>
     <div id="level3Table">
       <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--cyan);margin-bottom:var(--spacing-sm);">3级违规（删除）</div>
-      <div class="cyber-table-wrap">${renderTable(props.level3Bans, 'cyan')}</div>
+      <div class="glass-table-wrap"><div class="glass-table-inner">${renderTable(props.level3Bans, 'cyan')}</div></div>
     </div>
   </div>
 
@@ -143,7 +143,7 @@ function showToast(t, type) {
 function renderTable(bans: ProcBan[], accent: string): ReturnType<typeof html> {
   if (bans.length === 0) return html`<div style="padding:2rem;text-align:center;color:var(--label-3);font-size:14px;">暂无待处理记录</div>`
   return html`
-<table class="cyber-table">
+<table class="glass-table">
   <thead><tr>
     <th style="width:32px;"><input type="checkbox" style="accent-color:var(--cyan);width:14px;height:14px;" onchange="toggleTableRows(this)"></th>
     <th>昵称</th><th>Steam ID</th><th>原因</th><th>时长</th><th>时间</th>

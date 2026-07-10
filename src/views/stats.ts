@@ -24,7 +24,7 @@ export function StatsPage(props: StatsData) {
   return html`
 <div class="cyber-page" style="max-width:900px;margin:0 auto;padding:var(--spacing-xl) var(--spacing-md) var(--spacing-lg);">
 
-  <h1 class="cyber-title" style="font-size:32px;margin-bottom:var(--spacing-xs);">统计信息</h1>
+  <h1 class="page-title" style="font-size:32px;margin-bottom:var(--spacing-xs);">统计信息</h1>
   <p style="font-size:15px;color:var(--label-2);margin-bottom:var(--spacing-lg);">全服封禁数据概览（已归档除外）</p>
 
   <style>
@@ -159,11 +159,11 @@ export function StatsPage(props: StatsData) {
   </script>
 
   <div class="charts-row">
-    <div class="chart-container cyber-card" style="padding:var(--spacing-md);max-width:360px;">
+    <div class="chart-container glass-card" style="padding:var(--spacing-md);max-width:360px;">
       <div class="chart-section-title">违规等级占比</div>
       <canvas id="levelPieChart"></canvas>
     </div>
-    <div class="chart-container cyber-card" style="padding:var(--spacing-md);flex:1;">
+    <div class="chart-container glass-card" style="padding:var(--spacing-md);flex:1;">
       <div class="chart-section-title">违规等级分布</div>
       <canvas id="levelBarChart"></canvas>
     </div>
@@ -171,39 +171,39 @@ export function StatsPage(props: StatsData) {
 
   <div class="chart-section-title" style="margin-top:var(--spacing-lg);">封禁高峰时段</div>
   <div class="stats-cards-row">
-    <div class="cyber-stat-card">
-      <div class="cyber-stat-value stat-cyan">${props.topDay ? escHtml(props.topDay.label) : '—'}</div>
-      <div class="cyber-stat-label">封禁最多的日 · ${props.topDay ? props.topDay.count + ' 条' : '暂无数据'}</div>
+    <div class="glass-card stat-card" style="padding:var(--spacing-lg);text-align:center;">
+      <div class="stat-value" style="font-size:32px;font-weight:700;color:var(--cyan);">${props.topDay ? escHtml(props.topDay.label) : '—'}</div>
+      <div class="stat-label" style="font-size:12px;color:var(--label-3);margin-top:4px;">封禁最多的日 · ${props.topDay ? props.topDay.count + ' 条' : '暂无数据'}</div>
     </div>
-    <div class="cyber-stat-card">
-      <div class="cyber-stat-value stat-magenta">${props.topMonth ? escHtml(props.topMonth.label) : '—'}</div>
-      <div class="cyber-stat-label">封禁最多的月 · ${props.topMonth ? props.topMonth.count + ' 条' : '暂无数据'}</div>
+    <div class="glass-card stat-card" style="padding:var(--spacing-lg);text-align:center;">
+      <div class="stat-value" style="font-size:32px;font-weight:700;color:var(--blue);">${props.topMonth ? escHtml(props.topMonth.label) : '—'}</div>
+      <div class="stat-label" style="font-size:12px;color:var(--label-3);margin-top:4px;">封禁最多的月 · ${props.topMonth ? props.topMonth.count + ' 条' : '暂无数据'}</div>
     </div>
-    <div class="cyber-stat-card">
-      <div class="cyber-stat-value stat-amber">${props.topYear ? escHtml(props.topYear.label) : '—'}</div>
-      <div class="cyber-stat-label">封禁最多的年 · ${props.topYear ? props.topYear.count + ' 条' : '暂无数据'}</div>
+    <div class="glass-card stat-card" style="padding:var(--spacing-lg);text-align:center;">
+      <div class="stat-value" style="font-size:32px;font-weight:700;color:var(--warning);">${props.topYear ? escHtml(props.topYear.label) : '—'}</div>
+      <div class="stat-label" style="font-size:12px;color:var(--label-3);margin-top:4px;">封禁最多的年 · ${props.topYear ? props.topYear.count + ' 条' : '暂无数据'}</div>
     </div>
   </div>
 
   <div class="chart-section-title" style="margin-top:var(--spacing-lg);">封禁时长偏爱占比</div>
-  <div class="chart-container cyber-card" style="padding:var(--spacing-md);max-width:360px;">
+  <div class="chart-container glass-card" style="padding:var(--spacing-md);max-width:360px;">
     <canvas id="durationChart"></canvas>
   </div>
 
   <div class="chart-section-title" style="margin-top:var(--spacing-lg);">操作员封禁排行</div>
-  <div class="chart-container cyber-card" style="padding:var(--spacing-md);">
+  <div class="chart-container glass-card" style="padding:var(--spacing-md);">
     <div id="operatorChartFallback" class="no-data" style="${props.topOperators.length ? 'display:none' : ''}">暂无数据</div>
     <canvas id="operatorChart"></canvas>
   </div>
 
   <div class="chart-section-title" style="margin-top:var(--spacing-lg);">近30天封禁趋势</div>
-  <div class="chart-container cyber-card" style="padding:var(--spacing-md);">
+  <div class="chart-container glass-card" style="padding:var(--spacing-md);">
     <div id="trendChartFallback" class="no-data" style="${props.dailyTrend.length ? 'display:none' : ''}">暂无数据</div>
     <canvas id="trendChart"></canvas>
   </div>
 
   <div class="chart-section-title" style="margin-top:var(--spacing-lg);">封禁时长分类统计</div>
-  <div class="chart-container cyber-card" style="padding:var(--spacing-md);">
+  <div class="chart-container glass-card" style="padding:var(--spacing-md);">
     <div id="durationCatChartFallback" class="no-data" style="${props.durationCategories.length ? 'display:none' : ''}">暂无数据</div>
     <canvas id="durationCatChart"></canvas>
   </div>

@@ -41,6 +41,16 @@ export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings:
     }
   }
 
+  // * query param 最后兜底（登录后跳转，确保即使 fetch 的 Set-Cookie 没生效也能保持登录）
+  let fromQuery = false
+  if (!token) {
+    const queryToken = c.req.query('token')
+    if (queryToken) {
+      token = queryToken
+      fromQuery = true
+    }
+  }
+
   if (!token) {
     const accept = c.req.header('Accept') || ''
     if (accept.includes('text/html')) return c.redirect('/login')
@@ -60,6 +70,10 @@ export const authMiddleware = createMiddleware<{ Variables: Variables; Bindings:
     c.set('permissionGroup', payload.permissionGroup as string)
     c.set('gameName', (payload.gameName as string) || '')
     await next()
+    // * 如果 token 来自 query param，在响应里设置 cookie 以便后续请求自动携带
+    if (fromQuery && token) {
+      c.res.headers.set('Set-Cookie', `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800`)
+    }
   } catch {
     // * JWT 过期或签名不匹配
     const accept = c.req.header('Accept') || ''

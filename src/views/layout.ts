@@ -38,41 +38,43 @@ ${Styles()}
   <div class="mesh-sphere"></div>
   <div class="mesh-sphere"></div>
 </div>
+<div class="bg-texture"></div>
+
+<!-- Floating Island Navigation -->
+<nav class="nav-island" id="navIsland" aria-label="主导航">
+  <span class="nav-logo">✦ JDCF</span>
+  <ul class="nav-links">
+    <li><a href="/" class="${isActive('/') && !isActive('/team') ? 'active' : ''}" ${isActive('/') && !isActive('/team') ? 'aria-current="page"' : ''}>首页</a></li>
+    <li><a href="/announcements" class="${isActive('/announcements') ? 'active' : ''}" ${isActive('/announcements') ? 'aria-current="page"' : ''}>公告</a></li>
+    <li><a href="/team" class="${isActive('/team') ? 'active' : ''}" ${isActive('/team') ? 'aria-current="page"' : ''}>管理组</a></li>
+    <li><a href="/stats" class="${isActive('/stats') ? 'active' : ''}" ${isActive('/stats') ? 'aria-current="page"' : ''}>统计</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="/login" class="btn-ghost" id="loginLink">登录</a>
+    <a href="/login" class="btn-primary-island" id="adminLink">
+      管理后台
+      <span class="icon-wrap">→</span>
+    </a>
+  </div>
+  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="菜单"><span></span><span></span></button>
+</nav>
+
+<!-- Mobile Menu Overlay -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="menu-close" onclick="toggleMobileMenu()">✕</button>
+  <a href="/" onclick="toggleMobileMenu()">首页</a>
+  <a href="/announcements" onclick="toggleMobileMenu()">公告</a>
+  <a href="/team" onclick="toggleMobileMenu()">管理组</a>
+  <a href="/stats" onclick="toggleMobileMenu()">统计</a>
+  <a href="/login" id="mobileLogin" onclick="toggleMobileMenu()">登录</a>
+  <a href="/admin/bans" id="mobileAdmin" onclick="toggleMobileMenu()">管理后台</a>
+</div>
 
 <main class="cyber-main cyber-main-public">
   ${props.children}
 </main>
 
-<nav class="cyber-nav" aria-label="主导航">
-  <div class="nav-brand">
-    <span class="nav-brand-text">鸡蛋肠粉服务器</span>
-    <span class="nav-brand-emoji">⌁</span>
-    <span class="nav-brand-sub">封禁查询</span>
-  </div>
-  <div class="nav-links">
-    <a href="/" class="${isActive('/') && !isActive('/team') ? 'active' : ''}" ${isActive('/') && !isActive('/team') ? 'aria-current="page"' : ''}>
-      ${icon('house-fill', 20)}<span>首页</span>
-    </a>
-    <a href="/announcements" class="${isActive('/announcements') ? 'active' : ''}" ${isActive('/announcements') ? 'aria-current="page"' : ''}>
-      ${icon('bell', 20)}<span>公告</span>
-    </a>
-    <a href="/team" class="${isActive('/team') ? 'active' : ''}" ${isActive('/team') ? 'aria-current="page"' : ''}>
-      ${icon('users', 20)}<span>管理组</span>
-    </a>
-    <a href="/stats" class="${isActive('/stats') ? 'active' : ''}" ${isActive('/stats') ? 'aria-current="page"' : ''}>
-      ${icon('chart.bar', 20)}<span>统计信息</span>
-    </a>
-    <a href="/account" id="accountTab" style="display:none;">
-      ${icon('gear', 20)}<span>账户</span>
-    </a>
-    <a href="#" id="addBanTab" style="display:none;" onclick="openGlobalBanSheet();return false;">
-      ${icon('bolt', 20)}<span>添加封禁</span>
-    </a>
-    <a href="/login" id="loginTab">
-      ${icon('shield', 20)}<span>登录</span>
-    </a>
-  </div>
-</nav>
+<footer class="footer">鸡蛋肠粉服务器 · JDCF 封禁管理系统</footer>
 
 <!-- Global Add Ban Modal -->
 <div id="globalBanSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="新增封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeGlobalBanSheet()">
@@ -137,12 +139,13 @@ ${Styles()}
     setTimeout(function() { t.classList.remove('show'); }, 3000);
   });
 
-  // Scroll-based effects
   var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Scroll-based effects (only when no reduced motion)
   if (!prefersReducedMotion) {
+    // Scroll progress bar
     var progressBar = document.getElementById('scroll-progress');
     var meshBg = document.querySelector('.mesh-bg');
-    var bgImage = document.querySelector('.bg-image');
     var ticking = false;
     function onScroll() {
       var scrollY = window.scrollY;
@@ -150,7 +153,6 @@ ${Styles()}
       var p = Math.min(scrollY / maxScroll, 1);
       progressBar.style.transform = 'scaleX(' + p + ')';
       meshBg.style.transform = 'translateY(' + (p * -15) + 'px)';
-      bgImage.style.transform = 'translateY(' + (p * -8) + 'px)';
     }
     window.addEventListener('scroll', function() {
       if (!ticking) {
@@ -158,18 +160,74 @@ ${Styles()}
         ticking = true;
       }
     });
+
+    // Floating Island Nav — scroll shrink
+    var navIsland = document.getElementById('navIsland');
+    if (navIsland) {
+      window.addEventListener('scroll', function() {
+        navIsland.classList.toggle('scrolled', window.scrollY > 60);
+      }, {passive:true});
+    }
   }
 
+  // Mobile menu toggle
+  function toggleMobileMenu() {
+    document.getElementById('mobileMenu').classList.toggle('open');
+    document.getElementById('hamburger').classList.toggle('open');
+  }
+
+  // IntersectionObserver Scroll Reveal (works with reduced-motion too, but CSS handles the visibility)
+  var revealObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        var el = entry.target;
+        var delay = parseInt(el.dataset.delay) || 0;
+        setTimeout(function() { el.classList.add('visible'); }, delay);
+        revealObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.10, rootMargin: '0px 0px -40px 0px' });
+
+  function observeReveals() {
+    var revealElements = document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-blur, .stagger-children');
+    revealElements.forEach(function(el) { revealObserver.observe(el); });
+  }
+  observeReveals();
+
+  // HTMX after swap — re-observe new reveal elements
+  document.body.addEventListener('htmx:afterSwap', function() {
+    observeReveals();
+  });
+
+  // Background parallax enhancement
+  if (!prefersReducedMotion) {
+    var bgImage = document.querySelector('.bg-image');
+    if (bgImage) {
+      window.addEventListener('scroll', function() {
+        var y = window.scrollY;
+        var maxOffset = window.innerHeight * 0.08;
+        var offset = Math.min(y * 0.15, maxOffset);
+        bgImage.style.transform = 'translateY(-' + offset + 'px)';
+      }, {passive:true});
+    }
+  }
+
+  // JWT login state — update nav links
   var jwt = localStorage.getItem('jwt');
-  var accountTab = document.getElementById('accountTab');
-  var addBanTab = document.getElementById('addBanTab');
-  var loginTab = document.getElementById('loginTab');
+  var loginLink = document.getElementById('loginLink');
+  var adminLink = document.getElementById('adminLink');
+  var mobileLogin = document.getElementById('mobileLogin');
   if (jwt) {
     try {
       var payload = JSON.parse(atob(jwt.split('.')[1]));
-      accountTab.style.display = '';
-      loginTab.style.display = 'none';
-      if (payload.permissionGroup) addBanTab.style.display = '';
+      loginLink.textContent = '账户';
+      loginLink.href = '/account';
+      adminLink.href = '/admin/bans';
+      mobileLogin.textContent = '账户';
+      mobileLogin.href = '/account';
+      if (payload.permissionGroup) {
+        document.getElementById('mobileAdmin').style.display = '';
+      }
     } catch(e) {}
   }
 })();
@@ -215,7 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
-})();
 </script>
 </body>
 </html>`

@@ -37,7 +37,7 @@ export function AdminLayout(props: AdminLayoutProps) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>${props.title} — JDCF 后台</title>
+<title>${props.title} — 鸡蛋肠粉后台</title>
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23000' stroke='%2300ffff' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%2300ffff' font-family='monospace' font-weight='bold'%3EJ%3C/text%3E%3C/svg%3E"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -53,17 +53,17 @@ ${Styles()}
   <div class="mesh-sphere"></div>
 </div>
 
-<button id="menuToggle" aria-label="切换导航菜单" onclick="document.getElementById('sidebar').classList.toggle('open')" style="position:fixed;top:12px;left:12px;z-index:300;background:var(--bg-elevated);border:1px solid var(--separator);border-radius:var(--radius-sm);padding:8px;color:var(--label-1);display:none;cursor:pointer;">
+<button id="menuToggle" aria-label="切换导航菜单" onclick="document.getElementById('sidebar').classList.toggle('open')" style="position:fixed;top:12px;left:12px;z-index:300;background:var(--bg-elevated);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px;color:var(--label-1);display:none;cursor:pointer;">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
 </button>
 
 <aside class="cyber-sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <a href="/" style="color:inherit;text-decoration:none;">JDCF<span style="color:var(--magenta);">/</span>ADMIN</a>
+    <a href="/" style="color:inherit;text-decoration:none;">鸡蛋肠粉<span style="color:var(--magenta);font-size:14px;margin-left:8px;font-weight:600;">后台</span></a>
   </div>
-  <a href="/" class="sidebar-link" aria-label="返回主页" style="margin-bottom:var(--spacing-xs);font-size:13px;gap:8px;">
-    ${icon('house',14)} 返回主页
-  </a>
+      <a href="/" class="sidebar-link" style="margin:4px 10px 8px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.03);color:var(--label-3);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:all 0.2s;">
+      ← 返回首页
+    </a>
   <nav class="sidebar-nav" aria-label="后台导航">
     ${navItems.map(n => html`
     <a href="${n.path}" class="sidebar-link ${isActive(n.path) ? 'active' : ''}" ${isActive(n.path) ? 'aria-current="page"' : ''}>
@@ -77,13 +77,13 @@ ${Styles()}
       </div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${adminName}</div>
-        <div style="font-size:11px;color:var(--label-3);">${adminGroup}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3);">${adminGroup}</div>
       </div>
     </a>
   </div>
 </aside>
 
-<main class="cyber-page" style="flex:1;min-width:0;padding:var(--spacing-lg);position:relative;">
+<main style="flex:1;min-width:0;padding:32px;position:relative;">
   ${props.children}
 </main>
 
@@ -96,8 +96,6 @@ ${Styles()}
       img.src = url;
     });
   });
-
-  // * 服务端 authMiddleware 已通过 cookie 验证，此处只做 UI 适配
 
   var menuToggle = document.getElementById('menuToggle');
   if (window.innerWidth <= 768) {
@@ -112,6 +110,23 @@ ${Styles()}
     }
   });
 })();
+
+  // Background parallax
+  var bgImg = document.querySelector('.bg-image');
+  if (bgImg) {
+    window.addEventListener('scroll', function() {
+      var y = window.scrollY;
+      var offset = Math.min(y * 0.1, window.innerHeight * 0.05);
+      bgImg.style.transform = 'translateY(-' + offset + 'px)';
+    }, {passive:true});
+  }
+
+  // Scroll reveal — make visible on load
+  requestAnimationFrame(function() {
+    document.querySelectorAll('.reveal, .reveal-blur, .reveal-scale').forEach(function(el) {
+      el.classList.add('visible');
+    });
+  });
 </script>
 </body>
 </html>`

@@ -5,6 +5,7 @@ import { verify } from 'hono/jwt'
 import type { Env, BanRow, AdminRow, AnnouncementRow } from '../db'
 import { Layout } from '../views/layout'
 import { HomePage, BanTable } from '../views/home'
+import { SearchPage } from '../views/search'
 import { TeamPage } from '../views/team'
 import { StatsPage, type StatsData } from '../views/stats'
 import { fmtDuration, categorizeDuration, durCatColors, fmtDate } from '../helpers/format'
@@ -141,6 +142,43 @@ publicRoutes.get('/', async (c) => {
   }))
 })
 
+// ── 搜索页面 ──
+publicRoutes.get('/search', async (c) => {
+  const q = c.req.query('q') || ''
+  const page = Math.max(1, parseInt(c.req.query('page') || '1'))
+  const perPage = Math.min(100, Math.max(10, parseInt(c.req.query('per_page') || '25')))
+  const limit = perPage
+  const offset = (page - 1) * limit
+
+  let results = []
+  let total = 0
+
+  if (q) {
+    const escaped = q.replace(/[%_\\]/g, '\\$&')
+    const pattern = '%' + escaped + '%'
+
+    const countResult = await c.env.DB.prepare(
+      'SELECT COUNT(*) as total FROM bans b WHERE b.is_archived = 0 AND (b.nickname LIKE ? ESCAPE \'\\\' OR b.steam_id LIKE ? ESCAPE \'\\\' OR b.ip_address LIKE ? ESCAPE \'\\\' OR b.reason LIKE ? ESCAPE \'\\\' OR b.notes LIKE ? ESCAPE \'\\\')'
+    ).bind(pattern, pattern, pattern, pattern, pattern).first()
+    total = countResult?.total || 0
+
+    const rows = await c.env.DB.prepare(
+      'SELECT b.*, a.game_name as handled_by_name FROM bans b' +
+      ' LEFT JOIN admins a ON b.handled_by = a.id' +
+      ' WHERE b.is_archived = 0 AND (b.nickname LIKE ? ESCAPE \'\\\' OR b.steam_id LIKE ? ESCAPE \'\\\' OR b.ip_address LIKE ? ESCAPE \'\\\' OR b.reason LIKE ? ESCAPE \'\\\' OR b.notes LIKE ? ESCAPE \'\\\')' +
+      ' ORDER BY b.created_at DESC LIMIT ? OFFSET ?'
+    ).bind(pattern, pattern, pattern, pattern, pattern, limit, offset).all()
+    results = rows.results.map((b) => ({ ...b, status: computeStatus(b) }))
+  }
+
+  const totalPages = Math.ceil(total / limit) || 1
+
+  return c.html(Layout({
+    title: q ? (q + ' - 搜索结果') : '搜索',
+    currentPath: '/',
+    children: SearchPage({ query: q, results, total, page, totalPages, perPage }),
+  }))
+})
 publicRoutes.get('/team', async (c) => {
   const result = await c.env.DB.prepare(
     'SELECT steam_id, game_name, username, qq_name, permission_group, position, supervisor FROM admins WHERE is_active = 1 ORDER BY id ASC'

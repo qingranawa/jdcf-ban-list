@@ -30,8 +30,6 @@ function typeBadge(t: string): string {
   return typeBadgeClass[t] || 'cyber-badge-cyan'
 }
 
-const btnStyle = 'padding:6px 16px;border:none;background:transparent;font-family:var(--sans);font-size:13px;font-weight:500;color:var(--label-3);cursor:pointer;transition:all .2s;text-decoration:none;'
-const btnActiveStyle = 'background:var(--magenta);color:#000;font-weight:600;'
 
 export function AnnouncementsPage(props: {
   announcements: AnnouncementItem[]
@@ -62,42 +60,44 @@ export function AnnouncementsPage(props: {
   }
 
   return html`
-<div class="cyber-page" style="max-width:800px;margin:0 auto;padding:var(--spacing-lg) var(--spacing-md);">
+<div style="max-width:740px;margin:0 auto;padding:var(--spacing-xl) var(--spacing-md) var(--spacing-lg);">
 
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
-    <h1 class="cyber-title" style="font-size:32px;">📢 公告</h1>
+    <h1 class="page-title" style="font-size:32px;">📢 公告</h1>
     ${props.adminGroup ? html`<button class="cyber-btn cyber-btn-primary" onclick="openAnnounceModal()">${icon('bolt', 16)} 添加公告</button>` : ''}
   </div>
 
-  <div class="cyber-segmented" style="margin-bottom:var(--spacing-lg);flex-wrap:wrap;">
-    <a href="/announcements" class="${!props.currentType ? 'active' : ''}" style="${btnStyle}${!props.currentType ? btnActiveStyle : ''}">全部</a>
+  <div class="filter-group" style="margin-bottom:var(--spacing-lg);flex-wrap:wrap;">
+    <a href="/announcements" class="filter-pill ${!props.currentType ? 'active' : ''}">全部</a>
     ${types.map(t => html`
-    <a href="/announcements?type=${t}" class="${props.currentType === t ? 'active' : ''}" style="${btnStyle}${props.currentType === t ? btnActiveStyle : ''}">${announcementTypeLabel(t)}</a>
+    <a href="/announcements?type=${t}" class="filter-pill ${props.currentType === t ? 'active' : ''}">${announcementTypeLabel(t)}</a>
     `)}
   </div>
 
   ${props.announcements.length === 0 ? html`
-  <p style="text-align:center;padding:3rem 1rem;color:var(--label-3);font-size:15px;">暂无公告</p>
+  <div style="text-align:center;padding:4rem 1rem;color:rgba(255,255,255,0.25);font-size:15px;font-family:var(--sans);">还没有公告喵～</div>
   ` : props.announcements.map(a => html`
-  <div class="cyber-card" style="margin-bottom:var(--spacing-md);">
-    <div style="margin-bottom:6px;">
+  <div class="glass-card announce-card" style="margin-bottom:var(--spacing-md);padding:var(--spacing-lg);">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--spacing-sm);">
+      <span class="badge ${typeBadge(a.type).replace('cyber-badge-', 'badge-')}" style="flex-shrink:0;">${announcementTypeLabel(a.type)}</span>
+      <div style="display:flex;gap:var(--spacing-sm);font-size:12px;color:rgba(255,255,255,0.3);font-family:var(--mono);flex-shrink:0;">
+        <span>${fmtDate(a.created_at)}</span>
+      </div>
+    </div>
+    <div style="margin-bottom:8px;">
       ${a.is_pinned ? html`<span style="margin-right:6px;">📌</span>` : ''}
-      <a href="/announcements/${a.id}" style="color:var(--label-1);text-decoration:none;font-weight:600;font-size:16px;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(a.title)}</a>
+      <a href="/announcements/${a.id}" style="color:var(--label-1);text-decoration:none;font-weight:600;font-size:17px;letter-spacing:-0.3px;transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color=''">${escHtml(a.title)}</a>
     </div>
-    ${a.subtitle ? html`<div style="font-size:13px;color:var(--label-3);margin-bottom:8px;">${escHtml(a.subtitle)}</div>` : ''}
-    <div style="margin-bottom:10px;">
-      <span class="cyber-badge ${typeBadge(a.type)}">${announcementTypeLabel(a.type)}</span>
-    </div>
-    ${a.citation ? html`<blockquote style="border-left:3px solid var(--cyan);padding:8px 12px;margin:8px 0;color:var(--label-2);font-style:italic;font-size:14px;">${escHtml(a.citation)}</blockquote>` : ''}
-    <div style="font-size:12px;color:var(--label-3);display:flex;gap:var(--spacing-sm);">
-      <span>${fmtDate(a.created_at)}</span>
+    ${a.subtitle ? html`<div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:10px;line-height:1.5;">${escHtml(a.subtitle)}</div>` : ''}
+    ${a.citation ? html`<blockquote style="border-left:3px solid rgba(0,255,255,0.3);padding:10px 14px;margin:10px 0;background:rgba(0,255,255,0.03);border-radius:8px;color:var(--label-2);font-style:italic;font-size:14px;line-height:1.6;">${escHtml(a.citation)}</blockquote>` : ''}
+    <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-sm);padding-top:var(--spacing-sm);border-top:1px solid rgba(255,255,255,0.04);font-size:12px;color:rgba(255,255,255,0.25);">
       <span>${escHtml(a.created_by_name)}</span>
     </div>
   </div>
   `)}
 
   ${props.totalPages > 1 ? html`
-  <div class="cyber-pagination" style="margin-top:var(--spacing-lg);">
+  <div class="glass-pagination" style="margin-top:var(--spacing-lg);">
     ${props.page > 1 ? html`<a href="${qs(props.currentType, props.page - 1)}">←</a>` : ''}
     ${genPages(props.page, props.totalPages).map(p => typeof p === 'number' ? html`
       ${p === props.page ? html`<span class="current" aria-current="page">${p}</span>` : html`<a href="${qs(props.currentType, p)}">${p}</a>`}`
@@ -125,24 +125,24 @@ export function AnnouncementDetailPage(props: {
   return html`
 <div class="cyber-page" style="max-width:800px;margin:0 auto;padding:var(--spacing-lg) var(--spacing-md);">
 
-  <a href="/announcements" style="color:var(--cyan);text-decoration:none;font-size:14px;display:inline-block;margin-bottom:var(--spacing-md);">← 返回公告列表</a>
+  <a href="/announcements" style="color:rgba(0,255,255,0.5);text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px;margin-bottom:var(--spacing-lg);transition:color 0.2s;" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='rgba(0,255,255,0.5)'">← 返回公告列表</a>
 
   <div style="margin-bottom:var(--spacing-md);">
     ${a.is_pinned ? html`<span style="margin-right:8px;">📌</span>` : ''}
-    <h1 style="display:inline;font-size:24px;color:#fff;font-weight:700;">${escHtml(a.title)}</h1>
+    <h1 style="display:inline;font-size:28px;letter-spacing:-0.5px;background:linear-gradient(135deg,#fff 60%,rgba(255,255,255,0.5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;">${escHtml(a.title)}</h1>
   </div>
 
   ${a.subtitle ? html`<div style="font-size:14px;color:var(--label-3);margin-bottom:var(--spacing-sm);">${escHtml(a.subtitle)}</div>` : ''}
 
   <div style="margin-bottom:var(--spacing-sm);">
-    <span class="cyber-badge ${typeBadge(a.type)}">${announcementTypeLabel(a.type)}</span>
+    <span class="badge ${typeBadge(a.type).replace('cyber-badge-', 'badge-')}">${announcementTypeLabel(a.type)}</span>
   </div>
 
   ${a.citation ? html`<blockquote style="border-left:3px solid var(--cyan);padding:8px 12px;margin:12px 0;color:var(--label-2);font-style:italic;font-size:14px;">${escHtml(a.citation)}</blockquote>` : ''}
 
   <div id="announceBody" style="line-height:1.7;color:var(--label-2);font-size:15px;margin:var(--spacing-lg) 0;">${escHtml(a.body)}</div>
 
-  <div style="font-size:12px;color:var(--label-3);display:flex;gap:var(--spacing-sm);border-top:1px solid var(--separator);padding-top:var(--spacing-md);">
+  <div style="font-size:12px;color:rgba(255,255,255,0.3);display:flex;gap:var(--spacing-md);border-top:1px solid rgba(255,255,255,0.06);padding-top:var(--spacing-md);margin-top:var(--spacing-xl);">
     <span>${escHtml(a.created_by_name)}</span>
     <span>${fmtDate(a.created_at)}</span>
     ${a.publish_at ? html`<span>发布于 ${fmtDate(a.publish_at)}</span>` : ''}

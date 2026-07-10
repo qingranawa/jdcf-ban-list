@@ -7,12 +7,12 @@ type Admin = { steam_id: string; username: string; permission_group: string; gam
 export function TeamPage(props: { admins: Admin[] }) {
   return html`
 <div style="max-width:800px;margin:0 auto;padding:var(--spacing-xl) var(--spacing-md) var(--spacing-lg);">
-  <h1 class="cyber-title" style="font-size:34px;">管理组</h1>
+  <h1 class="page-title" style="font-size:34px;">管理组</h1>
   <p style="font-size:15px;color:var(--label-2);margin-top:var(--spacing-xs);">CN 鸡蛋肠粉服务器 · 管理员信息</p>
 
   <div style="margin-top:var(--spacing-lg);display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md);">
     ${props.admins.length === 0 ? html`<div style="text-align:center;padding:3rem;color:var(--label-3);font-size:15px;grid-column:1/-1;">暂无管理员信息</div>` : props.admins.map(a => html`
-    <div class="cyber-card" style="padding:var(--spacing-lg);aspect-ratio:4/3;display:flex;flex-direction:column;gap:var(--spacing-sm);">
+    <div class="glass-card" style="padding:var(--spacing-lg);aspect-ratio:4/3;display:flex;flex-direction:column;gap:var(--spacing-sm);">
       <div style="display:flex;align-items:center;gap:var(--spacing-sm);">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--magenta));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#000;flex-shrink:0;font-family:var(--sans);">
           ${(a.game_name || a.username).charAt(0)}

@@ -41,15 +41,18 @@ export function LoginPage(props: { error: string }) {
       try {
         var p = JSON.parse(atob(t.split('.')[1]));
         if (p.adminId && p.exp * 1000 > Date.now()) {
-          window.location.href = '/admin/bans';
+          fetch('/api/auth/check').then(function(r){ return r.json(); }).then(function(j){
+            if (j.valid) window.location.href = '/admin/bans?token=' + encodeURIComponent(t);
+            else localStorage.removeItem('jwt');
+          }).catch(function(){ localStorage.removeItem('jwt'); });
           return;
+        } else {
+          localStorage.removeItem('jwt');
         }
-      } catch(e) {}
+      } catch(e) {
+        localStorage.removeItem('jwt');
+      }
     }
-    // 服务端检查 HttpOnly cookie
-    fetch('/api/auth/check').then(function(r){ return r.json(); }).then(function(j){
-      if (j.valid) window.location.href = '/admin/bans';
-    }).catch(function(){});
   }
   checkToken();
 })();
@@ -75,18 +78,18 @@ document.addEventListener('DOMContentLoaded', function() {
       return r.json().then(function(j) {
         if (r.ok && j.token) {
           localStorage.setItem('jwt', j.token);
-          window.location.href = '/admin/bans';
+          setTimeout(function() { window.location.href = '/admin/bans?token=' + encodeURIComponent(j.token); }, 500);
         } else {
-          errEl.textContent = j.error || '\u767b\u5f55\u5931\u8d25\uff0c\u8bf7\u68c0\u67e5\u8d26\u53f7\u5bc6\u7801';
+          errEl.textContent = j.error || '登录失败，请检查账号密码';
           errEl.style.display = 'block';
-          btn.textContent = '\u767b\u5f55';
+          btn.textContent = '登录';
           btn.disabled = false;
         }
       });
     }).catch(function() {
-      errEl.textContent = '\u7f51\u7edc\u9519\u8bef\uff0c\u8bf7\u5237\u65b0\u9875\u9762\u91cd\u8bd5';
+      errEl.textContent = '网络错误，请刷新页面重试';
       errEl.style.display = 'block';
-      btn.textContent = '\u767b\u5f55';
+      btn.textContent = '登录';
       btn.disabled = false;
     });
   });

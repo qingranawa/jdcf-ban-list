@@ -457,10 +457,10 @@ function unarchiveBan(id) {
 }
 </script>
 <div class="cyber-admin-content" style="padding-bottom:6rem;">
-  <h2 style="font-family:var(--sans);font-size:22px;font-weight:600;margin-bottom:var(--spacing-lg);">已归档记录</h2>
+  <h2 class="page-title" style="margin-bottom:var(--spacing-lg);">已归档记录</h2>
   ${items.results.length === 0
     ? html`<p style="color:var(--label-3);font-size:15px;">暂无归档记录</p>`
-    : html`<div class="cyber-table-wrap"><table class="cyber-table">
+    : html`<div class="glass-table-wrap"><div class="glass-table-inner"><table class="glass-table">
       <thead><tr>
         <th>归档日期</th><th>昵称</th><th>Steam ID</th><th>原等级</th><th>状态</th><th>新等级</th><th>原时长</th><th>操作</th>
       </tr></thead><tbody>
@@ -474,7 +474,7 @@ function unarchiveBan(id) {
         <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(r.original_duration)}</td>
         <td>${r.action === 'deleted' ? html`<button class="cyber-btn cyber-btn-danger cyber-btn-small" onclick="unarchiveBan(${escAttr(r.ban_id)})">恢复</button>` : html`<span style="color:var(--label-3);">—</span>`}</td>
       </tr>`)}
-    </tbody></table></div>`}
+    </tbody></table></div></div>`}
 </div>`
   return c.html(AdminLayout({
     title: '归档日志', currentPath: '/admin/archive', children: tableHtml,

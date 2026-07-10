@@ -14,8 +14,8 @@ export function AdminWatchlistPage(props: { items: Watch[] }) {
     <button class="cyber-btn cyber-btn-primary" onclick="openSheet()">${icon('bolt',16)} 新增</button>
   </div>
 
-  <div class="cyber-table-wrap">
-  <table class="cyber-table">
+  <div class="glass-table-wrap"><div class="glass-table-inner">
+  <table class="glass-table">
     <thead><tr>
       <th>Steam ID</th><th>昵称</th><th>原因</th><th>备注</th><th>添加时间</th><th style="text-align:right;padding-right:var(--spacing-md);">操作</th>
     </tr></thead>
@@ -35,7 +35,7 @@ export function AdminWatchlistPage(props: { items: Watch[] }) {
       </tr>`)}
     </tbody>
   </table>
-  </div>
+  </div></div>
 
   <!-- Bottom Sheet -->
   <div id="watchSheet" class="cyber-sheet-overlay" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeSheet()">

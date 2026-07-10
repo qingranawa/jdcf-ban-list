@@ -7,8 +7,8 @@ type AdminBan = { id: number; nickname: string; steam_id: string; ip_address: st
 
 export function AdminBanTable(props: { bans: AdminBan[] }) {
   return html`
-<div class="cyber-table-wrap">
-<table class="cyber-table">
+<div class="glass-table-wrap"><div class="glass-table-inner">
+<table class="glass-table">
   <thead><tr>
     <th>ID</th><th>昵称</th><th>Steam ID</th><th>原因</th><th>时长</th><th>等级</th><th>状态</th><th>操作员</th><th>时间</th><th style="text-align:right;padding-right:var(--spacing-md);">操作</th>
   </tr></thead>
@@ -31,7 +31,7 @@ export function AdminBanTable(props: { bans: AdminBan[] }) {
     </tr>`)}
   </tbody>
 </table>
-</div>`
+</div></div>`
 }
 
 function genPages(current: number, total: number): (number|string)[] {
@@ -73,9 +73,10 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
 
   <!-- search + filter + per-page -->
   <div style="display:flex;gap:var(--spacing-sm);margin-bottom:var(--spacing-lg);flex-wrap:wrap;">
-    <div class="cyber-search" style="flex:1;min-width:200px;">
-      <span class="search-icon">${icon('magnifyingglass',18)}</span>
+    <div class="hero-search" style="max-width:100%;flex:1;min-width:200px;">
+      
       <input type="text" id="adminBanSearch" placeholder="搜索昵称/Steam ID/IP/原因/备注…" value="${escAttr(query)}" onkeyup="applyFilter()" />
+	      <button type="button" onclick="applyFilter()" style="padding:10px 20px;">搜索</button>
     </div>
     <select id="adminBanFilter" class="cyber-input" style="width:auto;min-width:120px;" onchange="applyFilter()">
       <option value="">全部状态</option>
@@ -97,7 +98,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
     <div style="display:flex;align-items:center;gap:var(--spacing-sm);">
     ${perPageHtml}
       ${totalPages > 1 ? html`
-      <div class="cyber-pagination" style="margin-top:0;">
+      <div class="glass-pagination" style="margin-top:0;">
         ${page > 1 ? html`<a href="${pageUrl(page-1)}">←</a>` : ''}
         ${genPages(page, totalPages).map(p => typeof p === 'number' ? html`
           ${p === page ? html`<span class="current" aria-current="page">${p}</span>` : html`<a href="${pageUrl(p)}">${p}</a>`}`
