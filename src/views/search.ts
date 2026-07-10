@@ -64,8 +64,10 @@ function renderBansTab(props: SearchPageProps): string {
     html += `
     <tr>
       <td data-label="昵称">${isDiscipline && r.handled_by
-        ? `<a href="/admin-profile/${r.handled_by}" style="color:var(--cyan);text-decoration:none;font-family:var(--sans);font-weight:600;">${escHtml(r.nickname)}</a>`
-        : `<a href="/player/${r.id}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;">${escHtml(r.nickname)}</a>`}</td>
+        ? `<a href="/player/${r.steam_id}" style="color:var(--cyan);text-decoration:none;font-family:var(--sans);font-weight:600;">${escHtml(r.nickname)}</a>`
+        : r.steam_id && r.steam_id.length >= 6 && r.steam_id !== 'N/A' && r.steam_id !== 'unknown' && r.steam_id !== '0'
+        ? `<a href="/player/${r.steam_id}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;">${escHtml(r.nickname)}</a>`
+        : `<span style="color:var(--label-1);font-family:var(--sans);font-weight:600;">${escHtml(r.nickname)}</span>`}</td>
       <td data-label="Steam ID"><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(r.steam_id)}</code></td>
       <td data-label="原因" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--label-2);">${escHtml(r.reason)}</td>
       <td data-label="等级"><span class="badge ${lb(r.violation_level).replace('cyber-badge-','badge-')}">${ll(r.violation_level)}</span></td>
@@ -120,7 +122,7 @@ function renderEntitiesTab(props: SearchPageProps): string {
     html += `<div style="font-size:14px;font-weight:600;color:var(--label-2);margin-bottom:4px;margin-top:8px;">玩家</div>`
     for (const p of props.players) {
       html += `
-      <a href="/player/${p.id}" style="text-decoration:none;">
+      <a href="/player/${p.steam_id}" style="text-decoration:none;">
         <div class="glass-card">
           <div class="glass-card-inner" style="display:flex;align-items:center;gap:12px;padding:var(--spacing-md);">
             <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#ffffff);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#000;font-family:var(--sans);flex-shrink:0;">

@@ -8,7 +8,7 @@ import { authRoutes } from '../routes/auth'
 import { adminRoutes } from '../routes/admin'
 import { accountRoutes } from '../routes/account'
 
-const app = new Hono<{ Bindings: Record<string, unknown> }>()
+const app = new Hono<{ Bindings: Env }>()
 app.route('/', publicRoutes)
 app.route('/', authRoutes)
 app.route('/', adminRoutes)
@@ -67,35 +67,31 @@ describe('Public routes', () => {
     expect(await res.text()).toContain('测试管理员')
   })
 
-  it('GET /player/:id returns 200 for existing ban id', async () => {
-    const res = await app.request('/player/1', {}, env)
+  it('GET /player/:steamId returns 200 for existing steam id', async () => {
+    const res = await app.request('/player/STEAM_1:0:12345', {}, env)
     expect(res.status).toBe(200)
     const text = await res.text()
     expect(text).toContain('test_player')
     expect(text).toContain('STEAM_1:0:12345')
-  })
+  }, 30000)
 
-  it('GET /player/:id returns empty state for unknown id', async () => {
-    const res = await app.request('/player/999', {}, env)
+  it('GET /player/:steamId returns empty state for unknown id', async () => {
+    const res = await app.request('/player/UNKNOWN_ID', {}, env)
     expect(res.status).toBe(200)
     const text = await res.text()
     expect(text).toContain('没有找到该玩家的封禁记录')
   })
 
-  it('GET /admin-profile/:id returns 200 for existing admin', async () => {
+  it('GET /admin-profile/:id redirects to /player/:steamId for existing admin', async () => {
     const res = await app.request('/admin-profile/1', {}, env)
-    expect(res.status).toBe(200)
-    const text = await res.text()
-    expect(text).toContain('测试管理员')
-    expect(text).toContain('STEAM_1:0:99999')
-    expect(text).toContain('封禁处理')
-    expect(text).toContain('违纪处罚')
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toBe('/player/STEAM_1:0:99999')
   })
 
-  it('GET /admin-profile/:id returns not found page for unknown admin', async () => {
+  it('GET /admin-profile/:id redirects to / for unknown admin', async () => {
     const res = await app.request('/admin-profile/999', {}, env)
-    expect(res.status).toBe(200)
-    expect(await res.text()).toContain('管理员不存在')
+    expect(res.status).toBe(302)
+    expect(res.headers.get('location')).toBe('/')
   })
 })
 

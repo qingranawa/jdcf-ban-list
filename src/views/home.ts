@@ -116,8 +116,10 @@ export function BanTable(props: TableProps) {
       : props.bans.map(ban => html`
       <tr>
         <td data-label="昵称">${ban.violation_level === 'admin_discipline' && ban.handled_by
-          ? html`<a href="/admin-profile/${ban.handled_by}" style="color:var(--cyan);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(ban.nickname)}</a>`
-          : html`<a href="/player/${ban.id}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(ban.nickname)}</a>`}</td>
+          ? html`<a href="/player/${ban.steam_id}" style="color:var(--cyan);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(ban.nickname)}</a>`
+          : ban.steam_id && ban.steam_id.length >= 6 && ban.steam_id !== 'N/A' && ban.steam_id !== 'unknown' && ban.steam_id !== '0'
+          ? html`<a href="/player/${ban.steam_id}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(ban.nickname)}</a>`
+          : html`<span style="color:var(--label-1);font-family:var(--sans);font-weight:600;">${escHtml(ban.nickname)}</span>`}</td>
         <td data-label="Steam ID"><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);letter-spacing:-.3px;">${escHtml(ban.steam_id)}</code></td>
         <td data-label="原因" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--label-2);" title="${escAttr(ban.reason)}">${escHtml(ban.reason)}</td>
         <td data-label="等级"><span class="badge ${levelBadge(ban.violation_level)}">${levelLabel(ban.violation_level)}</span></td>

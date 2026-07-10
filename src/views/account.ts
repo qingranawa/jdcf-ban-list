@@ -235,7 +235,7 @@ export function AccountPage() {
       var lvClass = lvBadge(b.violation_level);
       var lvLabelText = lvLabel(b.violation_level);
       h += '<tr id="myban-' + b.id + '">';
-      h += '<td data-label="昵称"><a href="/player/' + b.id + '" style="color:var(--label-1);text-decoration:none;font-weight:600;">' + esc(b.nickname) + '</a></td>';
+      h += '<td data-label="昵称"><a href="/player/' + b.steam_id + '" style="color:var(--label-1);text-decoration:none;font-weight:600;">' + esc(b.nickname) + '</a></td>';
       h += '<td data-label="Steam ID"><code style="font-size:13px;color:var(--label-2);">' + esc(b.steam_id) + '</code></td>';
       h += '<td data-label="原因" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(b.reason) + '</td>';
       h += '<td data-label="时长" style="font-family:var(--mono);font-size:13px;color:var(--label-2);">' + esc(b.ban_duration) + '</td>';
@@ -339,7 +339,7 @@ export function AccountPage() {
       var lvClass = lvBadge(b.violation_level);
       var lvLabelText = lvLabel(b.violation_level);
       h += '<tr>';
-      h += '<td data-label="昵称"><a href="/player/' + b.id + '" style="color:var(--label-1);text-decoration:none;font-weight:600;">' + esc(b.nickname) + '</a></td>';
+      h += '<td data-label="昵称"><a href="/player/' + b.steam_id + '" style="color:var(--label-1);text-decoration:none;font-weight:600;">' + esc(b.nickname) + '</a></td>';
       h += '<td data-label="Steam ID"><code style="font-size:13px;color:var(--label-2);">' + esc(b.steam_id) + '</code></td>';
       h += '<td data-label="原因" style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(b.reason) + '</td>';
       h += '<td data-label="时长" style="font-family:var(--mono);font-size:13px;color:var(--label-2);">' + esc(b.ban_duration) + '</td>';

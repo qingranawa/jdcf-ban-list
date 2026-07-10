@@ -1,6 +1,24 @@
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
-import { fmtDate, lvBadge } from '../helpers/format'
+import { fmtDate, lvBadge, disciplineLabel } from '../helpers/format'
+
+export type AdminDiscipline = {
+  ban_duration: string
+  reason: string
+  ban_time: string
+  handled_by_name: string | null
+}
+
+export type AdminInfo = {
+  id: number
+  username: string
+  gameName: string
+  permissionGroup: string
+  position: string
+  supervisor: string
+  qqName: string
+  disciplines: AdminDiscipline[]
+}
 
 export type PlayerProfileData = {
   nickname: string
@@ -24,6 +42,7 @@ export type PlayerProfileData = {
     status: string
     handled_by_name: string | null
   }>
+  adminData: AdminInfo | null
 }
 
 // ── Helpers matching home.ts public ban table style ──
@@ -102,6 +121,44 @@ export function PlayerProfilePage(data: PlayerProfileData) {
       </div>
     </div>
   </div>
+
+  <!-- Admin Info Section -->
+  ${data.adminData ? html`
+  <div class="glass-card" style="margin-bottom:var(--spacing-md);">
+    <div class="glass-card-inner" style="padding:var(--spacing-md);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span class="badge badge-magenta">管理员</span>
+        <span class="badge badge-cyan">${escHtml(data.adminData.permissionGroup)}</span>
+      </div>
+      <div style="font-size:13px;color:var(--label-3);display:flex;flex-wrap:wrap;gap:4px 20px;">
+        <span>用户名: <strong style="color:var(--label-2);">${escHtml(data.adminData.username)}</strong></span>
+        <span>游戏名: <strong style="color:var(--label-2);">${escHtml(data.adminData.gameName)}</strong></span>
+        ${data.adminData.position ? html`<span>职位: <strong style="color:var(--label-2);">${escHtml(data.adminData.position)}</strong></span>` : ''}
+        ${data.adminData.supervisor ? html`<span>主管: <strong style="color:var(--label-2);">${escHtml(data.adminData.supervisor)}</strong></span>` : ''}
+        ${data.adminData.qqName ? html`<span>QQ: <strong style="color:var(--label-2);">${escHtml(data.adminData.qqName)}</strong></span>` : ''}
+      </div>
+    </div>
+  </div>
+
+  <!-- Discipline Records (for admins) -->
+  ${data.adminData.disciplines.length > 0 ? html`
+  <div style="margin-bottom:var(--spacing-md);">
+    <h3 style="font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:var(--spacing-sm);color:var(--label-1);">违纪处罚记录</h3>
+    <div class="glass-table-wrap"><div class="glass-table-inner"><table class="glass-table">
+      <thead><tr>
+        <th>时间</th><th>处罚类型</th><th>原因</th><th>执行人</th>
+      </tr></thead>
+      <tbody>
+        ${data.adminData.disciplines.map(d => html`<tr>
+          <td style="font-family:var(--mono);font-size:13px;color:var(--label-3);">${fmtDate(d.ban_time)}</td>
+          <td><span class="badge badge-amber">${escHtml(disciplineLabel(d.ban_duration))}</span></td>
+          <td style="color:var(--label-2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.reason ? escHtml(d.reason) : '—'}</td>
+          <td style="color:var(--label-2);">${d.handled_by_name ? escHtml(d.handled_by_name) : '系统'}</td>
+        </tr>`)}
+      </tbody>
+    </table></div></div>
+  </div>` : ''}
+  ` : ''}
 
   <!-- Ban Meta Info -->
   <div style="display:flex;gap:16px;margin-bottom:var(--spacing-lg);font-size:13px;color:var(--label-3);flex-wrap:wrap;">
