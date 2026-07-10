@@ -1,5 +1,5 @@
 // > Batch processing page — mass downgrade/delete expired bans
-// ! 所有操作不可撤销（删除的封禁进归档，不会恢复为活跃）
+// ! Tab切换：上方两个卡片点击切换显示 2级表 / 3级表，默认显示 2级
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
 import { fmtDate as fmt, lvBadge, lvLabel } from '../helpers/format'
@@ -11,40 +11,42 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
 <div class="cyber-admin-content">
   <h2 class="page-title" style="margin-bottom:var(--spacing-lg);">批量处理</h2>
 
+  <!-- Tab 切换卡片 -->
   <div style="display:flex;gap:var(--spacing-lg);flex-wrap:wrap;margin-bottom:var(--spacing-lg);">
-    <div class="glass-card" style="flex:1;min-width:200px;">
+    <div class="glass-card process-tab-card active" data-tab="level2" style="flex:1;min-width:200px;cursor:pointer;" onclick="switchProcessTab('level2')">
       <div class="glass-card-inner" style="display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;background:transparent;box-shadow:none;padding:var(--spacing-lg);">
       <div>
         <div style="font-family:var(--sans);font-size:14px;color:var(--label-2);text-transform:uppercase;letter-spacing:.05em;">待处理 2级</div>
         <div id="l2Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--blue);">${props.level2Bans.length}</div>
       </div>
-      <button class="cyber-btn cyber-btn-primary" onclick="downgradeAllL2()" id="downgradeBtn" ${props.level2Bans.length === 0 ? 'disabled' : ''}>
+      <button class="cyber-btn cyber-btn-primary" onclick="event.stopPropagation();downgradeAllL2()" id="downgradeBtn" ${props.level2Bans.length === 0 ? 'disabled' : ''}>
         一键降级2级
       </button>
       </div>
     </div>
-    <div class="glass-card" style="flex:1;min-width:200px;">
+    <div class="glass-card process-tab-card" data-tab="level3" style="flex:1;min-width:200px;cursor:pointer;" onclick="switchProcessTab('level3')">
       <div class="glass-card-inner" style="display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;background:transparent;box-shadow:none;padding:var(--spacing-lg);">
       <div>
         <div style="font-family:var(--sans);font-size:14px;color:var(--label-2);text-transform:uppercase;letter-spacing:.05em;">待处理 3级</div>
         <div id="l3Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--cyan);">${props.level3Bans.length}</div>
       </div>
-      <button class="cyber-btn cyber-btn-danger" onclick="deleteAllL3()" id="deleteBtn" ${props.level3Bans.length === 0 ? 'disabled' : ''}>
+      <button class="cyber-btn cyber-btn-danger" onclick="event.stopPropagation();deleteAllL3()" id="deleteBtn" ${props.level3Bans.length === 0 ? 'disabled' : ''}>
         一键删除3级
       </button>
       </div>
     </div>
   </div>
 
-  <div style="display:grid;gap:var(--spacing-lg);grid-template-columns:1fr 1fr;">
-    <div id="level2Table">
-      <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--blue);margin-bottom:var(--spacing-sm);">2级违规（降级为 3 级）</div>
-      <div class="glass-table-wrap"><div class="glass-table-inner">${renderTable(props.level2Bans, 'magenta')}</div></div>
-    </div>
-    <div id="level3Table">
-      <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--cyan);margin-bottom:var(--spacing-sm);">3级违规（删除）</div>
-      <div class="glass-table-wrap"><div class="glass-table-inner">${renderTable(props.level3Bans, 'cyan')}</div></div>
-    </div>
+  <!-- 2级表（默认显示） -->
+  <div id="processTable-level2" class="process-table-pane" style="display:block;">
+    <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--blue);margin-bottom:var(--spacing-sm);">2级违规（降级为 3 级）</div>
+    <div class="glass-table-wrap"><div class="glass-table-inner">${renderTable(props.level2Bans, 'magenta')}</div></div>
+  </div>
+
+  <!-- 3级表（默认隐藏） -->
+  <div id="processTable-level3" class="process-table-pane" style="display:none;">
+    <div style="font-family:var(--sans);font-size:14px;font-weight:600;color:var(--cyan);margin-bottom:var(--spacing-sm);">3级违规（删除）</div>
+    <div class="glass-table-wrap"><div class="glass-table-inner">${renderTable(props.level3Bans, 'cyan')}</div></div>
   </div>
 
   <div style="position:sticky;bottom:var(--spacing-lg);margin-top:var(--spacing-lg);z-index:10;border:1px solid var(--separator);border-radius:12px;padding:var(--spacing-md) var(--spacing-lg);display:flex;gap:var(--spacing-md);align-items:center;background:rgba(255,255,255,.15);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);">
@@ -59,35 +61,63 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
   </div>
 </div>
 
+<style>
+.process-tab-card { transition: all .2s ease; border:1px solid transparent; }
+.process-tab-card.active { border-color: var(--cyan); }
+.process-tab-card.active .glass-card-inner { background: rgba(0,255,255,0.04); }
+.process-table-pane { animation: fadeIn .2s ease; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+</style>
+
 <script>
-// ? 注意：脚本在模板渲染完成后立即执行，此时 DOM 已存在
-const jwt = localStorage.getItem('jwt');
-const rows = document.querySelectorAll('.proc-row');
-function toggleAll() {
-  var checked = document.getElementById('selectAll').checked;
-  rows.forEach(function(r) { r.querySelector('input[type=checkbox]').checked = checked; });
+let currentProcessTab = 'level2';
+
+function switchProcessTab(tab) {
+  if (currentProcessTab === tab) return;
+  currentProcessTab = tab;
+  document.querySelectorAll('.process-tab-card').forEach(function(c) {
+    c.classList.toggle('active', c.dataset.tab === tab);
+  });
+  document.querySelectorAll('.process-table-pane').forEach(function(p) {
+    p.style.display = p.id === 'processTable-' + tab ? 'block' : 'none';
+  });
+  // 更新全选状态
+  document.getElementById('selectAll').checked = false;
   updateCount();
 }
+
+const jwt = localStorage.getItem('jwt');
+
+function getCurrentRows() {
+  return document.querySelectorAll('#processTable-' + currentProcessTab + ' .proc-row');
+}
+
+function toggleAll() {
+  var checked = document.getElementById('selectAll').checked;
+  getCurrentRows().forEach(function(r) { r.querySelector('input[type=checkbox]').checked = checked; });
+  updateCount();
+}
+
 function toggleTableRows(checkbox) {
   var table = checkbox.closest('table');
   table.querySelectorAll('.proc-row input[type=checkbox]').forEach(function(c) { c.checked = checkbox.checked; });
   updateCount();
 }
-rows.forEach(function(r) {
-  r.querySelector('input[type=checkbox]').addEventListener('change', updateCount);
-});
+
 function updateCount() {
   var n = 0;
-  rows.forEach(function(r) { if (r.querySelector('input[type=checkbox]').checked) n++; });
+  getCurrentRows().forEach(function(r) { if (r.querySelector('input[type=checkbox]').checked) n++; });
   document.getElementById('selectedCount').textContent = '已选 ' + n;
   document.getElementById('downgradeBtn2').disabled = n === 0;
   document.getElementById('deleteBtn2').disabled = n === 0;
 }
+
 function getSelected() {
   var ids = [];
-  rows.forEach(function(r) { if (r.querySelector('input[type=checkbox]').checked) ids.push(parseInt(r.dataset.id)); });
+  getCurrentRows().forEach(function(r) { if (r.querySelector('input[type=checkbox]').checked) ids.push(parseInt(r.dataset.id)); });
   return ids;
 }
+
 async function batchDowngrade() {
   var ids = getSelected();
   if (!ids.length) return;
@@ -99,6 +129,7 @@ async function batchDowngrade() {
   if (resp.ok) { location.reload(); }
   else showToast('操作失败', 'error');
 }
+
 async function batchDelete() {
   var ids = getSelected();
   if (!ids.length) return;
@@ -110,8 +141,9 @@ async function batchDelete() {
   if (resp.ok) { location.reload(); }
   else showToast('操作失败', 'error');
 }
+
 async function downgradeAllL2() {
-  var ids = Array.from(document.querySelectorAll('#level2Table .proc-row')).map(function(r) { return parseInt(r.dataset.id); });
+  var ids = Array.from(document.querySelectorAll('#processTable-level2 .proc-row')).map(function(r) { return parseInt(r.dataset.id); });
   if (!ids.length) return;
   if (!confirm('确认将全部 ' + ids.length + ' 条 2 级违规降级为 3 级？')) return;
   var resp = await fetch('/api/admin/process/downgrade', {
@@ -121,8 +153,9 @@ async function downgradeAllL2() {
   if (resp.ok) { location.reload(); }
   else showToast('操作失败', 'error');
 }
+
 async function deleteAllL3() {
-  var ids = Array.from(document.querySelectorAll('#level3Table .proc-row')).map(function(r) { return parseInt(r.dataset.id); });
+  var ids = Array.from(document.querySelectorAll('#processTable-level3 .proc-row')).map(function(r) { return parseInt(r.dataset.id); });
   if (!ids.length) return;
   if (!confirm('确认删除全部 ' + ids.length + ' 条 3 级违规？此操作不可撤销。')) return;
   var resp = await fetch('/api/admin/process/delete', {
@@ -132,6 +165,7 @@ async function deleteAllL3() {
   if (resp.ok) { location.reload(); }
   else showToast('操作失败', 'error');
 }
+
 function showToast(t, type) {
   var el = document.getElementById('cyberToast') || (function(){
     var d = document.createElement('div'); d.id = 'cyberToast'; d.className = 'cyber-toast';
@@ -166,5 +200,3 @@ function renderTable(bans: ProcBan[], accent: string): ReturnType<typeof html> {
   </tbody>
 </table>`
 }
-
-

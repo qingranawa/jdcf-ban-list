@@ -4,6 +4,18 @@ export function fmtDate(t: string): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+export function typeBadge(t: string): string {
+  const typeBadgeClass: Record<string, string> = {
+    server: 'cyber-badge-cyan',
+    penalty: 'cyber-badge-magenta',
+    event: 'cyber-badge-green',
+    urgent: 'cyber-badge-red',
+    changelog: 'cyber-badge-amber',
+    internal: 'cyber-badge-neutral',
+  }
+  return typeBadgeClass[t] || 'cyber-badge-cyan'
+}
+
 export function lvBadge(lv: string): string {
   const m: Record<string, string> = { warning: 'cyber-badge-amber', level3: 'cyber-badge-cyan', level2: 'cyber-badge-magenta', level1: 'cyber-badge-red', admin_discipline: 'cyber-badge-amber' }
   return m[lv] || 'cyber-badge-neutral'
@@ -30,7 +42,30 @@ export function fmtDuration(d: string): string {
   if (m[d]) return m[d]
   const parts = d.match(/^(\d+)([dhmy])$/i)
   if (parts) return parts[1] + (m[parts[2].toLowerCase()] || '')
+  // 违纪处罚类型
+  if (d.startsWith('discipline_')) return disciplineLabel(d)
   return d
+}
+
+// 管理员违纪处罚 13 种类型
+export const DISCIPLINE_TYPES: Record<string, string> = {
+  discipline_demerit1: '记过',
+  discipline_demerit2: '记大过（两次记过 = 一次记大过）',
+  discipline_suspend1d: '停权1天',
+  discipline_suspend3d: '停权3天',
+  discipline_suspend7d: '停权7天',
+  discipline_suspend30d: '停权30天',
+  discipline_dismissal: '免除职务',
+  discipline_review7d: '停权7天后经酌考究予以复职',
+  discipline_review14d: '停权14天后经考究予以复职',
+  discipline_review30d: '停权30天后经考究予以复职',
+  discipline_perm_dismissal_lv2x3: '累计三次2级违规者，永久免职',
+  discipline_perm_dismissal_lv1: '单次1级违规者，永久免职（申诉成功并经考究后可复职）',
+  discipline_public_apology: '须对受影响的玩家及人员公开道歉',
+}
+
+export function disciplineLabel(code: string): string {
+  return DISCIPLINE_TYPES[code] || code
 }
 
 export function categorizeDuration(d: string): string {

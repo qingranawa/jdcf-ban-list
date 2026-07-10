@@ -386,7 +386,7 @@ body::after {
 
 /* ─── Sidebar ─── */
 .cyber-sidebar {
-  width: min(240px, 70vw); min-height: 100vh;
+  width: min(200px, 60vw); min-height: 100vh;
   border-right: 1px solid var(--glass-border);
   display: flex; flex-direction: column; padding: var(--spacing-md) 0;
   position: sticky; top: 0;
@@ -420,34 +420,6 @@ body::after {
 }
 .cyber-sidebar .sidebar-footer .sidebar-link { padding: 8px var(--spacing-sm); border-radius: var(--radius-sm); }
 .cyber-sidebar .sidebar-footer .sidebar-link:hover { background: rgba(255,255,255,.10); }
-/* ─── Sidebar Collapse ─── */
-.sidebar-collapse-btn {
-  background: none; border: none; color: var(--label-3);
-  cursor: pointer; padding: 4px 6px; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.3s; font-size: 12px; line-height: 1;
-  margin-left: auto; flex-shrink: 0;
-}
-.sidebar-collapse-btn:hover { background: rgba(255,255,255,.06); color: var(--label-1); }
-.cyber-sidebar.collapsed { width: 60px; }
-.cyber-sidebar.collapsed .sidebar-brand { justify-content: center; gap: 0; }
-.cyber-sidebar.collapsed .sidebar-brand a { display: none; }
-.cyber-sidebar.collapsed .sidebar-nav .sidebar-link { font-size: 0; justify-content: center; padding: 10px 8px; }
-.cyber-sidebar.collapsed .sidebar-nav .sidebar-link svg { width: 20px; height: 20px; }
-.cyber-sidebar.collapsed .sidebar-link[href="/"] { font-size: 0; justify-content: center; padding: 10px 8px; }
-.cyber-sidebar.collapsed .sidebar-footer .sidebar-link { justify-content: center; }
-.cyber-sidebar.collapsed .sidebar-footer .sidebar-link div:last-child { display: none; }
-.cyber-sidebar.collapsed .sidebar-collapse-btn { transform: rotate(180deg); }
-@media(max-width:768px){
-  .sidebar-collapse-btn { display: none; }
-  .cyber-sidebar.collapsed { width: min(240px, 70vw); }
-  .cyber-sidebar.collapsed .sidebar-brand a { display: flex; }
-  .cyber-sidebar.collapsed .sidebar-nav .sidebar-link { font-size: 14px; justify-content: flex-start; }
-  .cyber-sidebar.collapsed .sidebar-link[href="/"] { font-size: 13px; justify-content: flex-start; }
-  .cyber-sidebar.collapsed .sidebar-footer .sidebar-link div:last-child { display: block; }
-}
-
-
 /* ─── Main content padding for fixed nav ─── */
 .cyber-main { padding-bottom: 64px; min-height: calc(100vh - 64px); }
 

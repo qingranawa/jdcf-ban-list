@@ -1,6 +1,7 @@
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
 import { fmtDate, lvBadge, lvLabel, stBadge } from '../helpers/format'
+import { disciplineLabel } from '../helpers/format'
 
 export type AdminProfileData = {
   id: number
@@ -28,7 +29,7 @@ export type AdminProfileData = {
   }>
   auditLogs: Array<{
     id: number; action: string; target_type: string; target_id: number | null;
-    detail: string | null; created_at: string;
+    details: string | null; created_at: string;
   }>
 }
 
@@ -59,7 +60,7 @@ export function AdminProfilePage(data: AdminProfileData) {
   <!-- Profile Header -->
   <div class="glass-card" style="margin-bottom:var(--spacing-md);">
     <div class="glass-card-inner" style="display:flex;align-items:center;gap:16px;">
-      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--magenta));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;font-family:var(--sans);flex-shrink:0;">${escHtml(initial)}</div>
+      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#ffffff);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;font-family:var(--sans);flex-shrink:0;">${escHtml(initial)}</div>
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
           <div style="font-family:var(--sans);font-size:20px;font-weight:600;">${escHtml(data.game_name || data.username)}</div>
@@ -117,7 +118,7 @@ export function AdminProfilePage(data: AdminProfileData) {
             <td style="color:var(--label-1);">${escHtml(b.nickname)}</td>
             <td style="color:var(--label-2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(b.reason)}</td>
             <td><span class="badge ${lvBadge(b.violation_level).replace('cyber-badge-','badge-')}">${escHtml(levelLabel(b.violation_level))}</span></td>
-            <td><span class="badge ${stBadge(b.status).replace('cyber-badge-','badge-')}">${escHtml(stLabel(b.status))}</span></td>
+            <td>${b.violation_level === 'admin_discipline' ? html`<span style="color:var(--label-3);font-size:13px;">—</span>` : html`<span class="badge ${stBadge(b.status).replace('cyber-badge-','badge-')}">${escHtml(stLabel(b.status))}</span>`}</td>
             <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(b.ban_duration)}</td>
           </tr>`)}
       </tbody>
@@ -129,14 +130,15 @@ export function AdminProfilePage(data: AdminProfileData) {
     <h3 style="font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:var(--spacing-sm);color:var(--label-1);">违纪处罚记录</h3>
     <div class="glass-table-wrap"><div class="glass-table-inner"><table class="glass-table">
       <thead><tr>
-        <th>时间</th><th>处罚类型</th><th>执行人</th><th>联合判定</th><th>备注</th>
+        <th>时间</th><th>处罚类型</th><th>原因</th><th>执行人</th><th>联合封禁管理员</th><th>备注</th>
       </tr></thead>
       <tbody>
         ${data.disciplines.length === 0
-          ? html`<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--label-3);font-size:14px;">暂无违纪处罚记录</td></tr>`
+          ? html`<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--label-3);font-size:14px;">暂无违纪处罚记录</td></tr>`
           : data.disciplines.map(d => html`<tr>
             <td style="font-family:var(--mono);font-size:13px;color:var(--label-3);">${fmtDate(d.ban_time)}</td>
-            <td><span class="badge badge-amber">${escHtml(d.ban_duration)}</span></td>
+            <td><span class="badge badge-amber">${escHtml(disciplineLabel(d.ban_duration))}</span></td>
+            <td style="color:var(--label-2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;">${d.reason ? escHtml(d.reason) : '—'}</td>
             <td style="color:var(--label-2);font-size:14px;">${d.handled_by_name ? escHtml(d.handled_by_name) : '系统'}</td>
             <td style="font-size:13px;color:var(--label-3);">${d.co_handlers ? escHtml(d.co_handlers) : '—'}</td>
             <td style="font-size:13px;color:var(--label-3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.notes ? escHtml(d.notes) : '—'}</td>
@@ -160,7 +162,7 @@ export function AdminProfilePage(data: AdminProfileData) {
             <td style="font-family:var(--mono);font-size:13px;color:var(--label-1);">${escHtml(log.action)}</td>
             <td style="font-size:13px;color:var(--label-2);">${escHtml(log.target_type)}</td>
             <td style="font-family:var(--mono);font-size:13px;color:var(--label-3);">${log.target_id ?? '—'}</td>
-            <td style="font-size:13px;color:var(--label-3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${log.detail ? escHtml(log.detail) : '—'}</td>
+            <td style="font-size:13px;color:var(--label-3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${log.details ? escHtml(log.details) : '—'}</td>
           </tr>`)}
       </tbody>
     </table></div></div>

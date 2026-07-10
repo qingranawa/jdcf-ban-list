@@ -62,7 +62,6 @@ ${Styles()}
 <aside class="cyber-sidebar" id="sidebar">
   <div class="sidebar-brand">
     <a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px;">鸡蛋肠粉<span style="color:var(--magenta);font-size:14px;font-weight:600;">后台</span></a>
-    <button class="sidebar-collapse-btn" onclick="toggleSidebar()" aria-label="折叠侧边栏">◀</button>
   </div>
       <a href="/" class="sidebar-link" style="margin:4px 10px 8px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.03);color:var(--label-3);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:all 0.2s;">
       ← 返回首页
@@ -132,14 +131,7 @@ ${Styles()}
   });
 
 
-  // Sidebar collapse
-  var sidebar = document.getElementById('sidebar');
-  var savedState = localStorage.getItem('sidebarCollapsed') === 'true';
-  if (savedState) sidebar.classList.add('collapsed');
-  window.toggleSidebar = function() {
-    sidebar.classList.toggle('collapsed');
-    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-  }
+
   </script>
 
 </body>

@@ -9,7 +9,6 @@ export const BG_IMAGES = [
   '5.jpg',
   '6.jpg',
   '7.webp',
-  '8.jpg',
   '9.webp',
   'IMG_0201.JPG',
   'IMG_0204.JPG',

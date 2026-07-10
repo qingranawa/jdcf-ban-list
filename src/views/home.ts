@@ -6,7 +6,7 @@ type Ban = {
   id: number; nickname: string; steam_id: string; ip_address: string;
   reason: string; ban_time: string; ban_duration: string;
   violation_level: string; status: string; notes: string;
-  handled_by_name: string | null; co_handlers: string;
+  handled_by: number | null; handled_by_name: string | null; co_handlers: string;
 }
 
 type TableProps = {
@@ -15,11 +15,11 @@ type TableProps = {
 }
 
 function levelBadge(lv: string): string {
-  const m: Record<string,string> = { warning:'badge-amber', severe_warning:'badge-amber', level3:'badge-cyan', level2:'badge-magenta', level1:'badge-red', level4:'badge-neutral', mute:'badge-neutral', cfba_ban:'badge-red', '1级':'badge-red', '2级':'badge-magenta', '3级':'badge-cyan' }
+  const m: Record<string,string> = { warning:'badge-amber', severe_warning:'badge-amber', level3:'badge-cyan', level2:'badge-magenta', level1:'badge-red', level4:'badge-neutral', mute:'badge-neutral', cfba_ban:'badge-red', admin_discipline:'badge-amber', '1级':'badge-red', '2级':'badge-magenta', '3级':'badge-cyan' }
   return m[lv] || 'badge-neutral'
 }
 function levelLabel(lv: string): string {
-  const m: Record<string,string> = { warning:'警告', severe_warning:'严重警告', level3:'3级违规', level2:'2级违规', level1:'1级', level4:'4级(逃逸)', mute:'禁言', cfba_ban:'CFBA' }
+  const m: Record<string,string> = { warning:'警告', severe_warning:'严重警告', level3:'3级违规', level2:'2级违规', level1:'1级', level4:'4级(逃逸)', mute:'禁言', cfba_ban:'CFBA', admin_discipline:'违纪处罚' }
   return m[lv] || lv
 }
 function statusBadge(s: string): string {
@@ -113,11 +113,13 @@ export function BanTable(props: TableProps) {
       <tr><td colspan="8" style="text-align:center;padding:3rem 1rem;color:var(--label-3);font-size:15px;">没有找到匹配的封禁记录</td></tr>`
       : props.bans.map(ban => html`
       <tr>
-        <td data-label="昵称"><a href="/player/${ban.id}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(ban.nickname)}</a></td>
+        <td data-label="昵称">${ban.violation_level === 'admin_discipline' && ban.handled_by
+          ? html`<a href="/admin-profile/${ban.handled_by}" style="color:var(--cyan);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(ban.nickname)}</a>`
+          : html`<a href="/player/${ban.id}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(ban.nickname)}</a>`}</td>
         <td data-label="Steam ID"><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);letter-spacing:-.3px;">${escHtml(ban.steam_id)}</code></td>
         <td data-label="原因" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--label-2);" title="${escAttr(ban.reason)}">${escHtml(ban.reason)}</td>
         <td data-label="等级"><span class="badge ${levelBadge(ban.violation_level)}">${levelLabel(ban.violation_level)}</span></td>
-        <td data-label="状态"><span class="badge ${statusBadge(ban.status)}">${statusLabel(ban.status)}</span></td>
+        <td data-label="状态">${ban.violation_level === 'admin_discipline' ? html`<span style="color:var(--label-3);font-size:13px;">—</span>` : html`<span class="badge ${statusBadge(ban.status)}">${statusLabel(ban.status)}</span>`}</td>
         <td data-label="操作员" style="font-size:13px;color:var(--label-2);font-family:var(--mono);">${fmtHandlers(ban.handled_by_name, ban.co_handlers)}</td>
         <td data-label="时长" style="font-size:13px;color:var(--label-2);font-family:var(--mono);">${fmtDuration(ban.ban_duration)}</td>
         <td data-label="时间" style="white-space:nowrap;font-size:13px;color:var(--label-3);font-family:var(--mono);">${fmtTime(ban.ban_time)}</td>

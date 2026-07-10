@@ -1,6 +1,6 @@
 import { html } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
-import { fmtDate as fmt, lvBadge, lvLabel, stBadge, fmtHandlers } from '../helpers/format'
+import { fmtDate as fmt, lvBadge, lvLabel, stBadge, fmtHandlers, fmtDuration } from '../helpers/format'
 import { icon } from './icons'
 
 type AdminBan = { id: number; nickname: string; steam_id: string; ip_address: string; reason: string; ban_time: string; ban_duration: string; violation_level: string; status: string; notes: string; handled_by_name: string | null; co_handlers: string }
@@ -19,9 +19,9 @@ export function AdminBanTable(props: { bans: AdminBan[] }) {
       <td><a href="/player/${b.id}" style="color:var(--label-1);text-decoration:none;font-family:var(--sans);font-weight:600;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${escHtml(b.nickname)}</a></td>
       <td><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);letter-spacing:-.3px;">${escHtml(b.steam_id)}</code></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;color:var(--label-2);" title="${escAttr(b.reason)}">${escHtml(b.reason)}</td>
-      <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(b.ban_duration)}</td>
+      <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${fmtDuration(b.ban_duration)}</td>
       <td><span class="cyber-badge ${lvBadge(b.violation_level)}">${lvLabel(b.violation_level)}</span></td>
-      <td><span class="cyber-badge ${stBadge(b.status)}">${escHtml(b.status)}</span></td>
+      <td>${b.violation_level === 'admin_discipline' ? html`<span style="color:var(--label-3);font-size:13px;">—</span>` : html`<span class="cyber-badge ${stBadge(b.status)}">${escHtml(b.status)}</span>`}</td>
       <td style="font-size:14px;color:var(--label-2);">${fmtHandlers(b.handled_by_name, b.co_handlers)}</td>
       <td style="font-family:var(--mono);font-size:13px;color:var(--label-3);white-space:nowrap;">${fmt(b.ban_time)}</td>
       <td style="text-align:right;white-space:nowrap;padding-right:var(--spacing-md);">
@@ -113,10 +113,29 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
           <div class="cyber-form-group"><label>Steam ID *</label><input type="text" name="steam_id" required placeholder="76561199…" class="cyber-input" /></div>
           <div class="cyber-form-group"><label>IP（选填）</label><input type="text" name="ip_address" class="cyber-input" /></div>
           <div class="cyber-form-group"><label>原因</label><input type="text" name="reason" class="cyber-input" /></div>
-          <div class="cyber-form-group"><label>封禁时长</label><input type="text" name="ban_duration" placeholder="7d / 30m / 1h / permanent" class="cyber-input" /></div>
+          <div class="cyber-form-group">
+            <label>封禁时长</label>
+            <input type="text" name="ban_duration" id="createBanDuration" placeholder="7d / 30m / 1h / permanent" class="cyber-input" />
+            <select name="ban_duration" id="createDisciplineDuration" class="cyber-input" style="display:none;">
+              <option value="">— 请选择 —</option>
+              <option value="discipline_demerit1">记过</option>
+              <option value="discipline_demerit2">记大过（两次记过 = 一次记大过）</option>
+              <option value="discipline_suspend1d">停权1天</option>
+              <option value="discipline_suspend3d">停权3天</option>
+              <option value="discipline_suspend7d">停权7天</option>
+              <option value="discipline_suspend30d">停权30天</option>
+              <option value="discipline_dismissal">免除职务（永久或长期解除管理职务）</option>
+              <option value="discipline_review7d">停权7天后经酌考究予以复职</option>
+              <option value="discipline_review14d">停权14天后经考究予以复职</option>
+              <option value="discipline_review30d">停权30天后经考究予以复职</option>
+              <option value="discipline_perm_dismissal_lv2x3">累计三次2级违规者，永久免职</option>
+              <option value="discipline_perm_dismissal_lv1">单次1级违规者，永久免职（申诉成功并经考究后可复职）</option>
+              <option value="discipline_public_apology">须对受影响的玩家及人员公开道歉</option>
+            </select>
+          </div>
           <div class="cyber-form-group">
             <label>违规等级</label>
-            <select name="violation_level" class="cyber-input" id="createBanLevel">
+            <select name="violation_level" class="cyber-input" id="createBanLevel" onchange="toggleDisciplineDuration('create')">
               <option value="level3" selected>3级违规</option><option value="level2">2级违规</option>
               <option value="level1">1级违规</option><option value="warning">警告</option>
               <option value="admin_discipline">违纪处罚</option>
@@ -144,10 +163,29 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
           <div class="cyber-form-group"><label>Steam ID *</label><input type="text" name="steam_id" required placeholder="76561199…" class="cyber-input" /></div>
           <div class="cyber-form-group"><label>IP（选填）</label><input type="text" name="ip_address" class="cyber-input" /></div>
           <div class="cyber-form-group"><label>原因</label><input type="text" name="reason" class="cyber-input" /></div>
-          <div class="cyber-form-group"><label>封禁时长</label><input type="text" name="ban_duration" placeholder="7d / 30m / 1h / permanent" class="cyber-input" /></div>
+          <div class="cyber-form-group">
+            <label>封禁时长</label>
+            <input type="text" name="ban_duration" id="editBanDuration" placeholder="7d / 30m / 1h / permanent" class="cyber-input" />
+            <select name="ban_duration" id="editDisciplineDuration" class="cyber-input" style="display:none;">
+              <option value="">— 请选择 —</option>
+              <option value="discipline_demerit1">记过</option>
+              <option value="discipline_demerit2">记大过（两次记过 = 一次记大过）</option>
+              <option value="discipline_suspend1d">停权1天</option>
+              <option value="discipline_suspend3d">停权3天</option>
+              <option value="discipline_suspend7d">停权7天</option>
+              <option value="discipline_suspend30d">停权30天</option>
+              <option value="discipline_dismissal">免除职务（永久或长期解除管理职务）</option>
+              <option value="discipline_review7d">停权7天后经酌考究予以复职</option>
+              <option value="discipline_review14d">停权14天后经考究予以复职</option>
+              <option value="discipline_review30d">停权30天后经考究予以复职</option>
+              <option value="discipline_perm_dismissal_lv2x3">累计三次2级违规者，永久免职</option>
+              <option value="discipline_perm_dismissal_lv1">单次1级违规者，永久免职（申诉成功并经考究后可复职）</option>
+              <option value="discipline_public_apology">须对受影响的玩家及人员公开道歉</option>
+            </select>
+          </div>
           <div class="cyber-form-group">
             <label>违规等级</label>
-            <select name="violation_level" class="cyber-input" id="editBanLevel">
+            <select name="violation_level" class="cyber-input" id="editBanLevel" onchange="toggleDisciplineDuration('edit')">
               <option value="level3">3级违规</option><option value="level2">2级违规</option>
               <option value="level1">1级违规</option><option value="warning">警告</option>
               <option value="admin_discipline">违纪处罚</option>
@@ -164,8 +202,35 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
 
 <script>
 const jwt = localStorage.getItem('jwt');
+
+function toggleDisciplineDuration(prefix) {
+  const level = document.getElementById(prefix + 'BanLevel').value;
+  const durationInput = document.getElementById(prefix + 'BanDuration');
+  const disciplineSelect = document.getElementById(prefix + 'DisciplineDuration');
+  if (level === 'admin_discipline') {
+    durationInput.style.display = 'none';
+    durationInput.disabled = true;
+    disciplineSelect.style.display = '';
+    disciplineSelect.disabled = false;
+  } else {
+    durationInput.style.display = '';
+    durationInput.disabled = false;
+    disciplineSelect.style.display = 'none';
+    disciplineSelect.disabled = true;
+  }
+}
+
+function getBanDuration(prefix) {
+  const level = document.getElementById(prefix + 'BanLevel').value;
+  if (level === 'admin_discipline') {
+    return document.getElementById(prefix + 'DisciplineDuration').value;
+  }
+  return document.getElementById(prefix + 'BanDuration').value;
+}
+
 function openBanSheet() {
   document.getElementById('banForm').reset();
+  toggleDisciplineDuration('create');
   document.getElementById('banSheet').classList.add('open');
 }
 function closeBanSheet() {
@@ -184,10 +249,14 @@ async function editBan(id) {
   f.querySelector('[name=steam_id]').value = d.steam_id;
   f.querySelector('[name=ip_address]').value = d.ip_address || '';
   f.querySelector('[name=reason]').value = d.reason || '';
-  f.querySelector('[name=ban_duration]').value = d.ban_duration || '';
   f.querySelector('[name=violation_level]').value = d.violation_level || 'level3';
   f.querySelector('[name=notes]').value = d.notes || '';
   f.querySelector('[name=co_handlers]').value = d.co_handlers || '';
+  // Handle discipline duration
+  const isDisc = d.violation_level === 'admin_discipline';
+  document.getElementById('editBanDuration').value = isDisc ? '' : (d.ban_duration || '');
+  document.getElementById('editDisciplineDuration').value = isDisc ? (d.ban_duration || '') : '';
+  toggleDisciplineDuration('edit');
   document.getElementById('editBanSheet').classList.add('open');
 }
 async function deleteBan(id) {
@@ -213,6 +282,12 @@ function showToast(t, type) {
 document.getElementById('banForm')?.addEventListener('submit', async function(e) {
   e.preventDefault();
   const data = Object.fromEntries(new FormData(this));
+  // 违纪处罚：用 select 的值替换 ban_duration
+  const level = document.getElementById('createBanLevel').value;
+  if (level === 'admin_discipline') {
+    data.ban_duration = document.getElementById('createDisciplineDuration').value;
+    if (!data.ban_duration) { showToast('请选择处罚类型', 'error'); return; }
+  }
   const resp = await fetch('/api/admin/bans', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },
@@ -225,6 +300,12 @@ document.getElementById('editBanForm')?.addEventListener('submit', async functio
   e.preventDefault();
   const data = Object.fromEntries(new FormData(this));
   const id = data.id; delete data.id;
+  // 违纪处罚：用 select 的值替换 ban_duration
+  const level = document.getElementById('editBanLevel').value;
+  if (level === 'admin_discipline') {
+    data.ban_duration = document.getElementById('editDisciplineDuration').value;
+    if (!data.ban_duration) { showToast('请选择处罚类型', 'error'); return; }
+  }
   const resp = await fetch('/api/admin/bans/' + id, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + jwt },

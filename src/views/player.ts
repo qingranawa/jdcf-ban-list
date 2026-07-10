@@ -56,7 +56,7 @@ export function PlayerProfilePage(data: PlayerProfileData) {
   <!-- Profile Header -->
   <div class="glass-card" style="margin-bottom:var(--spacing-md);">
     <div class="glass-card-inner" style="display:flex;align-items:center;gap:16px;">
-      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--magenta));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;font-family:var(--sans);flex-shrink:0;">${escHtml(initial)}</div>
+      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#ffffff);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;font-family:var(--sans);flex-shrink:0;">${escHtml(initial)}</div>
       <div style="flex:1;min-width:0;">
         <div style="font-family:var(--sans);font-size:20px;font-weight:600;">${escHtml(data.nickname)}</div>
         <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap;">

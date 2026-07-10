@@ -301,160 +301,101 @@ publicRoutes.get('/', async (c) => {
 publicRoutes.get('/search', async (c) => {
 
   const q = c.req.query('q') || ''
+  const activeTab = c.req.query('tab') || 'bans'
 
   const page = Math.max(1, parseInt(c.req.query('page') || '1'))
-
   const perPage = Math.min(100, Math.max(10, parseInt(c.req.query('per_page') || '25')))
-
   const limit = perPage
-
   const offset = (page - 1) * limit
 
 
-
   let bans: (BanRow & { handled_by_name: string | null; status: string })[] = []
-
   let total = 0
-
   let admins: { id: number; steam_id: string; username: string; permission_group: string; game_name: string; qq_name: string; position: string; supervisor: string }[] = []
-
   let players: { id: number; nickname: string; steam_id: string; banCount: number; highestLevel: string }[] = []
-
-
+  let announcements: { id: number; title: string; subtitle: string | null; body: string; citation: string | null; type: string; is_pinned: number; is_published: number; publish_at: string | null; created_by_name: string | null; created_at: string }[] = []
 
   if (q) {
-
     const escaped = q.replace(/[%_\\]/g, '\\$&')
-
     const pattern = '%' + escaped + '%'
 
-
-
     // 1. Search bans (existing)
-
     const countResult = await c.env.DB.prepare(
-
       `SELECT COUNT(*) as total FROM bans b WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\\' OR b.steam_id LIKE ? ESCAPE '\\' OR b.ip_address LIKE ? ESCAPE '\\' OR b.reason LIKE ? ESCAPE '\\' OR b.notes LIKE ? ESCAPE '\\')`
-
     ).bind(pattern, pattern, pattern, pattern, pattern).first<{ total: number }>()
-
     total = countResult?.total ?? 0
 
-
-
     if (total > 0) {
-
       const rows = await c.env.DB.prepare(
-
         'SELECT b.*, a.game_name as handled_by_name FROM bans b' +
-
         ' LEFT JOIN admins a ON b.handled_by = a.id' +
-
         ` WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\\' OR b.steam_id LIKE ? ESCAPE '\\' OR b.ip_address LIKE ? ESCAPE '\\' OR b.reason LIKE ? ESCAPE '\\' OR b.notes LIKE ? ESCAPE '\\')` +
-
         ' ORDER BY b.created_at DESC LIMIT ? OFFSET ?'
-
       ).bind(pattern, pattern, pattern, pattern, pattern, limit, offset).all()
-
       bans = rows.results.map((b: any) => ({ ...b, status: computeStatus(b) }))
-
     }
-
-
 
     // 2. Search admins (by game_name or username or steam_id)
-
     const adminRows = await c.env.DB.prepare(
-
       'SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor FROM admins' +
-
       ' WHERE is_active = 1 AND (game_name LIKE ? ESCAPE \'\\\' OR username LIKE ? ESCAPE \'\\\' OR steam_id LIKE ? ESCAPE \'\\\')' +
-
       ' LIMIT 10'
-
     ).bind(pattern, pattern, pattern).all()
-
     admins = adminRows.results as typeof admins
 
-
-
     // 3. Search players (unique players from bans table by steam_id)
-
     const playerRows = await c.env.DB.prepare(
-
       `SELECT b.id as ban_id, b.nickname, b.steam_id,
-
               (SELECT COUNT(*) FROM bans WHERE steam_id = b.steam_id AND is_archived = 0) as ban_count
-
        FROM bans b
-
        WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\\' OR b.steam_id LIKE ? ESCAPE '\\')
-
        GROUP BY b.steam_id
-
        ORDER BY ban_count DESC
-
        LIMIT 10`
-
     ).bind(pattern, pattern).all()
 
-
-
-    // get each player's highest violation level
-
     const seenSteamIds = new Set<string>()
-
     for (const row of playerRows.results as any[]) {
-
       if (seenSteamIds.has(row.steam_id)) continue
-
       seenSteamIds.add(row.steam_id)
-
       const lv = await c.env.DB.prepare(
-
         `SELECT violation_level FROM bans WHERE steam_id = ? AND is_archived = 0 AND violation_level != "admin_discipline" ORDER BY
-
          CASE violation_level WHEN 'level1' THEN 0 WHEN 'level2' THEN 1 WHEN 'level3' THEN 2 WHEN 'warning' THEN 3 ELSE 99 END
-
          LIMIT 1`
-
       ).bind(row.steam_id).first<{ violation_level: string }>()
-
       players.push({
-
         id: row.ban_id, nickname: row.nickname, steam_id: row.steam_id,
-
         banCount: row.ban_count, highestLevel: lv?.violation_level || '',
-
       })
-
     }
 
+    // 4. Search announcements (for tab3)
+    const announcementRows = await c.env.DB.prepare(
+      `SELECT a.*, adm.game_name as created_by_name
+       FROM announcements a
+       LEFT JOIN admins adm ON a.created_by = adm.id
+       WHERE a.is_published = 1 AND (a.title LIKE ? ESCAPE '\\' OR a.body LIKE ? ESCAPE '\\' OR a.subtitle LIKE ? ESCAPE '\\')
+       ORDER BY a.is_pinned DESC, a.publish_at DESC, a.created_at DESC
+       LIMIT 10`
+    ).bind(pattern, pattern, pattern).all<{ id: number; title: string; subtitle: string | null; body: string; citation: string | null; type: string; is_pinned: number; is_published: number; publish_at: string | null; created_by_name: string | null; created_at: string }>()
+    announcements = announcementRows.results
   }
 
-
-
   const totalPages = Math.ceil(total / limit) || 1
-
-
 
   return c.html(Layout({
 
     title: q ? (q + ' - 搜索结果') : '搜索',
-
     currentPath: '/',
-
-    children: SearchPage({ query: q, bans, total, admins, players, page, totalPages, perPage }),
+    children: SearchPage({ query: q, bans, total, admins, players, announcements, page, totalPages, perPage, activeTab: activeTab as 'bans' | 'entities' | 'announcements' }),
 
   }))
-
 })
-
 publicRoutes.get('/team', async (c) => {
 
   const result = await c.env.DB.prepare(
 
-    'SELECT steam_id, game_name, username, qq_name, permission_group, position, supervisor FROM admins WHERE is_active = 1 ORDER BY id ASC'
+    'SELECT id, steam_id, game_name, username, qq_name, permission_group, position, supervisor FROM admins WHERE is_active = 1 ORDER BY id ASC'
 
   ).all<AdminRow>()
 
@@ -1224,9 +1165,9 @@ publicRoutes.get('/admin-profile/:id', async (c) => {
 
   const auditLogs = await c.env.DB.prepare(
 
-    'SELECT id, action, target_type, target_id, detail, created_at FROM audit_log WHERE admin_id = ? ORDER BY created_at DESC LIMIT 50'
+    'SELECT id, action, target_type, target_id, details, created_at FROM audit_log WHERE admin_id = ? ORDER BY created_at DESC LIMIT 50'
 
-  ).bind(id).all<{ id: number; action: string; target_type: string; target_id: number | null; detail: string | null; created_at: string }>()
+  ).bind(id).all<{ id: number; action: string; target_type: string; target_id: number | null; details: string | null; created_at: string }>()
 
 
 

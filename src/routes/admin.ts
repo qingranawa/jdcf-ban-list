@@ -110,7 +110,8 @@ adminRoutes.post('/api/admin/bans', requirePermission('T1'), async (c) => {
     const body = await c.req.json()
     const adminId = c.get('adminId')
     if (!body.nickname || !body.steam_id) return c.json({ error: '昵称和 Steam ID 为必填' }, 400)
-    if (body.ban_duration && !/^(\d+[dhmy]|mute-\d+[dhmy]|permanent|warning|cfba|50[Yy])$/.test(body.ban_duration)) {
+    const isDiscipline = body.violation_level === 'admin_discipline' || body.violation_level_custom === 'admin_discipline'
+    if (body.ban_duration && !isDiscipline && !/^(\d+[dhmy]|mute-\d+[dhmy]|permanent|warning|cfba|50[Yy])$/.test(body.ban_duration)) {
       return c.json({ error: '封禁时长格式无效，支持: 数字+d/h/m/y, permanent, warning, cfba' }, 400)
     }
 
