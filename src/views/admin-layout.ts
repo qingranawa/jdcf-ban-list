@@ -42,7 +42,9 @@ export function AdminLayout(props: AdminLayoutProps) {
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%23000' stroke='%2300ffff' stroke-width='2'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='%2300ffff' font-family='monospace' font-weight='bold'%3EJ%3C/text%3E%3C/svg%3E"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preload" as="image" href="${bgPath}" fetchpriority="high">
-<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous">
+
+</script>
 ${Styles()}
 </head>
 <body style="display:flex;">
@@ -59,7 +61,8 @@ ${Styles()}
 
 <aside class="cyber-sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <a href="/" style="color:inherit;text-decoration:none;">鸡蛋肠粉<span style="color:var(--magenta);font-size:14px;margin-left:8px;font-weight:600;">后台</span></a>
+    <a href="/" style="color:inherit;text-decoration:none;display:flex;align-items:center;gap:8px;">鸡蛋肠粉<span style="color:var(--magenta);font-size:14px;font-weight:600;">后台</span></a>
+    <button class="sidebar-collapse-btn" onclick="toggleSidebar()" aria-label="折叠侧边栏">◀</button>
   </div>
       <a href="/" class="sidebar-link" style="margin:4px 10px 8px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.03);color:var(--label-3);font-size:13px;text-decoration:none;display:flex;align-items:center;gap:6px;transition:all 0.2s;">
       ← 返回首页
@@ -127,7 +130,18 @@ ${Styles()}
       el.classList.add('visible');
     });
   });
-</script>
+
+
+  // Sidebar collapse
+  var sidebar = document.getElementById('sidebar');
+  var savedState = localStorage.getItem('sidebarCollapsed') === 'true';
+  if (savedState) sidebar.classList.add('collapsed');
+  window.toggleSidebar = function() {
+    sidebar.classList.toggle('collapsed');
+    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+  }
+  </script>
+
 </body>
 </html>`
 }
