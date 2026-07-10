@@ -77,3 +77,27 @@ describe('computeStatus', () => {
     expect(computeStatus({ ban_duration: 'invalid', ban_time: '2020-01-01', archive_action: null })).toBe('banned')
   })
 })
+
+describe('admin_discipline', () => {
+  it('admin_discipline returns admin_discipline regardless of time', () => {
+    expect(computeStatus({
+      ban_duration: '记过', ban_time: '2020-01-01',
+      archive_action: null, violation_level: 'admin_discipline',
+    })).toBe('admin_discipline')
+  })
+
+  it('停权7天 discipline does not auto-expire', () => {
+    const thirtyDaysAgo = new Date(NOW - 30 * 86400000).toISOString()
+    expect(computeStatus({
+      ban_duration: '停权7天', ban_time: thirtyDaysAgo,
+      archive_action: null, violation_level: 'admin_discipline',
+    })).toBe('admin_discipline')
+  })
+
+  it('normal ban with non-discipline violation_level still works', () => {
+    expect(computeStatus({
+      ban_duration: '30d', ban_time: new Date(NOW - 1 * 86400000).toISOString(),
+      archive_action: null, violation_level: 'level2',
+    })).toBe('banned')
+  })
+})

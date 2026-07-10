@@ -15,9 +15,13 @@ import { AnnouncementsPage, AnnouncementDetailPage } from '../views/announcement
 export const publicRoutes = new Hono<{ Bindings: Env }>()
 
 // * Core status computer — used by both public and admin routes
-// * Returns: 'banned' | 'unbanned' | 'permanent' | 'muted' | 'warning' | 'cfba'
+// * Returns: 'banned' | 'unbanned' | 'permanent' | 'muted' | 'warning' | 'cfba' | 'admin_discipline'
 // ? 移除 archive_action 检查是因为已归档记录不会在此路由出现
-export function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null }): string {
+export function computeStatus(ban: { ban_duration: string; ban_time: string; archive_action: string | null; violation_level: string }): string {
+  // 违纪处罚 — 不自动解封，状态由管理员手动管理
+  if (ban.violation_level === 'admin_discipline') {
+    return 'admin_discipline'
+  }
   // ! 警告不算封禁，没时效期限
   if (ban.ban_duration === 'warning') return 'warning'
   // ! 永久不解封

@@ -5,7 +5,7 @@ export function fmtDate(t: string): string {
 }
 
 export function lvBadge(lv: string): string {
-  const m: Record<string, string> = { warning: 'cyber-badge-amber', level3: 'cyber-badge-cyan', level2: 'cyber-badge-magenta', level1: 'cyber-badge-red' }
+  const m: Record<string, string> = { warning: 'cyber-badge-amber', level3: 'cyber-badge-cyan', level2: 'cyber-badge-magenta', level1: 'cyber-badge-red', admin_discipline: 'cyber-badge-amber' }
   return m[lv] || 'cyber-badge-neutral'
 }
 
@@ -13,12 +13,13 @@ export function lvLabel(lv: string): string {
   const m: Record<string, string> = {
     level1: '1级违规', level2: '2级违规', level3: '3级违规',
     level4: '4级违规', warning: '警告',
+    admin_discipline: '违纪处罚',
   }
   return m[lv] || lv
 }
 
 export function stBadge(s: string): string {
-  const m: Record<string, string> = { banned: 'cyber-badge-magenta', unbanned: 'cyber-badge-green', permanent: 'cyber-badge-red', muted: 'cyber-badge-amber', warning: 'cyber-badge-neutral', cfba: 'cyber-badge-neutral' }
+  const m: Record<string, string> = { banned: 'cyber-badge-magenta', unbanned: 'cyber-badge-green', permanent: 'cyber-badge-red', muted: 'cyber-badge-amber', warning: 'cyber-badge-neutral', cfba: 'cyber-badge-neutral', admin_discipline: 'cyber-badge-amber' }
   return m[s] || 'cyber-badge-neutral'
 }
 
