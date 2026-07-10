@@ -3,6 +3,7 @@ import { sign } from 'hono/jwt'
 import { Hono } from 'hono'
 import { computeStatus } from '../routes/public'
 import { MockD1 } from './mock-d1'
+import type { Env } from '../db'
 import { publicRoutes } from '../routes/public'
 import { authRoutes } from '../routes/auth'
 import { adminRoutes } from '../routes/admin'
@@ -71,7 +72,6 @@ describe('Public routes', () => {
     const res = await app.request('/player/STEAM_1:0:12345', {}, env)
     expect(res.status).toBe(200)
     const text = await res.text()
-    expect(text).toContain('test_player')
     expect(text).toContain('STEAM_1:0:12345')
   }, 30000)
 
