@@ -124,9 +124,10 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
           <div class="cyber-form-group"><label>封禁时长</label><input type="text" name="ban_duration" placeholder="7d / 30m / 1h / permanent" class="cyber-input" /></div>
           <div class="cyber-form-group">
             <label>违规等级</label>
-            <select name="violation_level" class="cyber-input">
+            <select name="violation_level" class="cyber-input" id="createBanLevel">
               <option value="level3" selected>3级违规</option><option value="level2">2级违规</option>
               <option value="level1">1级违规</option><option value="warning">警告</option>
+              <option value="admin_discipline">违纪处罚</option>
             </select>
           </div>
           <div class="cyber-form-group"><label>备注</label><textarea name="notes" rows="3" class="cyber-input"></textarea></div>
@@ -154,9 +155,10 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
           <div class="cyber-form-group"><label>封禁时长</label><input type="text" name="ban_duration" placeholder="7d / 30m / 1h / permanent" class="cyber-input" /></div>
           <div class="cyber-form-group">
             <label>违规等级</label>
-            <select name="violation_level" class="cyber-input">
+            <select name="violation_level" class="cyber-input" id="editBanLevel">
               <option value="level3">3级违规</option><option value="level2">2级违规</option>
               <option value="level1">1级违规</option><option value="warning">警告</option>
+              <option value="admin_discipline">违纪处罚</option>
             </select>
           </div>
           <div class="cyber-form-group"><label>备注</label><textarea name="notes" rows="3" class="cyber-input"></textarea></div>
