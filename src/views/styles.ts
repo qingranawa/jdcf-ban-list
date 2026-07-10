@@ -420,6 +420,33 @@ body::after {
 }
 .cyber-sidebar .sidebar-footer .sidebar-link { padding: 8px var(--spacing-sm); border-radius: var(--radius-sm); }
 .cyber-sidebar .sidebar-footer .sidebar-link:hover { background: rgba(255,255,255,.10); }
+/* ─── Sidebar Collapse ─── */
+.sidebar-collapse-btn {
+  background: none; border: none; color: var(--label-3);
+  cursor: pointer; padding: 4px 6px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.3s; font-size: 12px; line-height: 1;
+  margin-left: auto; flex-shrink: 0;
+}
+.sidebar-collapse-btn:hover { background: rgba(255,255,255,.06); color: var(--label-1); }
+.cyber-sidebar.collapsed { width: 60px; }
+.cyber-sidebar.collapsed .sidebar-brand { justify-content: center; gap: 0; }
+.cyber-sidebar.collapsed .sidebar-brand a { display: none; }
+.cyber-sidebar.collapsed .sidebar-nav .sidebar-link { font-size: 0; justify-content: center; padding: 10px 8px; }
+.cyber-sidebar.collapsed .sidebar-nav .sidebar-link svg { width: 20px; height: 20px; }
+.cyber-sidebar.collapsed .sidebar-link[href="/"] { font-size: 0; justify-content: center; padding: 10px 8px; }
+.cyber-sidebar.collapsed .sidebar-footer .sidebar-link { justify-content: center; }
+.cyber-sidebar.collapsed .sidebar-footer .sidebar-link div:last-child { display: none; }
+.cyber-sidebar.collapsed .sidebar-collapse-btn { transform: rotate(180deg); }
+@media(max-width:768px){
+  .sidebar-collapse-btn { display: none; }
+  .cyber-sidebar.collapsed { width: min(240px, 70vw); }
+  .cyber-sidebar.collapsed .sidebar-brand a { display: flex; }
+  .cyber-sidebar.collapsed .sidebar-nav .sidebar-link { font-size: 14px; justify-content: flex-start; }
+  .cyber-sidebar.collapsed .sidebar-link[href="/"] { font-size: 13px; justify-content: flex-start; }
+  .cyber-sidebar.collapsed .sidebar-footer .sidebar-link div:last-child { display: block; }
+}
+
 
 /* ─── Main content padding for fixed nav ─── */
 .cyber-main { padding-bottom: 64px; min-height: calc(100vh - 64px); }
@@ -744,10 +771,6 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 }
 .chart-container {
   flex: 1; min-width: 0;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-  background: transparent;
 }
 .chart-container canvas {
   width: 100% !important;
@@ -901,7 +924,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   transition:all 0.5s cubic-bezier(0.32,0.72,0,1);
 }
 .bento-card:hover{background:linear-gradient(135deg,rgba(0,255,255,0.08),rgba(0,136,255,0.04));transform:translateY(-2px)}
-.bento-card-inner{background:#08080e;border-radius:18px;padding:24px;height:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.bento-card-inner{background:rgba(8,8,14,0.25);backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);border-radius:18px;padding:24px;height:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)}
 .bento-card:first-child{grid-column:span 1}
 .bento-card:first-child .bento-card-inner{display:flex;align-items:center;gap:20px}
 .bento-card:first-child .bento-number{font-size:48px;font-weight:800;letter-spacing:-0.03em;line-height:1;background:linear-gradient(135deg,#fff,rgba(0,255,255,0.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -914,8 +937,9 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   border-radius:20px;padding:2px;
   background:linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
   margin-bottom:24px;
+  overflow-x:auto;
 }
-.glass-table-inner{background:#08080e;border-radius:18px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.glass-table-inner{background:rgba(10,10,20,0.25);backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);border-radius:18px;overflow-x:auto;overflow-y:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)}
 .glass-table{width:100%;border-collapse:collapse}
 .glass-table thead th{padding:16px 20px;text-align:left;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.25);border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap}
 .glass-table tbody tr{transition:all 0.4s}
@@ -1163,7 +1187,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   transition:all 0.5s cubic-bezier(0.32,0.72,0,1);
 }
 .bento-card:hover{background:linear-gradient(135deg,rgba(0,255,255,0.08),rgba(0,136,255,0.04));transform:translateY(-2px)}
-.bento-card-inner{background:#08080e;border-radius:18px;padding:24px;height:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.bento-card-inner{background:rgba(8,8,14,0.25);backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);border-radius:18px;padding:24px;height:100%;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)}
 .bento-card:first-child{grid-column:span 1}
 .bento-card:first-child .bento-card-inner{display:flex;align-items:center;gap:20px}
 .bento-card:first-child .bento-number{font-size:48px;font-weight:800;letter-spacing:-0.03em;line-height:1;background:linear-gradient(135deg,#fff,rgba(0,255,255,0.6));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
@@ -1176,8 +1200,9 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   border-radius:20px;padding:2px;
   background:linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
   margin-bottom:24px;
+  overflow-x:auto;
 }
-.glass-table-inner{background:#08080e;border-radius:18px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.04)}
+.glass-table-inner{background:rgba(10,10,20,0.25);backdrop-filter:blur(28px) saturate(1.6);-webkit-backdrop-filter:blur(28px) saturate(1.6);border-radius:18px;overflow-x:auto;overflow-y:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)}
 .glass-table{width:100%;border-collapse:collapse}
 .glass-table thead th{padding:16px 20px;text-align:left;font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.25);border-bottom:1px solid rgba(255,255,255,0.04);white-space:nowrap}
 .glass-table tbody tr{transition:all 0.4s}
@@ -1259,21 +1284,35 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 
 /* ─── Glass Card (enhanced card for announcements/stats/account/team) ─── */
 .glass-card {
-  border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
   transition: all 0.4s cubic-bezier(0.32,0.72,0,1);
 }
 .glass-card:hover {
-  border-color: rgba(255,255,255,0.1);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  background: linear-gradient(135deg, rgba(0,255,255,0.08), rgba(0,136,255,0.04));
+  transform: translateY(-2px);
 }
+/* ─── Glass Card Inner (content area matching bento-card-inner) ─── */
+.glass-card-inner {
+  border-radius: 18px;
+  padding: var(--spacing-lg);
+  background: rgba(10,10,20,0.25);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  height: 100%;
+}
+
 
 /* ─── Settings / Account grouped list ─── */
 .settings-group {
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(10,10,20,0.22);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
   overflow: hidden;
 }
 .settings-group-item {
@@ -1310,8 +1349,11 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .team-card {
   padding: var(--spacing-lg);
   border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(10,10,20,0.22);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
@@ -1327,26 +1369,30 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 @media (max-width: 768px) {
   .team-cards { grid-template-columns: 1fr !important; }
   .glass-card { border-radius: 0; border-left: none; border-right: none; }
+  .glass-card-inner { border-radius: 0; }
   .settings-group { border-radius: 0; border-left: none; border-right: none; }
 }
 
 /* ─── Glass Card (enhanced card for announcements/stats/account/team) ─── */
 .glass-card {
-  border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 20px;
+  padding: 2px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
   transition: all 0.4s cubic-bezier(0.32,0.72,0,1);
 }
 .glass-card:hover {
-  border-color: rgba(255,255,255,0.1);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  background: linear-gradient(135deg, rgba(0,255,255,0.08), rgba(0,136,255,0.04));
+  transform: translateY(-2px);
 }
 
 /* ─── Settings / Account grouped list ─── */
 .settings-group {
   border-radius: var(--radius-md);
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(10,10,20,0.22);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
   overflow: hidden;
 }
 .settings-group-item {
@@ -1383,8 +1429,11 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .team-card {
   padding: var(--spacing-lg);
   border-radius: var(--radius-md);
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(10,10,20,0.22);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
@@ -1400,6 +1449,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 @media (max-width: 768px) {
   .team-cards { grid-template-columns: 1fr !important; }
   .glass-card { border-radius: 0; border-left: none; border-right: none; }
+  .glass-card-inner { border-radius: 0; }
   .settings-group { border-radius: 0; border-left: none; border-right: none; }
 }
 

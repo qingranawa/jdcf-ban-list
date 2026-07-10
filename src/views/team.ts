@@ -12,7 +12,8 @@ export function TeamPage(props: { admins: Admin[] }) {
 
   <div style="margin-top:var(--spacing-lg);display:grid;grid-template-columns:1fr 1fr;gap:var(--spacing-md);">
     ${props.admins.length === 0 ? html`<div style="text-align:center;padding:3rem;color:var(--label-3);font-size:15px;grid-column:1/-1;">暂无管理员信息</div>` : props.admins.map(a => html`
-    <div class="glass-card" style="padding:var(--spacing-lg);aspect-ratio:4/3;display:flex;flex-direction:column;gap:var(--spacing-sm);">
+    <div class="glass-card" style="aspect-ratio:4/3;">
+      <div class="glass-card-inner" style="display:flex;flex-direction:column;gap:var(--spacing-sm);background:transparent;box-shadow:none;">
       <div style="display:flex;align-items:center;gap:var(--spacing-sm);">
         <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),var(--magenta));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#000;flex-shrink:0;font-family:var(--sans);">
           ${(a.game_name || a.username).charAt(0)}
@@ -28,6 +29,7 @@ export function TeamPage(props: { admins: Admin[] }) {
         ${a.qq_name ? html`<div style="font-size:13px;color:var(--label-2);"><span style="color:var(--label-3);">QQ:</span> ${escHtml(a.qq_name)}</div>` : ''}
         ${a.position ? html`<div style="font-size:13px;color:var(--label-2);"><span style="color:var(--label-3);">任职:</span> ${escHtml(a.position)}</div>` : ''}
         ${a.supervisor ? html`<div style="font-size:13px;color:var(--label-2);"><span style="color:var(--label-3);">主管事务:</span> ${escHtml(a.supervisor)}</div>` : ''}
+      </div>
       </div>
     </div>`)}
   </div>

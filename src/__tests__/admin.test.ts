@@ -259,10 +259,10 @@ describe('Admin API', () => {
 
   describe('computeStatus', () => {
     it('classifies permanent as permanent', () => {
-      expect(computeStatus({ ban_duration: 'permanent', ban_time: '', archive_action: null })).toBe('permanent')
+      expect(computeStatus({ ban_duration: 'permanent', ban_time: '', archive_action: null, violation_level: '' })).toBe('permanent')
     })
     it('classifies active 30d as banned', () => {
-      expect(computeStatus({ ban_duration: '30d', ban_time: new Date().toISOString(), archive_action: null })).toBe('banned')
+      expect(computeStatus({ ban_duration: '30d', ban_time: new Date().toISOString(), archive_action: null, violation_level: '' })).toBe('banned')
     })
   })
 })

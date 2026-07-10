@@ -2,7 +2,7 @@
 // ! 所有操作不可撤销（删除的封禁进归档，不会恢复为活跃）
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
-import { fmtDate as fmt } from '../helpers/format'
+import { fmtDate as fmt, lvBadge, lvLabel } from '../helpers/format'
 
 type ProcBan = { id: number; nickname: string; steam_id: string; reason: string; ban_time: string; ban_duration: string; violation_level: string }
 
@@ -12,7 +12,8 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
   <h2 class="page-title" style="margin-bottom:var(--spacing-lg);">批量处理</h2>
 
   <div style="display:flex;gap:var(--spacing-lg);flex-wrap:wrap;margin-bottom:var(--spacing-lg);">
-    <div class="glass-card" style="flex:1;min-width:200px;padding:var(--spacing-lg);display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;">
+    <div class="glass-card" style="flex:1;min-width:200px;">
+      <div class="glass-card-inner" style="display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;background:transparent;box-shadow:none;padding:var(--spacing-lg);">
       <div>
         <div style="font-family:var(--sans);font-size:14px;color:var(--label-2);text-transform:uppercase;letter-spacing:.05em;">待处理 2级</div>
         <div id="l2Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--blue);">${props.level2Bans.length}</div>
@@ -20,8 +21,10 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
       <button class="cyber-btn cyber-btn-primary" onclick="downgradeAllL2()" id="downgradeBtn" ${props.level2Bans.length === 0 ? 'disabled' : ''}>
         一键降级2级
       </button>
+      </div>
     </div>
-    <div class="glass-card" style="flex:1;min-width:200px;padding:var(--spacing-lg);display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;">
+    <div class="glass-card" style="flex:1;min-width:200px;">
+      <div class="glass-card-inner" style="display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;background:transparent;box-shadow:none;padding:var(--spacing-lg);">
       <div>
         <div style="font-family:var(--sans);font-size:14px;color:var(--label-2);text-transform:uppercase;letter-spacing:.05em;">待处理 3级</div>
         <div id="l3Count" style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--cyan);">${props.level3Bans.length}</div>
@@ -29,6 +32,7 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
       <button class="cyber-btn cyber-btn-danger" onclick="deleteAllL3()" id="deleteBtn" ${props.level3Bans.length === 0 ? 'disabled' : ''}>
         一键删除3级
       </button>
+      </div>
     </div>
   </div>
 
@@ -146,7 +150,7 @@ function renderTable(bans: ProcBan[], accent: string): ReturnType<typeof html> {
 <table class="glass-table">
   <thead><tr>
     <th style="width:32px;"><input type="checkbox" style="accent-color:var(--cyan);width:14px;height:14px;" onchange="toggleTableRows(this)"></th>
-    <th>昵称</th><th>Steam ID</th><th>原因</th><th>时长</th><th>时间</th>
+    <th>昵称</th><th>Steam ID</th><th>原因</th><th>等级</th><th>时长</th><th>时间</th>
   </tr></thead>
   <tbody>
     ${bans.map(b => html`
@@ -155,6 +159,7 @@ function renderTable(bans: ProcBan[], accent: string): ReturnType<typeof html> {
       <td><strong style="font-family:var(--sans);">${escHtml(b.nickname)}</strong></td>
       <td><code style="font-family:var(--mono);font-size:13px;color:var(--label-2);letter-spacing:-.3px;">${escHtml(b.steam_id)}</code></td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--label-2);font-size:14px;" title="${escHtml(b.reason)}">${escHtml(b.reason)}</td>
+      <td><span class="badge ${lvBadge(b.violation_level)}">${lvLabel(b.violation_level)}</span></td>
       <td style="font-family:var(--mono);font-size:13px;color:var(--label-2);">${escHtml(b.ban_duration)}</td>
       <td style="font-family:var(--mono);font-size:13px;color:var(--label-3);white-space:nowrap;">${fmt(b.ban_time)}</td>
     </tr>`)}

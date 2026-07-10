@@ -54,13 +54,6 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
   const totalPages = Math.ceil(total / perPage)
   const qs = (p: number) => `page=${p}&per_page=${perPage}${archived ? '&archived=1' : ''}${query ? '&q=' + encodeURIComponent(query) : ''}`
   const pageUrl = (p: number) => `/admin/bans?${qs(p)}`
-  const perPageHtml = html`
-<select class="cyber-input" style="width:auto;min-width:90px;" onchange="location.href='/admin/bans?${query ? 'q='+encodeURIComponent(query)+'&' : ''}page=1&per_page='+this.value+'${archived ? '&archived=1' : ''}'">
-  <option value="10" ${perPage===10?'selected':''}>10条/页</option>
-  <option value="25" ${perPage===25?'selected':''}>25条/页</option>
-  <option value="50" ${perPage===50?'selected':''}>50条/页</option>
-  <option value="100" ${perPage===100?'selected':''}>100条/页</option>
-</select>`
   return html`
 <div class="cyber-admin-content">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--spacing-lg);">
@@ -75,7 +68,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
   <div style="display:flex;gap:var(--spacing-sm);margin-bottom:var(--spacing-lg);flex-wrap:wrap;">
     <div class="hero-search" style="max-width:100%;flex:1;min-width:200px;">
       
-      <input type="text" id="adminBanSearch" placeholder="搜索昵称/Steam ID/IP/原因/备注…" value="${escAttr(query)}" onkeyup="applyFilter()" />
+      <input type="text" id="adminBanSearch" placeholder="搜索昵称/Steam ID/IP/原因/备注…" value="${escAttr(query)}" onkeydown="if(event.key==='Enter')applyFilter()" />
 	      <button type="button" onclick="applyFilter()" style="padding:10px 20px;">搜索</button>
     </div>
     <select id="adminBanFilter" class="cyber-input" style="width:auto;min-width:120px;" onchange="applyFilter()">
@@ -96,7 +89,6 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--spacing-lg);">
     <span style="font-size:13px;color:var(--label-3);">共 ${total} 条，第 ${page}/${totalPages} 页</span>
     <div style="display:flex;align-items:center;gap:var(--spacing-sm);">
-    ${perPageHtml}
       ${totalPages > 1 ? html`
       <div class="glass-pagination" style="margin-top:0;">
         ${page > 1 ? html`<a href="${pageUrl(page-1)}">←</a>` : ''}

@@ -227,7 +227,7 @@ adminRoutes.get('/api/admin/bans/export', requirePermission('T1'), async (c) => 
 // ── 批量处理过期违规 ──
 
 // * 复用 public.ts 的 computeStatus —— 返回 'unbanned' 就是已过期
-function isBanExpired(ban: { ban_time: string; ban_duration: string; archive_action: string | null }): boolean {
+function isBanExpired(ban: { ban_time: string; ban_duration: string; archive_action: string | null; violation_level: string }): boolean {
   return computeStatus(ban) === 'unbanned'
 }
 
@@ -267,10 +267,8 @@ adminRoutes.get('/admin/process', requirePermission('T5'), async (c) => {
      ORDER BY b.ban_time ASC`
   ).all<BanRow & { handled_by_name: string | null }>()
 
-  // 只显示实际已过期的
-  const expired = rows.results.filter(b => isBanExpired(b))
-  const level2Bans = expired.filter(b => b.violation_level === 'level2')
-  const level3Bans = expired.filter(b => b.violation_level === 'level3')
+  const level2Bans = rows.results.filter(b => b.violation_level === 'level2')
+  const level3Bans = rows.results.filter(b => b.violation_level === 'level3')
 
   return c.html(AdminLayout({
     title: '处理', currentPath: '/admin/process',

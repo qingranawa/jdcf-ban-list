@@ -17,29 +17,33 @@ export function AccountPage() {
 
   <!-- ═══ Tab 1: 账号管理 ═══ -->
   <div id="tab-account" class="tab-content">
-    <div class="glass-card" style="padding:var(--spacing-lg);margin-bottom:var(--spacing-md);">
-      <div style="font-size:14px;font-weight:600;color:var(--label-2);margin-bottom:var(--spacing-md);">当前信息</div>
-      <div id="userInfo" style="display:flex;flex-direction:column;gap:10px;">
-        <div class="skeleton-line" style="height:16px;width:60%;background:rgba(255,255,255,0.04);border-radius:4px;"></div>
-        <div class="skeleton-line" style="height:16px;width:80%;background:rgba(255,255,255,0.04);border-radius:4px;"></div>
-        <div class="skeleton-line" style="height:16px;width:45%;background:rgba(255,255,255,0.04);border-radius:4px;"></div>
+    <div class="glass-card" style="margin-bottom:var(--spacing-md);">
+      <div class="glass-card-inner">
+        <div style="font-size:14px;font-weight:600;color:var(--label-2);margin-bottom:var(--spacing-md);">当前信息</div>
+        <div id="userInfo" style="display:flex;flex-direction:column;gap:10px;">
+          <div class="skeleton-line" style="height:16px;width:60%;background:rgba(255,255,255,0.04);border-radius:4px;"></div>
+          <div class="skeleton-line" style="height:16px;width:80%;background:rgba(255,255,255,0.04);border-radius:4px;"></div>
+          <div class="skeleton-line" style="height:16px;width:45%;background:rgba(255,255,255,0.04);border-radius:4px;"></div>
+        </div>
       </div>
     </div>
 
-    <div class="glass-card" style="padding:var(--spacing-lg);margin-bottom:var(--spacing-md);">
-      <div style="font-size:14px;font-weight:600;color:var(--label-2);margin-bottom:var(--spacing-md);">修改信息</div>
-      <div style="display:flex;flex-direction:column;gap:var(--spacing-sm);">
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          <label style="font-size:13px;color:var(--label-3);">游戏名称</label>
-          <input type="text" id="inputGameName" placeholder="游戏内显示名称" class="cyber-input" />
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          <label style="font-size:13px;color:var(--label-3);">QQ名称</label>
-          <input type="text" id="inputQQName" placeholder="QQ群昵称" class="cyber-input" />
-        </div>
-        <div style="display:flex;flex-direction:column;gap:4px;">
-          <label style="font-size:13px;color:var(--label-3);">新密码（留空不修改）</label>
-          <input type="password" id="inputPassword" placeholder="留空不修改" autocomplete="new-password" class="cyber-input" />
+    <div class="glass-card" style="margin-bottom:var(--spacing-md);">
+      <div class="glass-card-inner">
+        <div style="font-size:14px;font-weight:600;color:var(--label-2);margin-bottom:var(--spacing-md);">修改信息</div>
+        <div style="display:flex;flex-direction:column;gap:var(--spacing-sm);">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:13px;color:var(--label-3);">游戏名称</label>
+            <input type="text" id="inputGameName" placeholder="游戏内显示名称" class="cyber-input" />
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:13px;color:var(--label-3);">QQ名称</label>
+            <input type="text" id="inputQQName" placeholder="QQ群昵称" class="cyber-input" />
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:13px;color:var(--label-3);">新密码（留空不修改）</label>
+            <input type="password" id="inputPassword" placeholder="留空不修改" autocomplete="new-password" class="cyber-input" />
+          </div>
         </div>
       </div>
     </div>
@@ -254,7 +258,7 @@ export function AccountPage() {
           h += '<button class="glass-page-btn" onclick="loadMyBansPage(' + i + ')">' + i + '</button>';
         }
       }
-      h += '</div></div>';
+      h += '</div></div></div>';
     }
     document.getElementById('mybans-content').innerHTML = h;
   }
@@ -359,7 +363,7 @@ export function AccountPage() {
       })
       .then(function(d) {
         infoLoaded = true;
-        var h = '<div class="glass-card" style="padding:var(--spacing-lg);">';
+        var h = '<div class="glass-card"><div class="glass-card-inner">';
         h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
         h += '<div><div style="color:var(--label-3);font-size:13px;">用户名</div><div style="color:var(--label-1);font-weight:500;margin-top:4px;">' + esc(d.username) + '</div></div>';
         h += '<div><div style="color:var(--label-3);font-size:13px;">Steam ID</div><code style="color:var(--label-1);font-family:var(--mono);font-size:13px;margin-top:4px;display:block;">' + esc(d.steam_id) + '</code></div>';

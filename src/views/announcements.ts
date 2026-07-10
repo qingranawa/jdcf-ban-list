@@ -77,7 +77,8 @@ export function AnnouncementsPage(props: {
   ${props.announcements.length === 0 ? html`
   <div style="text-align:center;padding:4rem 1rem;color:rgba(255,255,255,0.25);font-size:15px;font-family:var(--sans);">还没有公告喵～</div>
   ` : props.announcements.map(a => html`
-  <div class="glass-card announce-card" style="margin-bottom:var(--spacing-md);padding:var(--spacing-lg);">
+  <div class="glass-card announce-card" style="margin-bottom:var(--spacing-md);">
+    <div class="glass-card-inner">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:var(--spacing-sm);">
       <span class="badge ${typeBadge(a.type).replace('cyber-badge-', 'badge-')}" style="flex-shrink:0;">${announcementTypeLabel(a.type)}</span>
       <div style="display:flex;gap:var(--spacing-sm);font-size:12px;color:rgba(255,255,255,0.3);font-family:var(--mono);flex-shrink:0;">
@@ -92,6 +93,7 @@ export function AnnouncementsPage(props: {
     ${a.citation ? html`<blockquote style="border-left:3px solid rgba(0,255,255,0.3);padding:10px 14px;margin:10px 0;background:rgba(0,255,255,0.03);border-radius:8px;color:var(--label-2);font-style:italic;font-size:14px;line-height:1.6;">${escHtml(a.citation)}</blockquote>` : ''}
     <div style="display:flex;gap:var(--spacing-sm);margin-top:var(--spacing-sm);padding-top:var(--spacing-sm);border-top:1px solid rgba(255,255,255,0.04);font-size:12px;color:rgba(255,255,255,0.25);">
       <span>${escHtml(a.created_by_name)}</span>
+    </div>
     </div>
   </div>
   `)}

@@ -162,12 +162,10 @@ export function HomePage(props: HomePageProps) {
     </div>
     <h1 class="reveal-blur" data-delay="200">JDCF<br>封禁管理</h1>
     <p class="reveal" data-delay="400">查询、管理、追踪服务器封禁记录，维护公平的游戏环境</p>
-    <div class="hero-search reveal" data-delay="600">
-      <input type="search" name="q" placeholder="搜索玩家昵称或 Steam ID…" autocomplete="off"
-             hx-get="/" hx-trigger="keyup changed delay:300ms, search" hx-target="#list-wrap" hx-push-url="true" hx-indicator="#list-wrap"
-             value="${escAttr(props.query)}">
-      <button>搜索</button>
-    </div>
+    <form action="/search" method="get" class="hero-search reveal" data-delay="600">
+      <input type="search" name="q" placeholder="搜索玩家昵称或 Steam ID…" autocomplete="off" value="${escAttr(props.query)}">
+      <button type="submit">搜索</button>
+    </form>
   </div>
   <div class="scroll-indicator">
     <span class="mouse"></span>
