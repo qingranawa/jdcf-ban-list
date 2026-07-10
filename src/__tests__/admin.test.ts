@@ -81,6 +81,22 @@ describe('Public routes', () => {
     const text = await res.text()
     expect(text).toContain('没有找到该玩家的封禁记录')
   })
+
+  it('GET /admin-profile/:id returns 200 for existing admin', async () => {
+    const res = await app.request('/admin-profile/1', {}, env)
+    expect(res.status).toBe(200)
+    const text = await res.text()
+    expect(text).toContain('测试管理员')
+    expect(text).toContain('STEAM_1:0:99999')
+    expect(text).toContain('封禁处理')
+    expect(text).toContain('违纪处罚')
+  })
+
+  it('GET /admin-profile/:id returns not found page for unknown admin', async () => {
+    const res = await app.request('/admin-profile/999', {}, env)
+    expect(res.status).toBe(200)
+    expect(await res.text()).toContain('管理员不存在')
+  })
 })
 
 describe('Auth', () => {
