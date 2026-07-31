@@ -13,7 +13,7 @@
  *   - 违规等级: 1/2/3 → level1/level2/level3, 不适用 → CFBA_BAN
  */
 
-const XLSX = require('xlsx');
+const { readSheetRows } = require('./excel-reader');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -112,11 +112,9 @@ function esc(val) {
 
 // ─── 主流程 ─────────────────────────────────────────────
 
-function main() {
+async function main() {
   // 读取 Excel
-  const wb = XLSX.readFile(EXCEL_FILE);
-  const ws = wb.Sheets['Sheet1'];
-  const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+  const rows = await readSheetRows(EXCEL_FILE);
 
   console.log(`📋 读取 ${rows.length} 条记录`);
 
@@ -191,4 +189,7 @@ function main() {
   console.log(`📊 汇总: 成功导入 ${inserted} 条，跳过 ${skipped} 条`);
 }
 
-main();
+main().catch(err => {
+  console.error('❌ 读取 Excel 失败:', err.message);
+  process.exitCode = 1;
+});
