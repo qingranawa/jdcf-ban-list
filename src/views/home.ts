@@ -65,7 +65,7 @@ function fmtTime(iso: string): string {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
 }
 
-// ── Search + filter + table (htmx partial) ──
+// ── 搜索、筛选和表格：供 HTMX 局部刷新复用 ──
 export function BanTable(props: TableProps) {
   return html`
 <div id="list-wrap">
@@ -159,7 +159,7 @@ export function HomePage(props: HomePageProps) {
   const sBanned = s?.banned ?? 0
   const sTotal = s?.total ?? 0
   return html`
-<!-- Hero Section -->
+<!-- 顶部欢迎区 -->
 <section class="hero-section">
   <div class="hero-content">
     <div class="hero-eyebrow reveal">
@@ -180,10 +180,10 @@ export function HomePage(props: HomePageProps) {
 </section>
 
 ${s ? html`
-<!-- Divider -->
+<!-- 内容分隔线 -->
 <div class="section-divider reveal"><span>✦</span></div>
 
-<!-- Bento Stats -->
+<!-- 宫格统计卡片 -->
 <div class="bento-stats stagger-children reveal">
   <div class="bento-card">
     <div class="bento-card-inner" style="display:flex;align-items:center;gap:20px;">
@@ -218,7 +218,7 @@ ${s ? html`
   </div>
 </div>` : ''}
 
-<!-- Section Header -->
+<!-- 封禁列表区标题 -->
 <div class="section-header reveal" style="margin-top:0;">
   <h2>封禁记录</h2>
   <p>查看所有封禁记录</p>
@@ -226,7 +226,7 @@ ${s ? html`
 
 ${BanTable(props)}
 
-<!-- Counter Animation Script -->
+<!-- 数字计数动画脚本 -->
 <script>
 (function() {
   var statNumbers = document.querySelectorAll('.bento-number');

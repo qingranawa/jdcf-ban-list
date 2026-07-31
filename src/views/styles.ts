@@ -58,7 +58,7 @@ body { min-height: 100vh; position: relative; }
 a { color: var(--cyan); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* Background photo layer — 3.jpg is the default; preload fills cache silently */
+/* 背景图片层：1.jpg 作为回退图，其余图片由页面静默预加载 */
 .bg-image {
   position: fixed; inset: 0; z-index: -3;
   background-image: url('/images/bg/1.jpg');
@@ -83,7 +83,7 @@ body::before {
   );
 }
 
-/* Mesh gradient background */
+/* 网格渐变背景 */
 .mesh-bg {
   position: fixed; inset: 0; z-index: -2; overflow: hidden; pointer-events: none;
   will-change: transform;
@@ -102,13 +102,13 @@ body::before {
   66% { transform: translate(-15px,25px) scale(.95); }
 }
 
-/* Announcements title glow animation */
+/* 公告标题发光动画 */
 @keyframes announceGlow {
   0%,100% { filter: brightness(1) saturate(1); }
   50% { filter: brightness(1.3) saturate(1.2); }
 }
 
-/* Grain texture overlay */
+/* 颗粒纹理覆盖层 */
 body::after {
   content: ''; position: fixed; inset: 0; z-index: -1;
   opacity: .03;
@@ -117,13 +117,13 @@ body::after {
   pointer-events: none;
 }
 
-/* Scrollbar */
+/* 滚动条 */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--label-3); }
 
-/* ─── Glass (transparent + white border, no blur) ─── */
+/* ─── 玻璃容器：透明白边，不使用模糊效果 ─── */
 .cyber-glass, .cyber-glass-sm, .cyber-card, .cyber-stat-card,
 .cyber-table-wrap, .cyber-btn, .cyber-search, .cyber-input,
 .cyber-pagination button, .cyber-pagination a,
@@ -132,7 +132,7 @@ body::after {
   border: 1px solid var(--glass-border);
 }
 
-/* ─── Buttons ─── */
+/* ─── 按钮 ─── */
 .cyber-btn {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 8px 20px; border-radius: var(--radius-sm);
@@ -169,7 +169,7 @@ body::after {
   outline-offset: 2px;
 }
 
-/* ─── Cards ─── */
+/* ─── 卡片 ─── */
 .cyber-card {
   position: relative;
   border-radius: var(--radius-md); padding: var(--spacing-lg);
@@ -197,7 +197,7 @@ body::after {
   box-shadow: 0 8px 32px rgba(0,0,0,.5);
 }
 
-/* ─── Table ─── */
+/* ─── 表格 ─── */
 .cyber-table-wrap {
   overflow-x: auto;
   border-radius: var(--radius-md);
@@ -216,7 +216,7 @@ body::after {
 .cyber-table tr:last-child td { border-bottom: none; }
 .cyber-table tr:hover td { background: rgba(255,255,255,.04); }
 
-/* ─── HTMX loading state ─── */
+/* ─── HTMX 加载状态 ─── */
 #list-wrap.htmx-request .cyber-table-wrap { position: relative; }
 #list-wrap.htmx-request .cyber-table-wrap::after {
   content: ''; position: absolute; inset: 0; z-index: 5;
@@ -246,7 +246,7 @@ body::after {
 }
 @keyframes htmx-spin { to { transform: rotate(360deg); } }
 
-/* ─── Badges ─── */
+/* ─── 徽标 ─── */
 .cyber-badge {
   display: inline-block; padding: 2px 10px; border-radius: 100px;
   font-family: var(--sans); font-size: 11px; font-weight: 600; letter-spacing: .3px;
@@ -259,7 +259,7 @@ body::after {
 .cyber-badge-red { background: rgba(255,51,85,.15); color: #ff4466; border: 1px solid rgba(255,51,85,.25); }
 .cyber-badge-neutral { background: var(--glass-bg); color: var(--label-2); border: 1px solid var(--glass-border); }
 
-/* ─── Search ─── */
+/* ─── 搜索 ─── */
 .cyber-search {
   display: flex; align-items: center; gap: 8px;
   border-radius: var(--radius-sm); padding: 0 12px;
@@ -273,7 +273,7 @@ body::after {
 }
 .cyber-search input::placeholder { color: var(--label-3); }
 
-/* ─── Segmented Control ─── */
+/* ─── 分段控制器 ─── */
 .cyber-segmented {
   display: inline-flex;
   border: 1px solid var(--glass-border); border-radius: var(--radius-sm);
@@ -288,7 +288,7 @@ body::after {
   background: var(--cyan); color: #000; font-weight: 600;
 }
 
-/* ─── Centered Modal ─── */
+/* ─── 居中弹窗 ─── */
 .cyber-sheet-overlay {
   position: fixed; inset: 0; z-index: 10000;
   background: rgba(0,0,0,.6);
@@ -313,7 +313,7 @@ body::after {
 .sheet-close { background: none; border: none; color: var(--label-3); font-family: var(--body); font-size: 18px; cursor: pointer; width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center; }
 .sheet-close:hover { background:rgba(255,255,255,.1); color: var(--label-1); }
 
-/* ─── Toast ─── */
+/* ─── 消息提示 ─── */
 .cyber-toast {
   position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
   padding: 10px 24px; border-radius: var(--radius-sm);
@@ -326,7 +326,7 @@ body::after {
 .cyber-toast.success { background: var(--green); }
 .cyber-toast.error { background: var(--red); color: #fff; }
 
-/* ─── Stats ─── */
+/* ─── 统计 ─── */
 .cyber-stats {
   display: grid; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); gap: var(--spacing-md);
 }
@@ -351,7 +351,7 @@ body::after {
 .cyber-stat-value.stat-red { background: linear-gradient(135deg,var(--red),#cc2244); -webkit-background-clip: text; background-clip: text; }
 .cyber-stat-label { font-size: 13px; color: var(--label-3); margin-top: 4px; }
 
-/* ─── Pagination ─── */
+/* ─── 分页 ─── */
 .cyber-pagination {
   display: flex; align-items: center; justify-content: center; gap: var(--spacing-sm);
   margin-top: var(--spacing-lg);
@@ -371,7 +371,7 @@ body::after {
 }
 .cyber-pagination button:disabled, .cyber-pagination a:disabled { opacity: .3; cursor: default; }
 
-/* ─── Grouped List ─── */
+/* ─── 分组列表 ─── */
 .cyber-grouped {
   border-radius: var(--radius-md); overflow: hidden;
 }
@@ -384,7 +384,7 @@ body::after {
 .cyber-grouped-label { font-size: 14px; color: var(--label-2); }
 .cyber-grouped-value { font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--label-1); }
 
-/* ─── Sidebar ─── */
+/* ─── 侧边栏 ─── */
 .cyber-sidebar {
   width: min(200px, 60vw); min-height: 100vh;
   border-right: 1px solid var(--glass-border);
@@ -420,10 +420,10 @@ body::after {
 }
 .cyber-sidebar .sidebar-footer .sidebar-link { padding: 8px var(--spacing-sm); border-radius: var(--radius-sm); }
 .cyber-sidebar .sidebar-footer .sidebar-link:hover { background: rgba(255,255,255,.10); }
-/* ─── Main content padding for fixed nav ─── */
+/* ─── 固定导航对应的主内容内边距 ─── */
 .cyber-main { padding-bottom: 64px; min-height: calc(100vh - 64px); }
 
-/* ─── Scroll Progress Bar ─── */
+/* ─── 滚动进度条 ─── */
 #scroll-progress {
   position: fixed; top: 0; left: 0; z-index: 999;
   height: 2px; background: linear-gradient(90deg,var(--cyan),#0088ff);
@@ -434,7 +434,7 @@ body::after {
   #scroll-progress { height: 3px; }
 }
 
-/* ─── Navigation ─── */
+/* ─── 导航 ─── */
 @keyframes navBorderGlow {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -587,7 +587,7 @@ body::after {
   }
 }
 
-/* ─── Form ─── */
+/* ─── 表单 ─── */
 .cyber-form-group { margin-bottom: var(--spacing-md); }
 .cyber-form-group label {
   display: block; font-family: var(--sans); font-size: 12px; font-weight: 600;
@@ -604,13 +604,13 @@ textarea.cyber-input { resize: vertical; min-height: 60px; }
 select.cyber-input { appearance: none; cursor: pointer; background: rgba(0,0,0,.45); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); }
 
-/* ─── Admin Content ─── */
+/* ─── 后台内容区 ─── */
 .cyber-admin-content {
   max-width: min(1200px, calc(100vw - 280px));
   margin: 0 auto;
 }
 
-/* ─── Sheet body form enhancements ─── */
+/* ─── 底部弹窗表单增强 ─── */
 .sheet-body {
   padding: var(--spacing-sm) 0;
 }
@@ -626,13 +626,13 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   margin-bottom: 8px;
 }
 
-/* ─── Empty State ─── */
+/* ─── 空状态 ─── */
 .cyber-empty {
   text-align: center; padding: 3rem var(--spacing-lg);
   color: var(--label-3); font-size: 15px;
 }
 
-/* ─── Skeleton ─── */
+/* ─── 骨架屏 ─── */
 .cyber-skeleton {
   background: linear-gradient(90deg,var(--bg-elevated) 25%,var(--bg-tertiary) 50%,var(--bg-elevated) 75%);
   background-size: 200% 100%; animation: shimmer 1.5s infinite;
@@ -640,7 +640,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 }
 @keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
 
-/* ─── Load More ─── */
+/* ─── 加载更多 ─── */
 .cyber-loadmore {
   text-align: center; padding: var(--spacing-lg);
 }
@@ -648,7 +648,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   padding: 8px 32px;
 }
 
-/* ─── Hero Diagonal ─── */
+/* ─── 顶部欢迎区斜切装饰 ─── */
 .hero-diagonal { position: relative; }
 .hero-diagonal::before {
   content: ''; position: absolute; top: 0; left: -999px; right: -999px; z-index: -1;
@@ -658,7 +658,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   pointer-events: none;
 }
 
-/* ─── Page Titles (admin) ─── */
+/* ─── 页面标题（后台） ─── */
 .page-title {
   font-family: var(--display); font-size: 22px; font-weight: 700;
   letter-spacing: -.02em;
@@ -667,7 +667,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   background-clip: text;
 }
 
-/* ─── Entrance animations ─── */
+/* ─── 入场动画 ─── */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
@@ -707,7 +707,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 #list-wrap .cyber-table tbody tr:nth-child(9) { animation-delay: .24s; }
 #list-wrap .cyber-table tbody tr:nth-child(10) { animation-delay: .27s; }
 
-/* Admin table row entrance */
+/* 后台表格行入场动画 */
 .cyber-admin-content .cyber-table tbody tr {
   animation: slideInRight .35s ease-out both;
 }
@@ -722,7 +722,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .cyber-admin-content .cyber-table tbody tr:nth-child(9) { animation-delay: .24s; }
 .cyber-admin-content .cyber-table tbody tr:nth-child(10) { animation-delay: .27s; }
 
-/* Glass table row entrance (admin) */
+/* 玻璃表格行入场动画（后台） */
 .cyber-admin-content .glass-table tbody tr {
   animation: slideInRight .35s ease-out both;
 }
@@ -737,7 +737,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .cyber-admin-content .glass-table tbody tr:nth-child(9) { animation-delay: .24s; }
 .cyber-admin-content .glass-table tbody tr:nth-child(10) { animation-delay: .27s; }
 
-/* ─── Statistics Charts ─── */
+/* ─── 统计图表 ─── */
 .charts-row {
   display: flex; gap: var(--spacing-md);
 }
@@ -764,7 +764,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   .charts-row { flex-direction: column; align-items: center; }
   .stats-cards-row { flex-direction: column; }
 }
-/* ─── Visual Redesign v2 — Floating Island Nav ─── */
+/* ─── 视觉改版 v2：悬浮岛式导航 ─── */
 .nav-island{
   position:fixed;top:20px;left:50%;transform:translateX(-50%);
   z-index:100;
@@ -791,7 +791,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .btn-primary-island .icon-wrap{width:24px;height:24px;border-radius:50%;background:rgba(0,255,255,0.2);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.4s}
 .btn-primary-island:hover .icon-wrap{transform:translateX(2px)scale(1.05);background:rgba(0,255,255,0.3)}
 
-/* ─── Visual Redesign v2 — Hamburger ─── */
+/* ─── 视觉改版 v2：汉堡菜单 ─── */
 .hamburger{display:none;flex-direction:column;justify-content:center;align-items:center;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.05);cursor:pointer;position:relative;transition:all 0.4s}
 .hamburger:hover{background:rgba(255,255,255,0.1)}
 .hamburger span{display:block;width:16px;height:1.5px;border-radius:2px;background:rgba(255,255,255,0.5);position:absolute;transition:all 0.4s cubic-bezier(0.32,0.72,0,1)}
@@ -812,7 +812,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .mobile-menu a:hover{color:#fff}
 .mobile-menu .menu-close{position:absolute;top:28px;right:24px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;transition:all 0.3s;font-family:inherit}
 
-/* ─── Visual Redesign v2 — Scroll Reveal ─── */
+/* ─── 视觉改版 v2：滚动显现 ─── */
 .reveal{opacity:0;transform:translateY(60px);transition:opacity 0.9s cubic-bezier(0.32,0.72,0,1),transform 0.9s cubic-bezier(0.32,0.72,0,1)}
 .reveal.visible{opacity:1;transform:translateY(0)}
 .reveal-left{opacity:0;transform:translateX(-60px);transition:opacity 0.8s cubic-bezier(0.32,0.72,0,1),transform 0.8s cubic-bezier(0.32,0.72,0,1)}
@@ -833,7 +833,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .stagger-children.visible > *:nth-child(7){transition-delay:0.35s}
 .stagger-children.visible > *:nth-child(8){transition-delay:0.40s}
 
-/* ─── Visual Redesign v2 — Hero ─── */
+/* ─── 视觉改版 v2：顶部欢迎区 ─── */
 .hero-section{
   min-height:100dvh;display:flex;align-items:center;justify-content:center;
   position:relative;padding:40px 24px 80px;
@@ -869,7 +869,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .scroll-indicator .mouse::after{content:'';position:absolute;top:5px;left:50%;transform:translateX(-50%);width:2px;height:6px;border-radius:2px;background:rgba(255,255,255,0.3);animation:scrollWheel 2s ease-in-out infinite}
 @keyframes scrollWheel{0%,100%{opacity:0.3;transform:translateX(-50%)translateY(0)}50%{opacity:1;transform:translateX(-50%)translateY(6px)}}
 
-/* ─── Visual Redesign v2 — Hero Search ─── */
+/* ─── 视觉改版 v2：欢迎区搜索框 ─── */
 .hero-search{
   display:inline-flex;align-items:center;gap:0;
   max-width:520px;width:100%;
@@ -885,7 +885,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .hero-search button:hover{background:rgba(0,255,255,0.25)}
 .hero-search button:active{transform:scale(0.97)}
 
-/* ─── Visual Redesign v2 — Bento Stats ─── */
+/* ─── 视觉改版 v2：宫格统计 ─── */
 .bento-stats{
   display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:12px;
   padding:0 24px;max-width:1280px;margin:0 auto 80px;
@@ -904,7 +904,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .bento-number{font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1;color:#fff}
 .bento-detail{font-size:12px;color:rgba(255,255,255,0.25);margin-top:6px}
 
-/* ─── Visual Redesign v2 — Glass Table ─── */
+/* ─── 视觉改版 v2：玻璃表格 ─── */
 .glass-table-wrap{
   border-radius:20px;padding:2px;
   background:linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
@@ -919,7 +919,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .glass-table tbody tr:not(:last-child) td{border-bottom:1px solid rgba(255,255,255,0.02)}
 .glass-table tbody td{padding:14px 20px;font-size:14px;color:rgba(255,255,255,0.7);white-space:nowrap}
 
-/* ─── Visual Redesign v2 — Badge Variants ─── */
+/* ─── 视觉改版 v2：徽标变体 ─── */
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:0.02em}
 .badge-cyan{background:rgba(0,255,255,0.08);border:1px solid rgba(0,255,255,0.1);color:rgba(0,255,255,0.7)}
 .badge-magenta{background:rgba(255,0,255,0.08);border:1px solid rgba(255,0,255,0.1);color:rgba(255,0,255,0.7)}
@@ -929,22 +929,22 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .badge-neutral{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)}
 .badge-neutral{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)}
 
-/* ─── Visual Redesign v2 — Filter Pills ─── */
+/* ─── 视觉改版 v2：筛选胶囊 ─── */
 .filter-group{display:flex;gap:4px;flex-wrap:wrap}
 .filter-pill{padding:7px 16px;border-radius:100px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:rgba(255,255,255,0.4);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all 0.4s cubic-bezier(0.32,0.72,0,1)}
 .filter-pill:hover{border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7)}
 .filter-pill.active{background:rgba(0,255,255,0.1);border-color:rgba(0,255,255,0.15);color:rgba(0,255,255,0.8)}
 
-/* ─── Visual Redesign v2 — Section Header ─── */
+/* ─── 视觉改版 v2：分区标题 ─── */
 .section-header{padding:0 24px;max-width:1280px;margin:0 auto 24px}
 .section-header h2{font-size:clamp(22px, 3vw, 32px);font-weight:700;color:#fff;letter-spacing:-0.02em;margin-bottom:4px}
 .section-header p{font-size:14px;color:rgba(255,255,255,0.3)}
 
-/* ─── Visual Redesign v2 — Divider ─── */
+/* ─── 视觉改版 v2：分隔线 ─── */
 .section-divider{display:flex;align-items:center;gap:16px;max-width:80px;margin:0 auto 48px;color:rgba(255,255,255,0.06)}
 .section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}
 
-/* ─── Visual Redesign v2 — Pagination ─── */
+/* ─── 视觉改版 v2：分页 ─── */
 .glass-pagination{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.04)}
 .glass-pagination .info{font-size:12px;color:rgba(255,255,255,0.25)}
 .glass-pages{display:flex;gap:4px}
@@ -952,10 +952,10 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .glass-page-btn:hover{border-color:rgba(0,255,255,0.1);color:rgba(0,255,255,0.5)}
 .glass-page-btn.current{background:rgba(0,255,255,0.1);border-color:rgba(0,255,255,0.15);color:rgba(0,255,255,0.8);font-weight:600}
 
-/* ─── Visual Redesign v2 — Footer ─── */
+/* ─── 视觉改版 v2：页脚 ─── */
 .footer{text-align:center;padding:40px 24px;border-top:1px solid rgba(255,255,255,0.03);font-size:12px;color:rgba(255,255,255,0.15);max-width:1280px;margin:0 auto}
 
-/* ─── Sticky Search Bar (matches nav-island style) ─── */
+/* ─── 吸顶搜索栏：与悬浮导航保持相同视觉风格 ─── */
 .sticky-search-container {
   position: sticky; top: 80px; z-index: 10;
   padding: 6px 0;
@@ -979,7 +979,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   margin: 0;
 }
 
-/* ─── Sticky Search Bar (matches nav-island style) ─── */
+/* ─── 吸顶搜索栏：与悬浮导航保持相同视觉风格 ─── */
 .sticky-search-container {
   position: sticky; top: 80px; z-index: 10;
   padding: 6px 0;
@@ -1003,7 +1003,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   margin: 0;
 }
 
-/* ─── Visual Redesign v2 — Mobile Responsive ─── */
+/* ─── 视觉改版 v2：移动端响应式布局 ─── */
 @media(max-width:1024px){
   .bento-stats{grid-template-columns:1fr 1fr}
   .bento-card:first-child{grid-column:span 2}
@@ -1027,7 +1027,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   .section-header{padding:0 16px}
 }
 
-/* ─── Visual Redesign v2 — Floating Island Nav ─── */
+/* ─── 视觉改版 v2：悬浮岛式导航 ─── */
 .nav-island{
   position:fixed;top:20px;left:50%;transform:translateX(-50%);
   z-index:100;
@@ -1054,7 +1054,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .btn-primary-island .icon-wrap{width:24px;height:24px;border-radius:50%;background:rgba(0,255,255,0.2);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.4s}
 .btn-primary-island:hover .icon-wrap{transform:translateX(2px)scale(1.05);background:rgba(0,255,255,0.3)}
 
-/* ─── Visual Redesign v2 — Hamburger ─── */
+/* ─── 视觉改版 v2：汉堡菜单 ─── */
 .hamburger{display:none;flex-direction:column;justify-content:center;align-items:center;width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.05);cursor:pointer;position:relative;transition:all 0.4s}
 .hamburger:hover{background:rgba(255,255,255,0.1)}
 .hamburger span{display:block;width:16px;height:1.5px;border-radius:2px;background:rgba(255,255,255,0.5);position:absolute;transition:all 0.4s cubic-bezier(0.32,0.72,0,1)}
@@ -1075,7 +1075,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .mobile-menu a:hover{color:#fff}
 .mobile-menu .menu-close{position:absolute;top:28px;right:24px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);font-size:18px;cursor:pointer;transition:all 0.3s;font-family:inherit}
 
-/* ─── Visual Redesign v2 — Scroll Reveal ─── */
+/* ─── 视觉改版 v2：滚动显现 ─── */
 .reveal{opacity:0;transform:translateY(60px);transition:opacity 0.9s cubic-bezier(0.32,0.72,0,1),transform 0.9s cubic-bezier(0.32,0.72,0,1)}
 .reveal.visible{opacity:1;transform:translateY(0)}
 .reveal-left{opacity:0;transform:translateX(-60px);transition:opacity 0.8s cubic-bezier(0.32,0.72,0,1),transform 0.8s cubic-bezier(0.32,0.72,0,1)}
@@ -1096,7 +1096,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .stagger-children.visible > *:nth-child(7){transition-delay:0.35s}
 .stagger-children.visible > *:nth-child(8){transition-delay:0.40s}
 
-/* ─── Visual Redesign v2 — Hero ─── */
+/* ─── 视觉改版 v2：顶部欢迎区 ─── */
 .hero-section{
   min-height:100dvh;display:flex;align-items:center;justify-content:center;
   position:relative;padding:40px 24px 80px;
@@ -1132,7 +1132,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .scroll-indicator .mouse::after{content:'';position:absolute;top:5px;left:50%;transform:translateX(-50%);width:2px;height:6px;border-radius:2px;background:rgba(255,255,255,0.3);animation:scrollWheel 2s ease-in-out infinite}
 @keyframes scrollWheel{0%,100%{opacity:0.3;transform:translateX(-50%)translateY(0)}50%{opacity:1;transform:translateX(-50%)translateY(6px)}}
 
-/* ─── Visual Redesign v2 — Hero Search ─── */
+/* ─── 视觉改版 v2：欢迎区搜索框 ─── */
 .hero-search{
   display:inline-flex;align-items:center;gap:0;
   max-width:520px;width:100%;
@@ -1148,7 +1148,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .hero-search button:hover{background:rgba(0,255,255,0.25)}
 .hero-search button:active{transform:scale(0.97)}
 
-/* ─── Visual Redesign v2 — Bento Stats ─── */
+/* ─── 视觉改版 v2：宫格统计 ─── */
 .bento-stats{
   display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:12px;
   padding:0 24px;max-width:1280px;margin:0 auto 80px;
@@ -1167,7 +1167,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .bento-number{font-size:28px;font-weight:700;letter-spacing:-0.02em;line-height:1;color:#fff}
 .bento-detail{font-size:12px;color:rgba(255,255,255,0.25);margin-top:6px}
 
-/* ─── Visual Redesign v2 — Glass Table ─── */
+/* ─── 视觉改版 v2：玻璃表格 ─── */
 .glass-table-wrap{
   border-radius:20px;padding:2px;
   background:linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01));
@@ -1182,7 +1182,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .glass-table tbody tr:not(:last-child) td{border-bottom:1px solid rgba(255,255,255,0.02)}
 .glass-table tbody td{padding:14px 20px;font-size:14px;color:rgba(255,255,255,0.7);white-space:nowrap}
 
-/* ─── Visual Redesign v2 — Badge Variants ─── */
+/* ─── 视觉改版 v2：徽标变体 ─── */
 .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:0.02em}
 .badge-cyan{background:rgba(0,255,255,0.08);border:1px solid rgba(0,255,255,0.1);color:rgba(0,255,255,0.7)}
 .badge-magenta{background:rgba(255,0,255,0.08);border:1px solid rgba(255,0,255,0.1);color:rgba(255,0,255,0.7)}
@@ -1190,22 +1190,22 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .badge-amber{background:rgba(255,200,0,0.08);border:1px solid rgba(255,200,0,0.1);color:rgba(255,200,0,0.7)}
 .badge-red{background:rgba(255,51,85,0.12);border:1px solid rgba(255,51,85,0.15);color:rgba(255,51,85,0.7)}
 
-/* ─── Visual Redesign v2 — Filter Pills ─── */
+/* ─── 视觉改版 v2：筛选胶囊 ─── */
 .filter-group{display:flex;gap:4px;flex-wrap:wrap}
 .filter-pill{padding:7px 16px;border-radius:100px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:rgba(255,255,255,0.4);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all 0.4s cubic-bezier(0.32,0.72,0,1)}
 .filter-pill:hover{border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7)}
 .filter-pill.active{background:rgba(0,255,255,0.1);border-color:rgba(0,255,255,0.15);color:rgba(0,255,255,0.8)}
 
-/* ─── Visual Redesign v2 — Section Header ─── */
+/* ─── 视觉改版 v2：分区标题 ─── */
 .section-header{padding:0 24px;max-width:1280px;margin:0 auto 24px}
 .section-header h2{font-size:clamp(22px, 3vw, 32px);font-weight:700;color:#fff;letter-spacing:-0.02em;margin-bottom:4px}
 .section-header p{font-size:14px;color:rgba(255,255,255,0.3)}
 
-/* ─── Visual Redesign v2 — Divider ─── */
+/* ─── 视觉改版 v2：分隔线 ─── */
 .section-divider{display:flex;align-items:center;gap:16px;max-width:80px;margin:0 auto 48px;color:rgba(255,255,255,0.06)}
 .section-divider::before,.section-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.06)}
 
-/* ─── Visual Redesign v2 — Pagination ─── */
+/* ─── 视觉改版 v2：分页 ─── */
 .glass-pagination{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-top:1px solid rgba(255,255,255,0.04)}
 .glass-pagination .info{font-size:12px;color:rgba(255,255,255,0.25)}
 .glass-pages{display:flex;gap:4px}
@@ -1213,10 +1213,10 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 .glass-page-btn:hover{border-color:rgba(0,255,255,0.1);color:rgba(0,255,255,0.5)}
 .glass-page-btn.current{background:rgba(0,255,255,0.1);border-color:rgba(0,255,255,0.15);color:rgba(0,255,255,0.8);font-weight:600}
 
-/* ─── Visual Redesign v2 — Footer ─── */
+/* ─── 视觉改版 v2：页脚 ─── */
 .footer{text-align:center;padding:40px 24px;border-top:1px solid rgba(255,255,255,0.03);font-size:12px;color:rgba(255,255,255,0.15);max-width:1280px;margin:0 auto}
 
-/* ─── Visual Redesign v2 — Mobile Responsive ─── */
+/* ─── 视觉改版 v2：移动端响应式布局 ─── */
 @media(max-width:1024px){
   .bento-stats{grid-template-columns:1fr 1fr}
   .bento-card:first-child{grid-column:span 2}
@@ -1240,7 +1240,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   .section-header{padding:0 16px}
 }
 
-/* ─── Reduced Motion ─── */
+/* ─── 减少动态效果 ─── */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .mesh-sphere { animation: none !important; opacity: .25; }
@@ -1254,7 +1254,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   .glass-card,.team-card{transition-duration:.01ms!important;transform:none!important;box-shadow:none!important}
 }
 
-/* ─── Glass Card (enhanced card for announcements/stats/account/team) ─── */
+/* ─── 玻璃卡片：供公告、统计、账户和管理组页面复用 ─── */
 .glass-card {
   border-radius: 20px;
   padding: 2px;
@@ -1265,7 +1265,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   background: linear-gradient(135deg, rgba(0,255,255,0.08), rgba(0,136,255,0.04));
   transform: translateY(-2px);
 }
-/* ─── Glass Card Inner (content area matching bento-card-inner) ─── */
+/* ─── 玻璃卡片内层：内容区与 bento-card-inner 保持一致 ─── */
 .glass-card-inner {
   border-radius: 18px;
   padding: var(--spacing-lg);
@@ -1277,7 +1277,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 }
 
 
-/* ─── Settings / Account grouped list ─── */
+/* ─── 设置/账户分组列表 ─── */
 .settings-group {
   border-radius: var(--radius-md);
   border: 1px solid rgba(255,255,255,0.08);
@@ -1296,7 +1296,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 }
 .settings-group-item:last-child { border-bottom: none; }
 
-/* ─── Back link (announcement detail) ─── */
+/* ─── 返回链接：公告详情页 ─── */
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -1308,7 +1308,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 }
 .back-link:hover { color: rgba(0,255,255,0.7); }
 
-/* ─── Announcement meta ─── */
+/* ─── 公告元信息 ─── */
 .announce-meta {
   display: flex;
   gap: var(--spacing-sm);
@@ -1317,7 +1317,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   color: rgba(255,255,255,0.3);
 }
 
-/* ─── Team card ─── */
+/* ─── 管理组卡片 ─── */
 .team-card {
   padding: var(--spacing-lg);
   border-radius: var(--radius-md);
@@ -1337,7 +1337,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   box-shadow: 0 16px 48px rgba(0,0,0,0.25);
 }
 
-/* ─── Glass card responsive ─── */
+/* ─── 玻璃卡片响应式布局 ─── */
 @media (max-width: 768px) {
   .team-cards { grid-template-columns: 1fr !important; }
   .glass-card { border-radius: 0; border-left: none; border-right: none; }
@@ -1345,7 +1345,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   .settings-group { border-radius: 0; border-left: none; border-right: none; }
 }
 
-/* ─── Glass Card (enhanced card for announcements/stats/account/team) ─── */
+/* ─── 玻璃卡片：供公告、统计、账户和管理组页面复用 ─── */
 .glass-card {
   border-radius: 20px;
   padding: 2px;
@@ -1357,7 +1357,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   transform: translateY(-2px);
 }
 
-/* ─── Settings / Account grouped list ─── */
+/* ─── 设置/账户分组列表 ─── */
 .settings-group {
   border-radius: var(--radius-md);
   border: 1px solid rgba(255,255,255,0.08);
@@ -1376,7 +1376,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 }
 .settings-group-item:last-child { border-bottom: none; }
 
-/* ─── Back link (announcement detail) ─── */
+/* ─── 返回链接：公告详情页 ─── */
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -1388,7 +1388,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
 }
 .back-link:hover { color: rgba(0,255,255,0.7); }
 
-/* ─── Announcement meta ─── */
+/* ─── 公告元信息 ─── */
 .announce-meta {
   display: flex;
   gap: var(--spacing-sm);
@@ -1397,7 +1397,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   color: rgba(255,255,255,0.3);
 }
 
-/* ─── Team card ─── */
+/* ─── 管理组卡片 ─── */
 .team-card {
   padding: var(--spacing-lg);
   border-radius: var(--radius-md);
@@ -1417,7 +1417,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   box-shadow: 0 16px 48px rgba(0,0,0,0.25);
 }
 
-/* ─── Glass card responsive ─── */
+/* ─── 玻璃卡片响应式布局 ─── */
 @media (max-width: 768px) {
   .team-cards { grid-template-columns: 1fr !important; }
   .glass-card { border-radius: 0; border-left: none; border-right: none; }
@@ -1425,7 +1425,7 @@ select.cyber-input option { background: rgba(0,0,0,.45); color: var(--label-1); 
   .settings-group { border-radius: 0; border-left: none; border-right: none; }
 }
 
-/* ─── Responsive ─── */
+/* ─── 响应式布局 ─── */
 @media (max-width: 768px) {
   .cyber-stats { grid-template-columns: repeat(2,1fr); }
   .cyber-table-wrap { border-radius: 0; border-left: none; border-right: none; }

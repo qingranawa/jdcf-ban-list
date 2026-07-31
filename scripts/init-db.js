@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// 数据库初始化脚本 — 在运行时生成 bcrypt hash
-// 用法: node scripts/init-db.js
+// > 数据库初始化脚本：在运行时生成 bcrypt 密码哈希
+// ! 用法：node scripts/init-db.js [数据库名称]；生产环境必须通过环境变量提供初始凭据
 
 const { execSync } = require('child_process');
 const bcrypt = require('bcryptjs');
@@ -10,7 +10,7 @@ const path = require('path');
 async function main() {
   const dbArg = process.argv[2] || 'jdcf-db';
 
-  // 1. 运行 schema
+  // * 1. 写入基础表结构；后续功能表仍需按迁移文件单独执行
   console.log('Running schema...');
   execSync(`npx wrangler d1 execute ${dbArg} --file=./schema.sql`, { stdio: 'inherit' });
 
@@ -25,7 +25,7 @@ async function main() {
     return;
   }
 
-  // 3. 生成密码并 seed
+  // * 3. 生成密码哈希并写入初始管理员
   const password = process.env.INIT_ADMIN_PASSWORD || 'change_me_123';
   const hash = await bcrypt.hash(password, 10);
 

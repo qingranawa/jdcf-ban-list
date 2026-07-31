@@ -1,4 +1,4 @@
-// > Admin team management — CRUD for admin accounts
+// > 管理组管理页：维护管理员账号的增删改查
 // ! 仅 T5 及以上可访问；创建管理员时密码为必填
 import { html } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
@@ -40,7 +40,7 @@ export function AdminTeamPage(props: { admins: Admin[] }) {
   </table>
   </div></div>
 
-  <!-- Add/Edit Bottom Sheet -->
+  <!-- 新增/编辑管理员的底部弹窗 -->
   <div id="adminSheet" class="cyber-sheet-overlay" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeSheet()">
     <div class="cyber-sheet">
       <div class="sheet-header" style="margin-bottom:var(--spacing-md);">

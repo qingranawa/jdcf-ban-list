@@ -1,4 +1,4 @@
-// > Public routes — ban list, team info, stats, announcements (no auth required)
+// > 公开路由：封禁列表、管理组、统计和公告，均无需登录
 
 import { Hono } from 'hono'
 
@@ -32,9 +32,9 @@ export const publicRoutes = new Hono<{ Bindings: Env }>()
 
 
 
-// * Core status computer — used by both public and admin routes
+// * 核心状态计算器：公开页和后台路由共用
 
-// * Returns: 'banned' | 'unbanned' | 'permanent' | 'muted' | 'warning' | 'cfba' | 'admin_discipline'
+// * 返回值：banned、unbanned、permanent、muted、warning、cfba 或 admin_discipline
 
 // ? 移除 archive_action 检查是因为已归档记录不会在此路由出现
 
@@ -319,7 +319,7 @@ publicRoutes.get('/search', async (c) => {
     const escaped = q.replace(/[%_\\]/g, '\\$&')
     const pattern = '%' + escaped + '%'
 
-    // 1. Search bans (existing)
+    // * 1. 搜索封禁记录（保留原有的精确筛选逻辑）
     const countResult = await c.env.DB.prepare(
       `SELECT COUNT(*) as total FROM bans b WHERE b.is_archived = 0 AND b.violation_level != "admin_discipline" AND (b.nickname LIKE ? ESCAPE '\\' OR b.steam_id LIKE ? ESCAPE '\\' OR b.ip_address LIKE ? ESCAPE '\\' OR b.reason LIKE ? ESCAPE '\\' OR b.notes LIKE ? ESCAPE '\\')`
     ).bind(pattern, pattern, pattern, pattern, pattern).first<{ total: number }>()
@@ -335,7 +335,7 @@ publicRoutes.get('/search', async (c) => {
       bans = rows.results.map((b: any) => ({ ...b, status: computeStatus(b) }))
     }
 
-    // 2. Search admins (by game_name or username or steam_id)
+    // * 2. 搜索管理员：匹配游戏名、用户名或 Steam ID
     const adminRows = await c.env.DB.prepare(
       'SELECT id, steam_id, username, permission_group, game_name, qq_name, position, supervisor FROM admins' +
       ' WHERE is_active = 1 AND (game_name LIKE ? ESCAPE \'\\\' OR username LIKE ? ESCAPE \'\\\' OR steam_id LIKE ? ESCAPE \'\\\')' +
@@ -343,7 +343,7 @@ publicRoutes.get('/search', async (c) => {
     ).bind(pattern, pattern, pattern).all()
     admins = adminRows.results as typeof admins
 
-    // 3. Search players (unique players from bans table by steam_id)
+    // * 3. 搜索玩家：按 Steam ID 从封禁表聚合唯一玩家
     const playerRows = await c.env.DB.prepare(
       `SELECT b.id as ban_id, b.nickname, b.steam_id,
               (SELECT COUNT(*) FROM bans WHERE steam_id = b.steam_id AND is_archived = 0) as ban_count
@@ -369,7 +369,7 @@ publicRoutes.get('/search', async (c) => {
       })
     }
 
-    // 4. Search announcements (for tab3)
+    // * 4. 搜索公告：供第三个结果标签页展示
     const announcementRows = await c.env.DB.prepare(
       `SELECT a.*, adm.game_name as created_by_name
        FROM announcements a
@@ -1049,4 +1049,3 @@ publicRoutes.get('/api/cron/publish-announcements', async (c) => {
   return c.json({ published: result.meta.changes })
 
 })
-

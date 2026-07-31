@@ -1,5 +1,5 @@
-// > Watchlist page — track suspicious players across sessions
-// ! T3 及以上可访问；Steam ID 在该列表中唯一（UNIQUE 约束）
+// > 观察名单页：跨记录追踪需要留意的玩家
+// ! 仅 T3 及以上可访问；Steam ID 在该列表中唯一（UNIQUE 约束）
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
 import { icon } from './icons'
@@ -37,7 +37,7 @@ export function AdminWatchlistPage(props: { items: Watch[] }) {
   </table>
   </div></div>
 
-  <!-- Bottom Sheet -->
+  <!-- 新增/编辑观察名单的底部弹窗 -->
   <div id="watchSheet" class="cyber-sheet-overlay" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeSheet()">
     <div class="cyber-sheet">
       <div class="sheet-header" style="margin-bottom:var(--spacing-md);">

@@ -3,6 +3,8 @@ import { sign } from 'hono/jwt'
 import type { Env } from '../db'
 import { seedDatabase } from '../dev-seed'
 
+// > 开发模式中间件：仅在 DEV_MODE 且 URL 带 dev=1 时注入测试管理员登录态
+// ! 首次访问会重建并填充本地数据库，绝不能在生产环境设置 DEV_MODE
 const GROUP_RANK: Record<string, number> = {
   OWNER: 0, T6: 1, T5: 2, T4: 3, T3: 4, T2: 5, T1: 6,
 }
@@ -18,6 +20,7 @@ export const devMiddleware = createMiddleware<{ Bindings: Env }>(async (c, next)
   if (c.req.query('dev') !== '1') return next()
 
   if (!seeded) {
+    // * 同一 Worker 实例只初始化一次，避免每个请求都清空演示数据
     await seedDatabase(c.env.DB)
     seeded = true
   }
@@ -25,6 +28,7 @@ export const devMiddleware = createMiddleware<{ Bindings: Env }>(async (c, next)
   let targetGroup = 'OWNER'
   const lvlParam = c.req.query('lvl')
   if (lvlParam !== undefined) {
+    // ? lvl 使用数值排名，非法值回退为 OWNER，方便本地检查各权限视图
     const rank = parseInt(lvlParam)
     if (!isNaN(rank) && RANK_TO_GROUP[rank]) {
       targetGroup = RANK_TO_GROUP[rank]

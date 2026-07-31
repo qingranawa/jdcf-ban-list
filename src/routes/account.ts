@@ -1,4 +1,4 @@
-// > Self-service account routes — view & edit own profile
+// > 自助账户路由：查看和编辑当前登录管理员的个人资料
 import { Hono } from 'hono'
 import bcrypt from 'bcryptjs'
 import type { Env, AdminRow } from '../db'

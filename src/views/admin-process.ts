@@ -1,4 +1,4 @@
-// > Batch processing page — mass downgrade/delete expired bans
+// > 批量处理页：集中降级或归档已过期封禁
 // ! Tab切换：上方两个卡片点击切换显示 2级表 / 3级表，默认显示 2级
 import { html } from 'hono/html'
 import { escHtml } from '../helpers/escape'
@@ -11,7 +11,7 @@ export function AdminProcessPage(props: { level2Bans: ProcBan[]; level3Bans: Pro
 <div class="cyber-admin-content">
   <h2 class="page-title" style="margin-bottom:var(--spacing-lg);">批量处理</h2>
 
-  <!-- Tab 切换卡片 -->
+  <!-- 标签页切换卡片 -->
   <div style="display:flex;gap:var(--spacing-lg);flex-wrap:wrap;margin-bottom:var(--spacing-lg);">
     <div class="glass-card process-tab-card active" data-tab="level2" style="flex:1;min-width:200px;cursor:pointer;" onclick="switchProcessTab('level2')">
       <div class="glass-card-inner" style="display:flex;gap:var(--spacing-sm);align-items:center;justify-content:space-between;background:transparent;box-shadow:none;padding:var(--spacing-lg);">

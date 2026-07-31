@@ -44,7 +44,7 @@ function genPages(current: number, total: number): (number|string)[] {
   return pages
 }
 
-// ── Admin Ban Page ──
+// ── 后台封禁管理页 ──
 export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; page?: number; perPage?: number; total?: number; query?: string }) {
   const archived = props.showArchived ?? false
   const page = props.page || 1
@@ -64,7 +64,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
     </div>
   </div>
 
-  <!-- search + filter + per-page -->
+  <!-- 搜索、筛选和每页数量控制 -->
   <div style="display:flex;gap:var(--spacing-sm);margin-bottom:var(--spacing-lg);flex-wrap:wrap;">
     <div class="hero-search" style="max-width:100%;flex:1;min-width:200px;">
       
@@ -100,7 +100,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
     </div>
   </div>
 
-  <!-- Add Ban Modal -->
+  <!-- 新增封禁弹窗 -->
   <div id="banSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="新增封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeBanSheet()">
     <div class="cyber-sheet">
       <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
@@ -149,7 +149,7 @@ export function AdminBanPage(props: { bans: AdminBan[]; showArchived?: boolean; 
     </div>
   </div>
 
-  <!-- Edit Ban Modal -->
+  <!-- 编辑封禁弹窗 -->
   <div id="editBanSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="编辑封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeEditSheet()">
     <div class="cyber-sheet">
       <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
@@ -252,7 +252,7 @@ async function editBan(id) {
   f.querySelector('[name=violation_level]').value = d.violation_level || 'level3';
   f.querySelector('[name=notes]').value = d.notes || '';
   f.querySelector('[name=co_handlers]').value = d.co_handlers || '';
-  // Handle discipline duration
+  // * 违纪处罚启用专用时长下拉框，普通封禁仍使用自由输入框
   const isDisc = d.violation_level === 'admin_discipline';
   document.getElementById('editBanDuration').value = isDisc ? '' : (d.ban_duration || '');
   document.getElementById('editDisciplineDuration').value = isDisc ? (d.ban_duration || '') : '';

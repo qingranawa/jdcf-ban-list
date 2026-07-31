@@ -48,7 +48,7 @@ export function AdminProfilePage(data: AdminProfileData) {
   return html`
 <div style="max-width:800px;margin:0 auto;padding:var(--spacing-lg) var(--spacing-md);">
 
-  <!-- Breadcrumb -->
+  <!-- 面包屑导航 -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:var(--spacing-lg);font-size:13px;color:var(--label-3);">
     <a href="/" style="color:var(--cyan);">封禁列表</a>
     <span style="color:var(--label-3);">/</span>
@@ -57,7 +57,7 @@ export function AdminProfilePage(data: AdminProfileData) {
     <span style="color:var(--label-1);">${escHtml(data.game_name || data.username)}</span>
   </div>
 
-  <!-- Profile Header -->
+  <!-- 管理员资料头部 -->
   <div class="glass-card" style="margin-bottom:var(--spacing-md);">
     <div class="glass-card-inner" style="display:flex;align-items:center;gap:16px;">
       <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#ffffff);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;font-family:var(--sans);flex-shrink:0;">${escHtml(initial)}</div>
@@ -80,7 +80,7 @@ export function AdminProfilePage(data: AdminProfileData) {
     </div>
   </div>
 
-  <!-- Stats Cards Row -->
+  <!-- 统计卡片行 -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-sm);margin-bottom:var(--spacing-md);">
     <div class="glass-card"><div class="glass-card-inner" style="text-align:center;">
       <div style="font-family:var(--sans);font-size:28px;font-weight:700;color:var(--cyan);line-height:1;">${data.banCount}</div>
@@ -103,7 +103,7 @@ export function AdminProfilePage(data: AdminProfileData) {
     </div></div>
   </div>
 
-  <!-- Ban History (bans he issued) -->
+  <!-- 该管理员经手的封禁记录 -->
   <div style="margin-bottom:var(--spacing-md);">
     <h3 style="font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:var(--spacing-sm);color:var(--label-1);">经手封禁记录</h3>
     <div class="glass-table-wrap"><div class="glass-table-inner"><table class="glass-table">
@@ -125,7 +125,7 @@ export function AdminProfilePage(data: AdminProfileData) {
     </table></div></div>
   </div>
 
-  <!-- Discipline Records (admin was disciplined) -->
+  <!-- 该管理员受到的违纪处罚记录 -->
   <div style="margin-bottom:var(--spacing-md);">
     <h3 style="font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:var(--spacing-sm);color:var(--label-1);">违纪处罚记录</h3>
     <div class="glass-table-wrap"><div class="glass-table-inner"><table class="glass-table">
@@ -147,7 +147,7 @@ export function AdminProfilePage(data: AdminProfileData) {
     </table></div></div>
   </div>
 
-  <!-- Audit Log -->
+  <!-- 操作审计日志 -->
   <div>
     <h3 style="font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:var(--spacing-sm);color:var(--label-1);">审计日志</h3>
     <div class="glass-table-wrap"><div class="glass-table-inner"><table class="glass-table">

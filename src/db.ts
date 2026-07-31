@@ -1,5 +1,5 @@
-// > Cloudflare D1 database schema types
-// ! co_handlers 存逗号分隔字符串 — 无关联表，简单但不可 JOIN
+// > Cloudflare D1 数据库结构类型
+// ! co_handlers 以逗号分隔字符串存储：实现简单，但无法直接关联查询
 import type { D1Database, Fetcher } from '@cloudflare/workers-types';
 
 export type Env = {
@@ -24,7 +24,7 @@ export type BanRow = {
   violation_level: string;
   notes: string;
   handled_by: number | null;
-  // ! 逗号分隔的联合封禁管理员名，需在展示层 split
+  // ! 联合封禁管理员名以逗号分隔，展示层需要拆分后再渲染
   co_handlers: string;
   is_archived: number;
   archive_action: string | null;

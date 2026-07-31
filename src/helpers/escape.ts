@@ -1,4 +1,4 @@
-// > HTML/attribute escaping utilities — prevents XSS in template output
+// > HTML/属性转义工具：避免模板输出引入 XSS
 // ! escHtml 转义 & < > " '（可用于属性上下文，但 escAttr 更轻量）
 // ! escAttr 只转义 " < >（属性中 ' 和 & 安全，除非用反引号）
 

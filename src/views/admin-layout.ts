@@ -113,7 +113,7 @@ ${Styles()}
   });
 })();
 
-  // Background parallax
+  // * 背景视差：仅改变背景层位置，不影响页面内容布局
   var bgImg = document.querySelector('.bg-image');
   if (bgImg) {
     window.addEventListener('scroll', function() {
@@ -123,7 +123,7 @@ ${Styles()}
     }, {passive:true});
   }
 
-  // Scroll reveal — make visible on load
+  // * 滚动显现：页面加载后为待显现元素补充可见状态
   requestAnimationFrame(function() {
     document.querySelectorAll('.reveal, .reveal-blur, .reveal-scale').forEach(function(el) {
       el.classList.add('visible');

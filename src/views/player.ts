@@ -45,7 +45,7 @@ export type PlayerProfileData = {
   adminData: AdminInfo | null
 }
 
-// ── Helpers matching home.ts public ban table style ──
+// ── 与首页公开封禁表保持一致的展示辅助函数 ──
 function levelLabel(lv: string): string {
   const m: Record<string, string> = { warning: '警告', severe_warning: '严重警告', level3: '3级违规', level2: '2级违规', level1: '1级', level4: '4级(逃逸)', mute: '禁言', cfba_ban: 'CFBA' }
   return m[lv] || lv
@@ -65,14 +65,14 @@ export function PlayerProfilePage(data: PlayerProfileData) {
   return html`
 <div style="max-width:800px;margin:0 auto;padding:var(--spacing-lg) var(--spacing-md);">
 
-  <!-- Breadcrumb -->
+  <!-- 面包屑导航 -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:var(--spacing-lg);font-size:13px;color:var(--label-3);">
     <a href="/" style="color:var(--cyan);">封禁列表</a>
     <span style="color:var(--label-3);">/</span>
     <span style="color:var(--label-1);">玩家档案</span>
   </div>
 
-  <!-- Profile Header -->
+  <!-- 玩家资料头部 -->
   <div class="glass-card" style="margin-bottom:var(--spacing-md);">
     <div class="glass-card-inner" style="display:flex;align-items:center;gap:16px;">
       <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--cyan),#ffffff);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;font-family:var(--sans);flex-shrink:0;">${escHtml(initial)}</div>
@@ -86,7 +86,7 @@ export function PlayerProfilePage(data: PlayerProfileData) {
     </div>
   </div>
 
-  <!-- Stats Cards Row -->
+  <!-- 统计卡片行 -->
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-sm);margin-bottom:var(--spacing-md);">
     <div class="glass-card">
       <div class="glass-card-inner" style="text-align:center;">
@@ -122,7 +122,7 @@ export function PlayerProfilePage(data: PlayerProfileData) {
     </div>
   </div>
 
-  <!-- Admin Info Section -->
+  <!-- 若玩家同时是管理员，则展示管理员资料 -->
   ${data.adminData ? html`
   <div class="glass-card" style="margin-bottom:var(--spacing-md);">
     <div class="glass-card-inner" style="padding:var(--spacing-md);">
@@ -140,7 +140,7 @@ export function PlayerProfilePage(data: PlayerProfileData) {
     </div>
   </div>
 
-  <!-- Discipline Records (for admins) -->
+  <!-- 管理员违纪处罚记录 -->
   ${data.adminData.disciplines.length > 0 ? html`
   <div style="margin-bottom:var(--spacing-md);">
     <h3 style="font-family:var(--sans);font-size:16px;font-weight:600;margin-bottom:var(--spacing-sm);color:var(--label-1);">违纪处罚记录</h3>
@@ -160,14 +160,14 @@ export function PlayerProfilePage(data: PlayerProfileData) {
   </div>` : ''}
   ` : ''}
 
-  <!-- Ban Meta Info -->
+  <!-- 封禁记录的补充信息 -->
   <div style="display:flex;gap:16px;margin-bottom:var(--spacing-lg);font-size:13px;color:var(--label-3);flex-wrap:wrap;">
     <span>首次封禁: <strong style="color:var(--label-2);font-family:var(--mono);">${escHtml(data.firstBanDate)}</strong></span>
     <span>最近封禁: <strong style="color:var(--label-2);font-family:var(--mono);">${escHtml(data.lastBanDate)}</strong></span>
     ${data.maskedIp ? html`<span>IP: <strong style="color:var(--label-2);font-family:var(--mono);">${escHtml(data.maskedIp)}</strong></span>` : ''}
   </div>
 
-  <!-- Ban History Table -->
+  <!-- 历史封禁记录表 -->
   <div class="glass-table-wrap"><div class="glass-table-inner">
   <table class="glass-table">
     <thead><tr>
@@ -189,7 +189,7 @@ export function PlayerProfilePage(data: PlayerProfileData) {
   </table>
   </div></div>
 
-  <!-- Watchlist Notice -->
+  <!-- 观察名单提示 -->
   ${data.onWatchlist && data.watchlistReason ? html`
   <div class="glass-card" style="margin-top:var(--spacing-md);">
     <div class="glass-card-inner" style="display:flex;align-items:center;gap:10px;font-size:14px;color:var(--label-2);padding:var(--spacing-md);">

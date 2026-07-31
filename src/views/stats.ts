@@ -1,4 +1,4 @@
-// > Stats dashboard — Chart.js doughnut/bar charts with percentage labels
+// > 统计仪表盘：使用 Chart.js 绘制环形图、柱状图和趋势图
 // ! JSON.stringify 输出中的 </ 被转义为 <\/ 防止 XSS
 import { html, raw } from 'hono/html'
 import { escHtml } from '../helpers/escape'
@@ -76,7 +76,7 @@ export function StatsPage(props: StatsData) {
       };
     }
 
-    // Pie
+    // * 违规等级环形图：显示各等级占比
     initChart('levelPieChart', {
       type: 'doughnut',
       plugins: [pctLabelPlugin()],
@@ -87,7 +87,7 @@ export function StatsPage(props: StatsData) {
       } }
     });
 
-    // Bar
+    // * 违规等级柱状图：便于比较绝对数量
     initChart('levelBarChart', {
       type: 'bar',
       data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: colors.map(function(c){return c}), borderWidth: 1, borderRadius: 4 }] },
@@ -97,7 +97,7 @@ export function StatsPage(props: StatsData) {
       }
     });
 
-    // Duration Pie
+    // * 封禁时长环形图：显示常见处理时长
     var durLabels = data.durations.map(function(d){return d.label});
     var durValues = data.durations.map(function(d){return d.count});
     var durColors = ['#00f0ff','#ff00aa','#ffb000','#00ff88','#ff3355','#8866ff','#ff66aa','#66ffcc','#cc8800','#888888'];
@@ -111,7 +111,7 @@ export function StatsPage(props: StatsData) {
       } }
     });
 
-    // Operator ranking
+    // * 管理员处理量排名
     var ops = data.topOperators || [];
     if (ops.length) {
       initChart('operatorChart', {
@@ -126,7 +126,7 @@ export function StatsPage(props: StatsData) {
       });
     }
 
-    // 30-day trend
+    // * 最近 30 天封禁趋势
     var trend = data.dailyTrend || [];
     if (trend.length) {
       initChart('trendChart', {
@@ -141,7 +141,7 @@ export function StatsPage(props: StatsData) {
       });
     }
 
-    // Duration category bar
+    // * 时长分类柱状图
     var dc = data.durationCategories || [];
     if (dc.length) {
       initChart('durationCatChart', {

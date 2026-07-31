@@ -1,4 +1,4 @@
-// > JWT authentication & role-based access control middleware
+// > JWT 身份认证与基于角色的访问控制中间件
 // ! 权限组等级: OWNER(0) < T6(1) < T5(2) < T4(3) < T3(4) < T2(5) < T1(6)
 // ! 数值越小权限越高 — requirePermission('T5') 表示 T5 及更高（数值 ≤ 2）
 import { verify, type JwtVariables } from 'hono/jwt'

@@ -1,4 +1,4 @@
-// > Account settings page — tabbed layout with account info, my bans, my records, my info
+// > 账户设置页：用标签页展示账户资料、本人封禁、处理记录和个人信息
 import { html } from 'hono/html'
 
 export function AccountPage() {
@@ -7,7 +7,7 @@ export function AccountPage() {
 
   <h1 style="font-family:var(--display);font-size:28px;font-weight:700;letter-spacing:-.02em;margin-bottom:var(--spacing-lg);background:linear-gradient(135deg,var(--cyan),#0088ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">账户中心</h1>
 
-  <!-- Tab Bar — cyber-segmented style -->
+  <!-- 标签栏：赛博风格分段控制器 -->
   <div class="cyber-segmented" id="accountTabs" style="display:flex;margin-bottom:var(--spacing-lg);border-radius:100px;overflow:hidden;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);padding:3px;">
     <button class="tab-btn active" data-tab="account" style="flex:1;padding:8px 12px;border:none;background:var(--cyan);color:#000;font-weight:600;font-family:var(--sans);font-size:12px;cursor:pointer;border-radius:100px;transition:all 0.3s cubic-bezier(0.32,0.72,0,1);">账号管理</button>
     <button class="tab-btn" data-tab="mybans" style="flex:1;padding:8px 12px;border:none;background:transparent;color:var(--label-3);font-family:var(--sans);font-size:12px;cursor:pointer;border-radius:100px;transition:all 0.3s cubic-bezier(0.32,0.72,0,1);">我的封禁</button>
@@ -15,7 +15,7 @@ export function AccountPage() {
     <button class="tab-btn" data-tab="info" style="flex:1;padding:8px 12px;border:none;background:transparent;color:var(--label-3);font-family:var(--sans);font-size:12px;cursor:pointer;border-radius:100px;transition:all 0.3s cubic-bezier(0.32,0.72,0,1);">我的信息</button>
   </div>
 
-  <!-- ═══ Tab 1: 账号管理 ═══ -->
+  <!-- ═══ 标签页 1：账号管理 ═══ -->
   <div id="tab-account" class="tab-content">
     <div class="glass-card" style="margin-bottom:var(--spacing-md);">
       <div class="glass-card-inner">
@@ -59,7 +59,7 @@ export function AccountPage() {
     </a>
   </div>
 
-  <!-- ═══ Tab 2: 我的封禁 ═══ -->
+  <!-- ═══ 标签页 2：我的封禁 ═══ -->
   <div id="tab-mybans" class="tab-content" style="display:none;">
     <div id="mybans-content" style="padding:1rem 0;">
       <div class="skeleton-line" style="height:40px;width:100%;margin:8px 0;border-radius:8px;background:rgba(255,255,255,0.03);"></div>
@@ -67,18 +67,18 @@ export function AccountPage() {
     </div>
   </div>
 
-  <!-- ═══ Tab 3: 我的记录 ═══ -->
+  <!-- ═══ 标签页 3：我的记录 ═══ -->
   <div id="tab-records" class="tab-content" style="display:none;">
     <div id="records-content" style="padding:1rem 0;color:var(--label-3);font-size:14px;text-align:center;">加载中...</div>
   </div>
 
-  <!-- ═══ Tab 4: 我的信息 ═══ -->
+  <!-- ═══ 标签页 4：我的信息 ═══ -->
   <div id="tab-info" class="tab-content" style="display:none;">
     <div id="info-content" style="padding:1rem 0;color:var(--label-3);font-size:14px;text-align:center;">加载中...</div>
   </div>
 </div>
 
-<!-- Edit Ban Modal (Tab 2) -->
+<!-- 编辑封禁弹窗（第二个标签页） -->
 <div id="accountEditSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="编辑封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeAccountEditSheet()">
   <div class="cyber-sheet">
     <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
@@ -122,14 +122,14 @@ export function AccountPage() {
   var recordsLoaded = false;
   var infoLoaded = false;
 
-  // ── Tab Switching (event delegation) ──
+  // ── 标签切换：使用事件委托，避免为每个按钮单独绑定监听器 ──
   document.getElementById('accountTabs').addEventListener('click', function(e) {
     var btn = e.target.closest('.tab-btn');
     if (!btn) return;
     var tab = btn.dataset.tab;
     if (!tab) return;
 
-    // Update button styles
+    // * 更新按钮样式和无障碍选中状态
     document.querySelectorAll('#accountTabs .tab-btn').forEach(function(b) {
       b.style.background = 'transparent';
       b.style.color = 'var(--label-3)';
@@ -139,18 +139,18 @@ export function AccountPage() {
     btn.style.color = '#000';
     btn.style.fontWeight = '600';
 
-    // Show selected tab
+    // * 显示当前标签内容，隐藏其余内容
     document.querySelectorAll('.tab-content').forEach(function(el) { el.style.display = 'none'; });
     var content = document.getElementById('tab-' + tab);
     if (content) content.style.display = 'block';
 
-    // Load data on first access
+    // * 首次进入标签时再请求数据，减少初始页面负担
     if (tab === 'mybans' && !mybansLoaded) loadMyBans();
     if (tab === 'records' && !recordsLoaded) loadMyRecords();
     if (tab === 'info' && !infoLoaded) loadMyInfo();
   });
 
-  // ── Load Account Info ──
+  // ── 加载账户资料 ──
   function loadAccount() {
     var infoEl = document.getElementById('userInfo');
     fetch('/api/account', { headers: { 'Authorization': 'Bearer ' + jwt } })
@@ -174,11 +174,11 @@ export function AccountPage() {
         infoEl.innerHTML = '<div style="color:var(--red);font-size:14px;display:flex;align-items:center;gap:12px;">加载失败 <button class="cyber-btn cyber-btn-ghost cyber-btn-small" onclick="loadAccount()">重试</button></div>';
       });
   }
-  // Expose to onclick
+  // * 暴露到全局作用域，供模板内的 onclick 调用
   window.loadAccount = loadAccount;
   loadAccount();
 
-  // ── Save Account ──
+  // ── 保存账户资料 ──
   document.getElementById('saveAccountBtn').addEventListener('click', function() {
     var body = {
       game_name: document.getElementById('inputGameName').value,
@@ -207,7 +207,7 @@ export function AccountPage() {
     });
   });
 
-  // ── Tab 2: My Bans ──
+  // ── 第二个标签页：本人经手的封禁 ──
   function loadMyBans() {
     var el = document.getElementById('mybans-content');
     el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--label-3);">加载中...</div>';
@@ -276,7 +276,7 @@ export function AccountPage() {
       });
   };
 
-  // ── Tab 2: Edit Ban ──
+  // ── 第二个标签页：编辑封禁 ──
   window.accEditBan = async function(id) {
     var resp = await fetch('/api/admin/bans/' + id, { headers: { 'Authorization': 'Bearer ' + jwt } });
     if (!resp.ok) { showToast('获取记录失败', 'error'); return; }
@@ -311,7 +311,7 @@ export function AccountPage() {
       .catch(function() { showToast('请求失败', 'error'); });
   };
 
-  // ── Tab 3: My Records ──
+  // ── 第三个标签页：本人处理记录 ──
   function loadMyRecords() {
     var el = document.getElementById('records-content');
     el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--label-3);">加载中...</div>';
@@ -352,7 +352,7 @@ export function AccountPage() {
     document.getElementById('records-content').innerHTML = h;
   }
 
-  // ── Tab 4: My Info ──
+  // ── 第四个标签页：个人展示信息 ──
   function loadMyInfo() {
     var el = document.getElementById('info-content');
     el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--label-3);">加载中...</div>';
@@ -383,7 +383,7 @@ export function AccountPage() {
       });
   }
 
-  // ── Edit ban form submit ──
+  // ── 提交封禁编辑表单 ──
   document.getElementById('accEditBanForm')?.addEventListener('submit', async function(e) {
     e.preventDefault();
     var data = Object.fromEntries(new FormData(this));
@@ -402,7 +402,7 @@ export function AccountPage() {
     }
   });
 
-  // ── Utility ──
+  // ── 通用工具函数 ──
   function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function fmtDate(iso) {
     if (!iso) return '—';

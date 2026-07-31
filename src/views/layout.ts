@@ -1,4 +1,4 @@
-// > Public layout — full HTML shell with nav, global modal, scroll effects
+// > 公开页面布局：包含完整 HTML 外壳、导航、全局弹窗和滚动效果
 // ! 全局新增封禁 Modal (globalBanSheet) 在此定义，确保所有页面可用
 import { html, raw } from 'hono/html'
 import { Styles } from './styles'
@@ -13,7 +13,7 @@ type LayoutProps = {
 
 export function Layout(props: LayoutProps) {
   const isActive = (p: string) => props.currentPath === p || props.currentPath.startsWith(p + '/')
-  // * 随机背景图（CSS 多背景回退到 3.jpg，JS 静默缓存全部）
+  // * 随机背景图：CSS 以 1.jpg 作为回退图，脚本在后台缓存全部图片
   const bgPath = getRandomBg()
   const bgPaths = BG_IMAGES.map(f => `/images/bg/${f}`)
   return html`
@@ -40,7 +40,7 @@ ${Styles()}
 </div>
 <div class="bg-texture"></div>
 
-<!-- Floating Island Navigation -->
+<!-- 悬浮岛式主导航 -->
 <nav class="nav-island" id="navIsland" aria-label="主导航">
   <span class="nav-logo">✦ 鸡蛋肠粉</span>
   <ul class="nav-links">
@@ -59,7 +59,7 @@ ${Styles()}
   <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="菜单"><span></span><span></span></button>
 </nav>
 
-<!-- Mobile Menu Overlay -->
+<!-- 移动端菜单遮罩层 -->
 <div class="mobile-menu" id="mobileMenu">
   <button class="menu-close" onclick="toggleMobileMenu()">✕</button>
   <a href="/" onclick="toggleMobileMenu()">首页</a>
@@ -76,7 +76,7 @@ ${Styles()}
 
 <footer class="footer">鸡蛋肠粉服务器 · 鸡蛋肠粉封禁管理系统</footer>
 
-<!-- Global Add Ban Modal -->
+<!-- 全局新增封禁弹窗 -->
 <div id="globalBanSheet" class="cyber-sheet-overlay" role="dialog" aria-modal="true" aria-label="新增封禁" onpointerdown="this.dataset.pd=event.target===this" onclick="if(this.dataset.pd==='true')closeGlobalBanSheet()">
   <div class="cyber-sheet">
     <div class="sheet-header" style="margin-bottom:var(--spacing-md);">
@@ -107,7 +107,7 @@ ${Styles()}
 
 <script>
 (function() {
-  // * CSS 多背景：随机图在上层，3.jpg 在下层兜底。随机图未加载时 3.jpg 可见
+  // * CSS 多背景：随机图位于上层，1.jpg 位于下层兜底；随机图未加载时仍可显示背景
   var allPaths = ${raw(JSON.stringify(bgPaths).replace(/<\//g, '<\\/'))};
   // * 页面完全加载后静默缓存全部背景图
   window.addEventListener('load', function() {
@@ -117,7 +117,7 @@ ${Styles()}
     });
   });
 
-  // HTMX global error handler
+  // ! HTMX 全局错误处理：请求失败时给出可见提示，避免页面静默失效
   document.body.addEventListener('htmx:sendError', function() {
     var t = document.getElementById('toast-global');
     if (!t) {
@@ -141,9 +141,9 @@ ${Styles()}
 
   var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  // Scroll-based effects (only when no reduced motion)
+  // * 仅在用户未开启“减少动态效果”时启用滚动相关动画
   if (!prefersReducedMotion) {
-    // Scroll progress bar
+    // * 页面滚动进度条
     var progressBar = document.getElementById('scroll-progress');
     var meshBg = document.querySelector('.mesh-bg');
     var ticking = false;
@@ -161,7 +161,7 @@ ${Styles()}
       }
     });
 
-    // Floating Island Nav — scroll shrink
+    // * 滚动后收缩悬浮导航，给内容区域留出更多空间
     var navIsland = document.getElementById('navIsland');
     if (navIsland) {
       window.addEventListener('scroll', function() {
@@ -170,13 +170,13 @@ ${Styles()}
     }
   }
 
-  // Mobile menu toggle
+  // * 移动端菜单开关
   function toggleMobileMenu() {
     document.getElementById('mobileMenu').classList.toggle('open');
     document.getElementById('hamburger').classList.toggle('open');
   }
 
-  // IntersectionObserver Scroll Reveal (works with reduced-motion too, but CSS handles the visibility)
+  // * IntersectionObserver 负责滚动显现；减少动态效果时由 CSS 接管可见性
   var revealObserver = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
       if (entry.isIntersecting) {
@@ -194,12 +194,12 @@ ${Styles()}
   }
   observeReveals();
 
-  // HTMX after swap — re-observe new reveal elements
+  // * HTMX 局部替换完成后，重新观察新增的显现元素
   document.body.addEventListener('htmx:afterSwap', function() {
     observeReveals();
   });
 
-  // Background parallax enhancement
+  // * 背景视差增强：只移动背景层，降低正文抖动风险
   if (!prefersReducedMotion) {
     var bgImage = document.querySelector('.bg-image');
     if (bgImage) {
@@ -212,7 +212,7 @@ ${Styles()}
     }
   }
 
-  // JWT login state — update nav links
+  // * 根据 JWT 登录状态更新导航链接，避免未登录用户进入后台入口
   var jwt = localStorage.getItem('jwt');
   var loginLink = document.getElementById('loginLink');
   var adminLink = document.getElementById('adminLink');
@@ -232,7 +232,7 @@ ${Styles()}
   }
 })();
 
-// ─── Global Add Ban Modal ───
+// ─── 全局新增封禁弹窗 ───
 function openGlobalBanSheet() {
   var f = document.getElementById('globalBanForm');
   if (f) f.reset();

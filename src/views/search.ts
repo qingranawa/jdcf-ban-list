@@ -1,5 +1,5 @@
-// > Search results page — cross-entity search with tabbed layout
-// ! All cards use .glass-card > .glass-card-inner double-bezel structure
+// > 搜索结果页：使用标签页展示跨实体搜索结果
+// ! 所有卡片必须使用 .glass-card > .glass-card-inner 的双层边框结构
 import { html, raw } from 'hono/html'
 import { escHtml, escAttr } from '../helpers/escape'
 import { lvBadge as lb, lvLabel as ll } from '../helpers/format'
@@ -176,7 +176,7 @@ export function SearchPage(props: SearchPageProps) {
   return html`
 <section style="min-height:100dvh;padding-top:100px;">
   <div style="max-width:1100px;margin:0 auto;padding:0 24px;">
-    <!-- Search Bar -->
+    <!-- 搜索栏 -->
     <form action="/search" method="get" class="hero-search" style="margin-bottom:32px;max-width:100%;">
       <input type="search" name="q" placeholder="搜索玩家昵称 / Steam ID / 管理员名称 / 公告标题…" autocomplete="off"
              value="${escAttr(props.query)}" />
@@ -193,14 +193,14 @@ export function SearchPage(props: SearchPageProps) {
       ${props.announcements.length > 0 ? html` — <strong style="color:var(--cyan);">${props.announcements.length}</strong> 条公告` : ''}
     </div>
 
-    <!-- Tab Selector -->
+    <!-- 结果标签选择器 -->
     <div class="search-tabs" style="display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid rgba(255,255,255,0.08);padding-bottom:8px;">
       ${raw(tabButton(activeTab === 'bans', '封禁条目', 'bans', props.query))}
       ${raw(tabButton(activeTab === 'entities', '玩家/管理员', 'entities', props.query))}
       ${raw(tabButton(activeTab === 'announcements', '公告', 'announcements', props.query))}
     </div>
 
-    <!-- Tab Content -->
+    <!-- 标签页内容 -->
     <div id="tab-bans" class="search-tab-content" style="${activeTab !== 'bans' ? 'display:none;' : ''}">
       ${raw(renderBansTab(props))}
     </div>
@@ -238,16 +238,16 @@ export function SearchPage(props: SearchPageProps) {
         document.querySelectorAll('.search-tab-content').forEach(content => {
           content.style.display = content.id === 'tab-' + tabName ? '' : 'none'
         })
-        // Update hidden input and URL
+        // * 同步隐藏输入框和地址栏，保证刷新页面后仍保留当前标签
         const form = document.querySelector('.hero-search')
         const hiddenInput = form.querySelector('input[name="tab"]')
         if (hiddenInput) hiddenInput.value = tabName
-        // Update URL without reload
+        // * 仅替换地址栏，不触发整页刷新
         const url = new URL(window.location)
         url.searchParams.set('tab', tabName)
         window.history.replaceState({}, '', url)
       }
-      // Initialize from URL on load
+        // * 页面加载时从地址栏恢复选中的标签
       document.addEventListener('DOMContentLoaded', () => {
         const url = new URL(window.location)
         const tab = url.searchParams.get('tab') || 'bans'

@@ -22,8 +22,7 @@ authRoutes.get('/logout', (c) => {
   })
 })
 
-// ── 推荐登录方式：fetch JSON ──
-// ── JWT 自检 ──
+// ── JWT 自检接口：前端据此恢复导航栏登录状态 ──
 authRoutes.get('/api/auth/check', async (c) => {
   const cookie = c.req.header('Cookie')
   const match = cookie?.match(/(?:^|;\s*)jwt=([^;]+)/)
@@ -37,6 +36,7 @@ authRoutes.get('/api/auth/check', async (c) => {
 })
 
 authRoutes.post('/api/login', async (c) => {
+  // ! 优先使用 Cloudflare 提供的真实客户端 IP；代理转发头仅作为本地兼容回退
   const ip = c.req.header('CF-Connecting-IP') || c.req.header('x-forwarded-for') || 'unknown'
 
   const { allowed, remaining } = await checkLoginRateLimit(c.env.DB, ip)
@@ -67,6 +67,7 @@ authRoutes.post('/api/login', async (c) => {
 
   await clearLoginRateLimit(c.env.DB, ip)
 
+  // * 令牌同时作为 JSON 响应和 HttpOnly Cookie 返回，兼容 API 与页面导航两种场景
   const token = await sign(
     {
       adminId: admin.id,
@@ -85,5 +86,4 @@ authRoutes.post('/api/login', async (c) => {
     { 'Set-Cookie': `jwt=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800` }
   )
 })
-
 

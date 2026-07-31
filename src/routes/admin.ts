@@ -1,4 +1,4 @@
-// > Admin routes — ban CRUD, batch processing, watchlist, team management, announcements
+// > 后台路由：封禁 CRUD、批量处理、观察名单、管理组与公告管理
 // ! 所有 /admin/* 和 /api/admin/* 路由均需 JWT 认证
 import { Hono } from 'hono'
 import { html } from 'hono/html'
@@ -39,7 +39,7 @@ async function writeAuditLog(
 
 // ── 封禁管理 ──
 
-// Admin ban list
+// * 后台封禁列表：服务端首次渲染，后续筛选由 JSON 接口提供数据
 adminRoutes.get('/admin/bans', requirePermission('T1'), async (c) => {
   const page = Math.max(1, parseInt(c.req.query('page') || '1'))
   const perPage = Math.min(100, Math.max(10, parseInt(c.req.query('per_page') || '25')))
@@ -104,7 +104,7 @@ adminRoutes.get('/api/admin/bans/:id', requirePermission('T1'), async (c) => {
   return c.json({ ...ban, status: computeStatus(ban) })
 })
 
-// API: Create ban
+// * 接口：创建封禁记录，并写入审计日志
 adminRoutes.post('/api/admin/bans', requirePermission('T1'), async (c) => {
   try {
     const body = await c.req.json()
@@ -132,7 +132,7 @@ adminRoutes.post('/api/admin/bans', requirePermission('T1'), async (c) => {
   }
 })
 
-// API: Update ban
+// * 接口：更新封禁记录；仅创建者或更高权限管理员可操作
 adminRoutes.put('/api/admin/bans/:id', requirePermission('T1'), async (c) => {
   const id = c.req.param('id')
   const adminId = c.get('adminId')
@@ -156,7 +156,7 @@ adminRoutes.put('/api/admin/bans/:id', requirePermission('T1'), async (c) => {
   return c.json({ success: true })
 })
 
-// API: Soft delete ban
+// * 接口：软删除封禁记录，保留归档追溯信息
 adminRoutes.delete('/api/admin/bans/:id', requirePermission('T1'), async (c) => {
   const id = c.req.param('id')
   const adminId = c.get('adminId')
@@ -175,7 +175,7 @@ adminRoutes.delete('/api/admin/bans/:id', requirePermission('T1'), async (c) => 
   return c.json({ success: true })
 })
 
-// API: Unarchive ban (restore from archive)
+// * 接口：从归档恢复封禁记录
 adminRoutes.post('/api/admin/bans/:id/unarchive', requirePermission('T4'), async (c) => {
   const id = c.req.param('id')
   const adminId = c.get('adminId')

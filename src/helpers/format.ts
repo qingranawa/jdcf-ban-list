@@ -1,9 +1,13 @@
+// > 展示格式化工具：统一处理日期、封禁状态、公告和违纪处罚文案
+
+// * 数据库存储 ISO 时间，页面统一输出为 YYYY-MM-DD，避免各视图重复格式化
 export function fmtDate(t: string): string {
   if (!t) return '—'
   const d = new Date(t)
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// * 徽标颜色与业务枚举集中维护；未知值使用中性色，避免页面样式失效
 export function typeBadge(t: string): string {
   const typeBadgeClass: Record<string, string> = {
     server: 'cyber-badge-cyan',
@@ -47,7 +51,7 @@ export function fmtDuration(d: string): string {
   return d
 }
 
-// 管理员违纪处罚 13 种类型
+// ! 管理员违纪处罚的机器码必须与后台表单 value 保持一致
 export const DISCIPLINE_TYPES: Record<string, string> = {
   discipline_demerit1: '记过',
   discipline_demerit2: '记大过（两次记过 = 一次记大过）',
@@ -83,6 +87,7 @@ export function categorizeDuration(d: string): string {
   return '其他'
 }
 
+// * 图表颜色按时长分类固定，统计页和未来的图表应复用这份映射
 export const durCatColors: Record<string, string> = {
   '永久': '#ff3355', '警告': '#66ffcc', '禁言': '#ffb000', 'CFBA': '#ff00aa',
   '1-7天': '#00f0ff', '8-30天': '#00aaff', '30天以上': '#0066ff',

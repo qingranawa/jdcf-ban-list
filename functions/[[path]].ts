@@ -1,4 +1,4 @@
-// > Cloudflare Pages entry point — mounts all route modules
+// > Cloudflare Pages 入口：挂载全部路由模块
 // ! CORS 白名单需同步自定义域名变更
 import { Hono } from 'hono'
 import { handle } from 'hono/cloudflare-pages'
@@ -20,7 +20,7 @@ app.route('/', authRoutes)
 app.route('/', adminRoutes)
 app.route('/', accountRoutes)
 
-// * Catches all unhandled promise rejections from route handlers
+// * 统一捕获路由处理器未处理的 Promise 拒绝，避免边缘函数直接中断
 app.onError((err, c) => {
   console.error('Unhandled error:', err?.stack || err?.message || err)
   return c.json({ error: '服务器内部错误', detail: c.env.DEV_MODE ? (err?.message || String(err)) : undefined }, 500)
