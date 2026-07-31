@@ -2,7 +2,7 @@
 
 SCP: Secret Laboratory "[CN] 鸡蛋肠粉服务器" 封禁公示与管理系统。
 
-**线上地址**: https://jdcf-ban-list.pages.dev
+**线上地址**: https://封禁.清然.vip
 
 ## 功能
 

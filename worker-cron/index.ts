@@ -1,6 +1,6 @@
 export default {
   async scheduled(event, env, ctx) {
-    const pagesUrl = env.PAGES_URL || 'https://jdcf-ban-list.pages.dev'
+    const pagesUrl = env.PAGES_URL || 'https://xn--ket899d.xn--c5w01e.vip'
 
     // Archive expired bans
     const archiveSecret = env.CRON_ARCHIVE_SECRET

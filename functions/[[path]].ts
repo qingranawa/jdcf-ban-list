@@ -12,7 +12,7 @@ import { accountRoutes } from '../src/routes/account'
 
 const app = new Hono<{ Bindings: Env }>()
 
-app.use('*', cors({ origin: ['https://jdcf-ban-list.pages.dev', 'http://localhost:8789'], credentials: true }))
+app.use('*', cors({ origin: ['https://xn--ket899d.xn--c5w01e.vip', 'https://jdcf-ban-list.pages.dev', 'http://localhost:8789'], credentials: true }))
 app.use('*', devMiddleware)
 
 app.route('/', publicRoutes)
